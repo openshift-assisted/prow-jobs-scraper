@@ -15,7 +15,7 @@ export CONTAINER_BUILD_EXTRA_PARAMS=${CONTAINER_BUILD_EXTRA_PARAMS:-"--no-cache"
 export PROW_JOBS_SCRAPER_IMAGE=${PROW_JOBS_SCRAPER_IMAGE:-"quay.io/app-sre/prow-jobs-scraper"}
 
 # Tag with the current commit sha
-PROW_JOBS_SCRAPER_TAG="$(git rev-parse HEAD)"
+PROW_JOBS_SCRAPER_TAG="$(git rev-parse --short=7 HEAD)"
 export PROW_JOBS_SCRAPER_TAG
 
 # Setup credentials to image registry
