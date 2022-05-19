@@ -27,10 +27,13 @@ format:
 mypy:
 	mypy --non-interactive --install-types src/
 
+lint-manifest:
+	oc process --local=true -f openshift/template.yaml --param IMAGE_TAG=foobar | oc apply --dry-run=client --validate -f -
+
 lint: mypy format
 	git diff --exit-code
 
 build-image:
 	$(CONTAINER_CMD) build $(CONTAINER_BUILD_EXTRA_PARAMS) -t $(PROW_JOBS_SCRAPER_IMAGE):$(PROW_JOBS_SCRAPER_TAG) .
 
-.PHONY: install install-lint install-unit-tests full-install unit-tests format mypy lint build-image
+.PHONY: install install-lint install-unit-tests full-install unit-tests format mypy lint lint-manifest build-image

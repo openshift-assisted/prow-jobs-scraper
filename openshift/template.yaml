@@ -8,14 +8,15 @@ objects:
   metadata:
     name: prow-jobs-scraper
   spec:
-    schedule: "@hourly"
+    schedule: ${SCHEDULE}
+    suspend: ${{SUSPEND}}
     jobTemplate:
       spec:
-        restartPolicy: OnFailure
-        backoffLimit: 3
         ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        backoffLimit: 3
         template:
           spec:
+            restartPolicy: OnFailure
             serviceAccountName: assisted-service
             containers:
             - name: prow-jobs-scraper
@@ -56,16 +57,20 @@ objects:
                     name: elastic-master-credentials
 parameters:
 - name: IMAGE_NAME
-  value: quay.io/app-sre/prow-jobs-scraper
+  value: "quay.io/app-sre/prow-jobs-scraper"
 - name: IMAGE_TAG
   required: true
 - name: ES_STEP_INDEX
-  value: 'steps'
+  value: "steps"
 - name: ES_JOB_INDEX
-  value: 'jobs'
+  value: "jobs"
 - name: JOB_LIST_URL
-  value: 'https://prow.ci.openshift.org/prowjobs.js?omit=annotations,labels,decoration_config,pod_spec'
+  value: "https://prow.ci.openshift.org/prowjobs.js?omit=annotations,labels,decoration_config,pod_spec"
 - name: LOG_LEVEL
-  value: 'INFO'
+  value: "INFO"
 - name: IMAGE_PULL_POLICY
-  value: 'Always'
+  value: "Always"
+- name: SUSPEND
+  value: "false"
+- name: SCHEDULE
+  value: "@hourly"
