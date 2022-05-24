@@ -37,7 +37,10 @@ class Scraper:
     def _is_assisted_job(j: prowjob.ProwJob) -> bool:
         if j.status.state not in ("success", "failure"):
             return False
-        elif not re.search("e2e-.*-assisted", j.spec.job):
+        elif not re.search("openshift.*assisted", j.spec.job):
+            return False
+        elif "openshift-release-fast-forward" in j.spec.job:
+            # exclude fast-forward jobs
             return False
         elif j.status.description and "Overridden" in j.status.description:
             # exclude overridden builds

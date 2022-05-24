@@ -1,7 +1,7 @@
 {
     "job": {
       "spec": {
-        "job": "e2e-bla-assisted",
+        "job": "pull-ci-openshift-assisted-service-master-edge-subsystem-kubeapi-aws",
         "type": "postsubmit"
       },
       "status": {
