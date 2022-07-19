@@ -65,7 +65,7 @@ parameters:
 - name: ES_JOB_INDEX
   value: "jobs"
 - name: JOB_LIST_URL
-  value: "https://prow.ci.openshift.org/prowjobs.js?omit=annotations,labels,decoration_config,pod_spec"
+  value: "https://prow.ci.openshift.org/prowjobs.js?omit=annotations,decoration_config,pod_spec"
 - name: LOG_LEVEL
   value: "INFO"
 - name: IMAGE_PULL_POLICY

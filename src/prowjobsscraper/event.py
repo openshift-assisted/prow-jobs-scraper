@@ -1,29 +1,80 @@
 from datetime import datetime, timedelta
+from multiprocessing import context
 from typing import Any, Iterator, Optional
 
 import pkg_resources
 from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
+from prowjobsscraper.equinix import EquinixMetadata
 from prowjobsscraper.prowjob import ProwJob
 from prowjobsscraper.step import JobStep
 
 
+class JobRefs(BaseModel):
+    base_ref: str
+    org: str
+    pull: Optional[str]
+    repo: str
+
+    @classmethod
+    def create_from_prow_job(cls, job: ProwJob) -> "JobRefs":
+        return cls(
+            base_ref=job.metadata.labels.refsBaseRef,
+            org=job.metadata.labels.refsOrg,
+            pull=job.metadata.labels.refsPull,
+            repo=job.metadata.labels.refsRepo,
+        )
+
+
+class JobEquinixDetails(BaseModel):
+    facility: str
+    hostname: str
+    id: str
+    metro: str
+    os_image_tag: str
+    os_slug: str
+    plan: str
+
+    @classmethod
+    def create_from_equinix_metadata(
+        cls, equinix_metadata: Optional[EquinixMetadata]
+    ) -> Optional["JobEquinixDetails"]:
+        if equinix_metadata:
+            return cls(
+                facility=equinix_metadata.facility,
+                hostname=equinix_metadata.hostname,
+                id=equinix_metadata.id,
+                metro=equinix_metadata.metro,
+                os_image_tag=equinix_metadata.operatingSystem.imageTag,
+                os_slug=equinix_metadata.operatingSystem.slug,
+                plan=equinix_metadata.plan,
+            )
+
+        return None
+
+
 class JobDetails(BaseModel):
     build_id: str
+    cloud_cluster_details: Optional[str]
+    cloud: Optional[str]
+    context: Optional[str]
     duration: int
+    equinix: Optional[JobEquinixDetails]
     name: str
+    refs: JobRefs
     start_time: datetime
     state: str
     type: str
     url: str
+    variant: Optional[str]
 
 
 class JobEvent(BaseModel):
     job: JobDetails
 
     @classmethod
-    def create_from_prow_job(cls, job: ProwJob):
+    def create_from_prow_job(cls, job: ProwJob) -> "JobEvent":
         job_duration = timedelta(seconds=0)
         if job.status.completionTime and job.status.startTime:
             job_duration = job.status.completionTime - job.status.startTime
@@ -31,12 +82,18 @@ class JobEvent(BaseModel):
         return cls(
             job=JobDetails(
                 build_id=job.status.build_id,
+                context=job.context,
                 duration=job_duration.seconds,
+                equinix=JobEquinixDetails.create_from_equinix_metadata(
+                    job.equinixMetadata
+                ),
                 name=job.spec.job,
+                refs=JobRefs.create_from_prow_job(job),
                 start_time=job.status.startTime,
                 state=job.status.state,
                 type=job.spec.type,
                 url=job.status.url,
+                variant=job.metadata.labels.variant,
             )
         )
 
@@ -53,7 +110,7 @@ class StepEvent(BaseModel):
     step: StepDetails
 
     @classmethod
-    def create_from_job_step(cls, step: JobStep):
+    def create_from_job_step(cls, step: JobStep) -> "StepEvent":
         return cls(
             job=JobEvent.create_from_prow_job(step.job).job,
             step=StepDetails(

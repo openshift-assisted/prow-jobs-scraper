@@ -1,18 +1,30 @@
 {
   "items": [
     {
+      "equinixMetadata": null,
+      "metadata": {
+        "labels": {
+          "cloud": "packet-edge",
+          "cloudClusterProfile": "packet-assisted",
+          "refsBaseRef": "master",
+          "refsOrg": "openshift",
+          "refsPull": "4121",
+          "refsRepo": "assisted-service",
+          "variant": "edge"
+        }
+      },
       "spec": {
-        "job": "branch-ci-stolostron-console-release-2.5-images",
-        "type": "postsubmit"
+        "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
+        "type": "presubmit"
       },
       "status": {
-        "state": "pending",
-        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/branch-ci-stolostron-console-release-2.5-images/1524015053345394688",
-        "startTime": "2022-05-10T13:14:38+00:00",
-        "pendingTime": "2022-05-10T13:14:38+00:00",
-        "completionTime": null,
-        "build_id": "1524015053345394688",
-        "description": "Job triggered."
+        "state": "failure",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216",
+        "startTime": "2022-07-19T07:49:05+00:00",
+        "pendingTime": "2022-07-19T07:49:06+00:00",
+        "completionTime": "2022-07-19T08:23:18+00:00",
+        "build_id": "1549300279667593216",
+        "description": "Job failed."
       }
     }
   ]

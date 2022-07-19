@@ -15,7 +15,7 @@ dependencies = [
     "requests==2.27.1",
     "google-cloud-storage==2.3.0",
     "junitparser==2.5.0",
-    "pydantic==1.9.0",
+    "pydantic==1.9.1",
     "opensearch-py==1.1.0",
 ]
 dynamic = ["version"]
@@ -36,7 +36,7 @@ envlist = clean,python3.9,report
 
 [testenv]
 usedevelop=True
-commands = pytest --cov=src --cov-append --cov-report=term-missing --junitxml=junit-{envname}.xml --junit-prefix={envname}
+commands = pytest --cov=src --cov-append --cov-report=term-missing --junitxml=junit-{envname}.xml --junit-prefix={envname} {posargs}
 deps = .[unit-tests]
 depends =
     {python3.9}: clean

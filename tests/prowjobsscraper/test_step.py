@@ -24,7 +24,7 @@ def test_step_extractor_when_junit_is_not_available_should_return_no_steps():
 
     storage_client.bucket.assert_called_once_with("origin-ci-test")
     bucket.blob.assert_called_once_with(
-        "logs/branch-ci-stolostron-console-release-2.5-images/1524015053345394688/artifacts/junit_operator.xml"
+        "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/junit_operator.xml"
     )
     assert len(steps) == 0
 
@@ -47,7 +47,7 @@ def test_step_extractor_with_valid_junit_should_return_steps():
 
     storage_client.bucket.assert_called_once_with("origin-ci-test")
     bucket.blob.assert_called_once_with(
-        "logs/branch-ci-stolostron-console-release-2.5-images/1524015053345394688/artifacts/junit_operator.xml"
+        "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/junit_operator.xml"
     )
 
     assert {s.name for s in steps} == {"step1", "step2", "step3"}
@@ -57,4 +57,4 @@ def test_step_extractor_with_valid_junit_should_return_steps():
                 __name__, f"step_assets/expected_{s.name}.json"
             )
         )
-        assert s.json() == json.dumps(expected)
+        assert s.json(exclude_unset=True) == json.dumps(expected)

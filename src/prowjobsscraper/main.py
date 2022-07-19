@@ -4,19 +4,11 @@ import sys
 from google.cloud import storage  # type: ignore
 from opensearchpy import OpenSearch
 
-from prowjobsscraper import config, event, prowjob, scraper, step
+from prowjobsscraper import config, equinix, event, prowjob, scraper, step
 
 
 def main() -> None:
     logging.basicConfig(stream=sys.stdout, level=config.LOG_LEVEL)
-    # root = logging.getLogger()
-    # handler = logging.StreamHandler(sys.stdout)
-    # handler.setLevel(config.LOG_LEVEL)
-    # formatter = logging.Formatter(
-    #     "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    # )
-    # handler.setFormatter(formatter)
-    # root.addHandler(handler)
 
     es_client = OpenSearch(
         config.ES_URL,
@@ -32,9 +24,10 @@ def main() -> None:
 
     gcloud_client = storage.Client.create_anonymous_client()
     step_extractor = step.StepExtractor(client=gcloud_client)
+    equinix_extractor = equinix.EquinixExtractor(client=gcloud_client)
 
     jobs = prowjob.ProwJobs.create_from_url(config.JOB_LIST_URL)
-    scrape = scraper.Scraper(event_store, step_extractor)
+    scrape = scraper.Scraper(event_store, step_extractor, equinix_extractor)
     scrape.execute(jobs)
 
 

@@ -4,30 +4,60 @@
       "kind": "ProwJob",
       "apiVersion": "prow.k8s.io/v1",
       "metadata": {
-        "name": "24efaa78-d063-11ec-b354-0a580a831155",
+        "name": "43b70363-0737-11ed-a2cd-0a580a810b83",
         "namespace": "ci",
-        "uid": "9c184f49-99dc-4f72-b8c3-36cf1c87ed2b",
-        "resourceVersion": "1983743259",
-        "generation": 6,
-        "creationTimestamp": "2022-05-10T13:14:38Z"
+        "uid": "591692d5-2368-41f7-b382-daca86ac8888",
+        "resourceVersion": "2161332978",
+        "generation": 10,
+        "creationTimestamp": "2022-07-19T07:49:05Z",
+        "labels": {
+          "ci-operator.openshift.io/cloud": "packet-edge",
+          "ci-operator.openshift.io/cloud-cluster-profile": "packet-assisted",
+          "ci-operator.openshift.io/variant": "edge",
+          "ci.openshift.io/generator": "prowgen",
+          "created-by-prow": "true",
+          "event-GUID": "347df8a0-0737-11ed-9a13-a93d7d3318e7",
+          "pj-rehearse.openshift.io/can-be-rehearsed": "true",
+          "prow.k8s.io/build-id": "1549300279667593216",
+          "prow.k8s.io/context": "edge-e2e-metal-assisted",
+          "prow.k8s.io/id": "43b70363-0737-11ed-a2cd-0a580a810b83",
+          "prow.k8s.io/is-optional": "false",
+          "prow.k8s.io/job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assist",
+          "prow.k8s.io/refs.base_ref": "master",
+          "prow.k8s.io/refs.org": "openshift",
+          "prow.k8s.io/refs.pull": "4121",
+          "prow.k8s.io/refs.repo": "assisted-service",
+          "prow.k8s.io/type": "presubmit"
+        }
       },
       "spec": {
-        "type": "postsubmit",
+        "type": "presubmit",
         "agent": "kubernetes",
-        "cluster": "build04",
+        "cluster": "build02",
         "namespace": "ci",
-        "job": "branch-ci-stolostron-console-release-2.5-images",
+        "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
         "refs": {
-          "org": "stolostron",
-          "repo": "console",
-          "repo_link": "https://github.com/stolostron/console",
-          "base_ref": "release-2.5",
-          "base_sha": "14ad2c2590e6f5df3a81929005aa8a932b0b1034",
-          "base_link": "https://github.com/stolostron/console/compare/46badd5add97...14ad2c2590e6"
+          "org": "openshift",
+          "repo": "assisted-service",
+          "repo_link": "https://github.com/openshift/assisted-service",
+          "base_ref": "master",
+          "base_sha": "98ac9c18986a889942839d3cf1d63f8c40ce792b",
+          "base_link": "https://github.com/openshift/assisted-service/commit/98ac9c18986a889942839d3cf1d63f8c40ce792b",
+          "pulls": [
+            {
+              "number": 4121,
+              "author": "jhernand",
+              "sha": "f8a202c4301d7916d05124e9d156cc83db151804",
+              "title": "MGMT-11027: Implement agent upgrade feature",
+              "link": "https://github.com/openshift/assisted-service/pull/4121",
+              "commit_link": "https://github.com/openshift/assisted-service/pull/4121/commits/f8a202c4301d7916d05124e9d156cc83db151804",
+              "author_link": "https://github.com/jhernand"
+            }
+          ]
         },
         "report": true,
-        "context": "branch-ci-stolostron-console-release-2.5-images",
-        "max_concurrency": 1,
+        "context": "ci/prow/edge-e2e-metal-assisted",
+        "rerun_command": "/test edge-e2e-metal-assisted",
         "pod_spec": {
           "containers": [
             {
@@ -41,17 +71,18 @@
         }
       },
       "status": {
-        "startTime": "2022-05-10T13:14:38Z",
-        "pendingTime": "2022-05-10T13:14:38Z",
-        "state": "pending",
-        "description": "Job triggered.",
-        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/branch-ci-stolostron-console-release-2.5-images/1524015053345394688",
-        "pod_name": "24efaa78-d063-11ec-b354-0a580a831155",
-        "build_id": "1524015053345394688",
+        "startTime": "2022-07-19T07:49:05Z",
+        "pendingTime": "2022-07-19T07:49:06Z",
+        "completionTime": "2022-07-19T08:23:18Z",
+        "state": "failure",
+        "description": "Job failed.",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216",
+        "pod_name": "43b70363-0737-11ed-a2cd-0a580a810b83",
+        "build_id": "1549300279667593216",
         "prev_report_states": {
-          "gcsk8sreporter": "pending",
-          "gcsreporter": "pending",
-          "github-reporter": "pending"
+          "gcsk8sreporter": "failure",
+          "gcsreporter": "failure",
+          "github-reporter": "failure"
         }
       }
     }

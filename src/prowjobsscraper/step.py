@@ -6,6 +6,7 @@ from google.cloud import exceptions, storage  # type: ignore
 from junitparser import Failure, JUnitXml, TestCase  # type: ignore
 from pydantic import BaseModel, HttpUrl
 
+from prowjobsscraper import utils
 from prowjobsscraper.prowjob import ProwJob, ProwJobs
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class StepExtractor:
     def parse_prow_jobs(self, jobs: ProwJobs) -> list[JobStep]:
         """
         For each ProwJob in ProwJob, retrieve the resulting junit file stored in Prow's GCS bucket and parse it in order to produce JobSteps.
-        TODO: see if returning a generator would be benefic on memory comsumption
+        TODO: see if returning a generator would be benefic on memory consumption
         """
         steps = []
         for j in jobs.items:
@@ -63,23 +64,16 @@ class StepExtractor:
         return steps
 
     def _get_bucket_and_path_to_junit(self, url: HttpUrl) -> tuple[str, str]:
-        if url.path is None:
-            raise ValueError("url.path is not set")
-
-        http_path = url.path.split("/")
-        bucket_name = http_path[3]
-        blob_path = url.path.split("/")[4:] + ["artifacts", "junit_operator.xml"]
-
-        return bucket_name, "/".join(blob_path)
+        bucket_name, base_path = utils.get_gcs_bucket_and_base_path_from_job_url(url)
+        junit_path = "/".join([base_path, "artifacts", "junit_operator.xml"])
+        return bucket_name, junit_path
 
     def _download_junit(self, job: ProwJob) -> str:
         if job.status.url is None:
             raise ValueError("job.status.url is not set")
 
         bucket_name, blob_path = self._get_bucket_and_path_to_junit(job.status.url)
-        gcs_bucket = self._client.bucket(bucket_name)
-        gcs_blob = gcs_bucket.blob(blob_path)
-        return gcs_blob.download_as_string()
+        return utils.download_from_gcs_as_string(self._client, bucket_name, blob_path)
 
     def _parse_junit_suite_into_steps(self, job: ProwJob, junit: str) -> list[JobStep]:
         steps = []

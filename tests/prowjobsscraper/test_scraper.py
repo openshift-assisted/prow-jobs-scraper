@@ -59,12 +59,16 @@ def test_job_filtering(job_name, job_state, job_description, is_valid_job):
     step_extractor = MagicMock()
     step_extractor.parse_prow_jobs.return_value = []
 
-    scrape = scraper.Scraper(event_store, step_extractor)
+    equinix_extractor = MagicMock()
+
+    scrape = scraper.Scraper(event_store, step_extractor, equinix_extractor)
 
     jobs.items[0].spec.job = job_name
     jobs.items[0].status.state = job_state
     jobs.items[0].status.description = job_description
     scrape.execute(jobs)
+
+    equinix_extractor.hydrate.assert_called_once()
 
     if is_valid_job:
         event_store.index_prow_jobs.assert_called_once_with(jobs.items)
@@ -83,10 +87,13 @@ def test_existing_jobs_in_event_store_are_filtered_out():
     step_extractor = MagicMock()
     step_extractor.parse_prow_jobs.return_value = []
 
-    scrape = scraper.Scraper(event_store, step_extractor)
+    equinix_extractor = MagicMock()
+
+    scrape = scraper.Scraper(event_store, step_extractor, equinix_extractor)
     jobs.items[0].spec.job = "e2e-blala-assisted"
     jobs.items[0].status.state = "success"
     scrape.execute(jobs.copy(deep=True))
+    equinix_extractor.hydrate.assert_called_once()
     event_store.index_prow_jobs.assert_called_once_with([])
 
 
@@ -102,7 +109,10 @@ def test_jobs_and_steps_are_indexed():
     step_extractor = MagicMock()
     step_extractor.parse_prow_jobs.return_value = [jobstep]
 
-    scrape = scraper.Scraper(event_store, step_extractor)
+    equinix_extractor = MagicMock()
+
+    scrape = scraper.Scraper(event_store, step_extractor, equinix_extractor)
     scrape.execute(jobs.copy(deep=True))
+    equinix_extractor.hydrate.assert_called_once()
     event_store.index_prow_jobs.assert_called_once_with(jobs.items)
     event_store.index_job_steps.assert_called_once_with([jobstep])

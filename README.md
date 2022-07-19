@@ -35,7 +35,7 @@ See below for the supported environment variables.
 | ES_PASSWORD       | Elasticsearch password used for the authentication                | |
 | ES_STEP_INDEX     | Prefix name for the index that will store the steps of each job   | steps |
 | ES_JOB_INDEX      | Prefix name for the index that will store the jobs                | jobs |
-| JOB_LIST_URL      | Job list URL                                                      | https://prow.ci.openshift.org/prowjobs.js?omit=annotations,labels,decoration_config,pod_spec |
+| JOB_LIST_URL      | Job list URL                                                      | https://prow.ci.openshift.org/prowjobs.js?omit=annotations,decoration_config,pod_spec |
 | LOG_LEVEL         | Level of the logs, default: INFO                                  | WARN |
 
 ## Unit tests

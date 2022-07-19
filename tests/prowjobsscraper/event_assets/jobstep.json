@@ -1,17 +1,39 @@
 {
   "job": {
+    "equinixMetadata": {
+      "facility": "dc13",
+      "hostname": "ipi-ci-op-yvdlzmdn-98f49-1551908182547238912",
+      "id": "47bd6216-1345-4813-aa19-c0b5648b744a",
+      "metro": "dc",
+      "operating_system": {
+        "slug": "rocky_8",
+        "image_tag": "1864658f8cc7117649908fe0acafa264f13d5b1b"
+      },
+      "plan": "c3.medium.x86"
+    },
+    "metadata": {
+      "labels": {
+        "ci-operator.openshift.io/cloud": "packet-edge",
+        "ci-operator.openshift.io/cloud-cluster-profile": "packet-assisted",
+        "ci-operator.openshift.io/variant": "edge",
+        "prow.k8s.io/refs.base_ref": "master",
+        "prow.k8s.io/refs.org": "openshift",
+        "prow.k8s.io/refs.pull": "4121",
+        "prow.k8s.io/refs.repo": "assisted-service"
+      }
+    },
     "spec": {
-      "job": "branch-ci-stolostron-console-release-2.5-images",
-      "type": "postsubmit"
+      "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
+      "type": "presubmit"
     },
     "status": {
-      "state": "pending",
-      "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/branch-ci-stolostron-console-release-2.5-images/1524015053345394688",
-      "startTime": "2022-05-10T13:14:38+00:00",
-      "pendingTime": "2022-05-10T13:14:38+00:00",
-      "completionTime": null,
-      "build_id": "1524015053345394688",
-      "description": "Job triggered."
+      "state": "failure",
+      "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216",
+      "startTime": "2022-07-19T07:49:05+00:00",
+      "pendingTime": "2022-07-19T07:49:06+00:00",
+      "completionTime": "2022-07-19T08:23:18+00:00",
+      "build_id": "1549300279667593216",
+      "description": "Job failed."
     }
   },
   "name": "step3",

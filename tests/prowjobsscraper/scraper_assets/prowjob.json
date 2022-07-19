@@ -1,70 +1,90 @@
-  {
-    "items": [
-      {
-        "kind": "ProwJob",
-        "apiVersion": "prow.k8s.io/v1",
-        "metadata": {
-          "name": "664c1896-d05e-11ec-b354-0a580a831155",
-          "namespace": "ci",
-          "uid": "c4fb175e-7a42-4dbe-ba3c-84e6726767b6",
-          "resourceVersion": "1983660378",
-          "generation": 6,
-          "creationTimestamp": "2022-05-10T12:40:40Z"
+{
+  "items": [
+    {
+      "kind": "ProwJob",
+      "apiVersion": "prow.k8s.io/v1",
+      "metadata": {
+        "name": "43b70363-0737-11ed-a2cd-0a580a810b83",
+        "namespace": "ci",
+        "uid": "591692d5-2368-41f7-b382-daca86ac8888",
+        "resourceVersion": "2161332978",
+        "generation": 10,
+        "creationTimestamp": "2022-07-19T07:49:05Z",
+        "labels": {
+          "ci-operator.openshift.io/cloud": "packet-edge",
+          "ci-operator.openshift.io/cloud-cluster-profile": "packet-assisted",
+          "ci-operator.openshift.io/variant": "edge",
+          "ci.openshift.io/generator": "prowgen",
+          "created-by-prow": "true",
+          "event-GUID": "347df8a0-0737-11ed-9a13-a93d7d3318e7",
+          "pj-rehearse.openshift.io/can-be-rehearsed": "true",
+          "prow.k8s.io/build-id": "1549300279667593216",
+          "prow.k8s.io/context": "edge-e2e-metal-assisted",
+          "prow.k8s.io/id": "43b70363-0737-11ed-a2cd-0a580a810b83",
+          "prow.k8s.io/is-optional": "false",
+          "prow.k8s.io/job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assist",
+          "prow.k8s.io/refs.base_ref": "master",
+          "prow.k8s.io/refs.org": "openshift",
+          "prow.k8s.io/refs.pull": "4121",
+          "prow.k8s.io/refs.repo": "assisted-service",
+          "prow.k8s.io/type": "presubmit"
+        }
+      },
+      "spec": {
+        "type": "presubmit",
+        "agent": "kubernetes",
+        "cluster": "build02",
+        "namespace": "ci",
+        "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
+        "refs": {
+          "org": "openshift",
+          "repo": "assisted-service",
+          "repo_link": "https://github.com/openshift/assisted-service",
+          "base_ref": "master",
+          "base_sha": "98ac9c18986a889942839d3cf1d63f8c40ce792b",
+          "base_link": "https://github.com/openshift/assisted-service/commit/98ac9c18986a889942839d3cf1d63f8c40ce792b",
+          "pulls": [
+            {
+              "number": 4121,
+              "author": "jhernand",
+              "sha": "f8a202c4301d7916d05124e9d156cc83db151804",
+              "title": "MGMT-11027: Implement agent upgrade feature",
+              "link": "https://github.com/openshift/assisted-service/pull/4121",
+              "commit_link": "https://github.com/openshift/assisted-service/pull/4121/commits/f8a202c4301d7916d05124e9d156cc83db151804",
+              "author_link": "https://github.com/jhernand"
+            }
+          ]
         },
-        "spec": {
-          "type": "presubmit",
-          "agent": "kubernetes",
-          "cluster": "build02",
-          "namespace": "ci",
-          "job": "pull-ci-openshift-installer-master-e2e-metal-assisted",
-          "refs": {
-            "org": "openshift",
-            "repo": "installer",
-            "repo_link": "https://github.com/openshift/installer",
-            "base_ref": "master",
-            "base_sha": "7cf5db3347f44473fa3fc3bb2df5293ff9657c84",
-            "base_link": "https://github.com/openshift/installer/commit/7cf5db3347f44473fa3fc3bb2df5293ff9657c84",
-            "pulls": [
-              {
-                "number": 5877,
-                "author": "patrickdillon",
-                "sha": "d079f31255caefa060ef9dcd682e362ce2afc6d4",
-                "title": "WIP: Testing. Do not merge",
-                "link": "https://github.com/openshift/installer/pull/5877",
-                "commit_link": "https://github.com/openshift/installer/pull/5877/commits/d079f31255caefa060ef9dcd682e362ce2afc6d4",
-                "author_link": "https://github.com/patrickdillon"
-              }
-            ]
-          },
-          "report": true,
-          "context": "ci/prow/e2e-metal-assisted",
-          "rerun_command": "/test e2e-metal-assisted",
-          "pod_spec": {
-            "containers": [
-              {
-                "name": "",
-                "resources": {}
-              }
-            ]
-          },
-          "prowjob_defaults": {
-            "tenant_id": "GlobalDefaultID"
-          }
+        "report": true,
+        "context": "ci/prow/edge-e2e-metal-assisted",
+        "rerun_command": "/test edge-e2e-metal-assisted",
+        "pod_spec": {
+          "containers": [
+            {
+              "name": "",
+              "resources": {}
+            }
+          ]
         },
-        "status": {
-          "startTime": "2022-05-10T12:40:40Z",
-          "pendingTime": "2022-05-10T12:40:40Z",
-          "state": "success",
-          "description": "Job triggered.",
-          "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/openshift_installer/5877/pull-ci-openshift-installer-master-e2e-metal-assisted/1524006506834432000",
-          "pod_name": "664c1896-d05e-11ec-b354-0a580a831155",
-          "build_id": "1524006506834432000",
-          "prev_report_states": {
-            "gcsk8sreporter": "pending",
-            "gcsreporter": "pending",
-            "github-reporter": "pending"
-          }
+        "prowjob_defaults": {
+          "tenant_id": "GlobalDefaultID"
+        }
+      },
+      "status": {
+        "startTime": "2022-07-19T07:49:05Z",
+        "pendingTime": "2022-07-19T07:49:06Z",
+        "completionTime": "2022-07-19T08:23:18Z",
+        "state": "failure",
+        "description": "Job failed.",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216",
+        "pod_name": "43b70363-0737-11ed-a2cd-0a580a810b83",
+        "build_id": "1549300279667593216",
+        "prev_report_states": {
+          "gcsk8sreporter": "failure",
+          "gcsreporter": "failure",
+          "github-reporter": "failure"
         }
       }
-    ]
-  }
+    }
+  ]
+}

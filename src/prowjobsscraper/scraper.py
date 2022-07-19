@@ -1,17 +1,21 @@
 import logging
 import re
 
-from prowjobsscraper import event, prowjob, step
+from prowjobsscraper import equinix, event, prowjob, step
 
 logger = logging.getLogger(__name__)
 
 
 class Scraper:
     def __init__(
-        self, event_store: event.EventStoreElastic, step_extractor: step.StepExtractor
+        self,
+        event_store: event.EventStoreElastic,
+        step_extractor: step.StepExtractor,
+        equinix_extractor: equinix.EquinixExtractor,
     ):
         self._event_store = event_store
         self._step_extractor = step_extractor
+        self._equinix_extractor = equinix_extractor
 
     def execute(self, jobs: prowjob.ProwJobs):
         logger.info("%s jobs will be processed", len(jobs.items))
@@ -23,7 +27,10 @@ class Scraper:
         known_build_ids = self._event_store.scan_build_ids()
         jobs.items = [j for j in jobs.items if j.status.build_id not in known_build_ids]
 
-        # Retrieve executed for each jobs
+        # Retrieve equinix metadata for each job
+        self._equinix_extractor.hydrate(jobs)
+
+        # Retrieve executed steps for each job
         steps = self._step_extractor.parse_prow_jobs(jobs)
 
         # Store jobs and steps into their respective indices
