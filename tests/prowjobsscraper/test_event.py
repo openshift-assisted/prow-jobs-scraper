@@ -126,3 +126,18 @@ def test_index_prow_job_when_successful(bulk):
     assert indexed_prow_job[0] == expected_prow_job
 
     es_client.indices.refresh.assert_called_once_with(index=expected_job_index)
+
+
+def test_job_step_successfully_parse_into_step_event():
+    job_step = step.JobStep.parse_raw(
+        pkg_resources.resource_string(__name__, f"event_assets/jobstep.json")
+    )
+    step_event = event.StepEvent.create_from_job_step(job_step)
+
+    expected_step_event = event.StepEvent.parse_raw(
+        pkg_resources.resource_string(
+            __name__, f"event_assets/expected_step_event.json"
+        )
+    )
+
+    assert step_event == expected_step_event

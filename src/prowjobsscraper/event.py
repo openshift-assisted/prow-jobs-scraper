@@ -56,7 +56,7 @@ class JobEquinixDetails(BaseModel):
 
 class JobDetails(BaseModel):
     build_id: str
-    cloud_cluster_details: Optional[str]
+    cloud_cluster_profile: Optional[str]
     cloud: Optional[str]
     context: Optional[str]
     duration: int
@@ -82,6 +82,8 @@ class JobEvent(BaseModel):
         return cls(
             job=JobDetails(
                 build_id=job.status.build_id,
+                cloud_cluster_profile=job.metadata.labels.cloudClusterProfile,
+                cloud=job.metadata.labels.cloud,
                 context=job.context,
                 duration=job_duration.seconds,
                 equinix=JobEquinixDetails.create_from_equinix_metadata(

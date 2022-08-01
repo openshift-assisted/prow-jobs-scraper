@@ -1,0 +1,36 @@
+{
+    "job": {
+        "build_id": "1549300279667593216",
+        "cloud_cluster_profile": "packet-assisted",
+        "cloud": "packet-edge",
+        "context": "e2e-metal-assisted",
+        "duration": 2053,
+        "equinix": {
+            "facility": "dc13",
+            "hostname": "ipi-ci-op-yvdlzmdn-98f49-1551908182547238912",
+            "id": "47bd6216-1345-4813-aa19-c0b5648b744a",
+            "metro": "dc",
+            "os_image_tag": "1864658f8cc7117649908fe0acafa264f13d5b1b",
+            "os_slug": "rocky_8",
+            "plan": "c3.medium.x86"
+        },
+        "name": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
+        "refs": {
+            "base_ref": "master",
+            "org": "openshift",
+            "pull": "4121",
+            "repo": "assisted-service"
+        },
+        "start_time": "2022-07-19T07:49:05+00:00",
+        "state": "failure",
+        "type": "presubmit",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216",
+        "variant": "edge"
+    },
+    "step": {
+        "details": "subsystem/agent_test.go:206\ufffd[0m\r\n\r\n\ufffd[91m\ufffd[1m[Fail] \ufffd[0m\ufffd[90mAgent tests \ufffd[0m\ufffd[91m\ufffd[1m[It] Verify nextInstructionSeconds \ufffd[0m\r\n\ufffd[37m/home/assisted/subsystem/utils.go:91\ufffd[0m\r\n\r\n\ufffd[91m\ufffd[1m[Fail] \ufffd[0m\ufffd[90mAgent tests \ufffd[0m\ufffd[91m\ufffd[1m[It] Cluster not exists \ufffd[0m\r\n\ufffd[37m/home/assisted/subsystem/utils.go:91\ufffd[0m\r\n\r\n\ufffd[91m\ufffd[1m[Fail] \ufffd[0m\ufffd[90mAgent tests \ufffd[0m\ufffd[91m\ufffd[1m[It] Register recovery \ufffd[0m\r\n\ufffd[37m/home/assisted/subsystem/utils.go:91\ufffd[0m\r\n\r\n\ufffd[91m\ufffd[1m[Fail] \ufffd[0m\ufffd[90mAgent tests \ufffd[0m\ufffd[91m\ufffd[1m[It] Step not exists \ufffd[0m\r\n\ufffd[37m/home/assisted/subsystem/utils.go:91\ufffd[0m\r\n\r\n\ufffd[91m\ufffd[1m[Fail] \ufffd[0m\ufffd[90mAgent tests \ufffd[0m\ufffd[91m\ufffd[1m[It] Execute echo \ufffd[0m\r\n\ufffd[37m/home/assisted/subsystem/utils.go:91\ufffd[0m\r\n\r\n\ufffd[91m\ufffd[1m[Fail] \ufffd[0m\ufffd[90mAgent tests \ufffd[0m\ufffd[91m\ufffd[1m[It] Multiple steps \ufffd[0m\r\n\ufffd[37m/home/assisted/subsystem/utils.go:91\ufffd[0m\r\n\r\n\ufffd[1m\ufffd[91mRan 29 of 29 Specs in 223.046 seconds\ufffd[0m\r\n\ufffd[1m\ufffd[91mFAIL!\ufffd[0m -- \ufffd[32m\ufffd[1m0 Passed\ufffd[0m | \ufffd[91m\ufffd[1m29 Failed\ufffd[0m | \ufffd[33m\ufffd[1m0 Pending\ufffd[0m | \ufffd[36m\ufffd[1m0 Skipped\ufffd[0m\r\n\r\nDONE 1 tests, 1 failure in 226.644s\r\nmake[2]: Entering directory `/home/assisted'\r\nmake _coverage\r\nmake[3]: Entering directory `/home/assisted'\r\nmake[3]: Nothing to be done for `_coverage'.\r\nmake[3]: Leaving directory `/home/assisted'\r\nmake[2]: Leaving directory `/home/assisted'\r\nmake[1]: *** [_test] Error 1\r\nmake[1]: Leaving directory `/home/assisted'\r\nStopping subsystem_wiremock_1 ... \r\r\n\ufffd[1A\ufffd[2K\rStopping subsystem_wiremock_1 ... \ufffd[32mdone\ufffd[0m\r\ufffd[1BRemoving subsystem_agent_run_1 ... \r\r\nRemoving subsystem_wiremock_1  ... \r\r\n\ufffd[2A\ufffd[2K\rRemoving subsystem_agent_run_1 ... \ufffd[32mdone\ufffd[0m\r\ufffd[2B\ufffd[1A\ufffd[2K\rRemoving subsystem_wiremock_1  ... \ufffd[32mdone\ufffd[0m\r\ufffd[1BRemoving network subsystem_agent_network\r\nmake: *** [subsystem] Error 2\r\n{\"component\":\"entrypoint\",\"error\":\"wrapped process failed: exit status 2\",\"file\":\"k8s.io/test-infra/prow/entrypoint/run.go:80\",\"func\":\"k8s.io/test-infra/prow/entrypoint.Options.Run\",\"level\":\"error\",\"msg\":\"Error executing test process\",\"severity\":\"error\",\"time\":\"2022-04-20T22:54:01Z\"}\nerror: failed to execute wrapped command: exit status 2\n",
+        "duration": 610,
+        "name": "step3",
+        "state": "failure"
+    }
+}
