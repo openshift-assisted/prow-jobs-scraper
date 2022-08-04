@@ -1,0 +1,5 @@
+<testsuites>
+    <testsuite name="step graph" tests="50" skipped="0" failures="2" time="4550.287162788">
+        <testcase name="step1" time="0.2264XXXXX"/>
+    </testsuite>
+</testsuites>

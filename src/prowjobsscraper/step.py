@@ -34,8 +34,13 @@ class JobStep(BaseModel):
                 break
 
         duration = timedelta(0)
-        if case.time:
-            duration = timedelta(seconds=float(case.time))
+        try:
+            if case.time:
+                duration = timedelta(seconds=float(case.time))
+        except ValueError:
+            logger.warn(
+                "Cannot parse duration in junit because it is malformed, job: %s", job
+            )
         return cls(
             job=job,
             name=case.name,
