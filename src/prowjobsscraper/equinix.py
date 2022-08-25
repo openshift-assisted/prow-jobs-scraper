@@ -19,6 +19,7 @@ class EquinixExtractor:
         "packet-assisted": [
             "{}/artifacts/{}/assisted-baremetal-gather/artifacts/equinix-metadata.json",
             "{}/artifacts/{}/assisted-baremetal-operator-gather/artifacts/equinix-metadata.json",
+            "{}/artifacts/{}/assisted-common-gather/artifacts/equinix-metadata.json",
         ],
         "packet-sno": [
             "{}/artifacts/{}/baremetalds-sno-gather/artifacts/equinix-metadata.json"

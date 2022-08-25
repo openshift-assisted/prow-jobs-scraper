@@ -19,8 +19,16 @@ from prowjobsscraper.prowjob import (EquinixMetadata,
         ),
         (  # ... if it fails, try to download from assisted-baremetal-operator-gather
             "packet-assisted",
-            [exceptions.ClientError("test")],
+            [exceptions.ClientError("not assisted-baremetal-gather")],
             "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-baremetal-operator-gather/artifacts/equinix-metadata.json",
+        ),
+        (  # ... if it fails again, try to download from assisted-common-gather
+            "packet-assisted",
+            [
+                exceptions.ClientError("not assisted-baremetal-gather"),
+                exceptions.ClientError("not assisted-baremetal-operator-gather"),
+            ],
+            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-common-gather/artifacts/equinix-metadata.json",
         ),
         (  # try to download from baremetalds-sno-gather
             "packet-sno",
@@ -91,6 +99,9 @@ def test_hydrate_equinix_should_not_fail_when_metadata_are_missing():
         ),
         call(
             "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-baremetal-operator-gather/artifacts/equinix-metadata.json"
+        ),
+        call(
+            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-common-gather/artifacts/equinix-metadata.json"
         ),
     ]
 
