@@ -17,12 +17,14 @@ class EquinixExtractor:
     # map cloud cluster profile with the possible locations of the equinix metadata file
     _METADATA_PATH_TEMPLATES: Final[dict[str, list[str]]] = {
         "packet-assisted": [
+            "{}/artifacts/{}/baremetalds-packet-gather-metadata/artifacts/equinix-metadata.json",
             "{}/artifacts/{}/assisted-baremetal-gather/artifacts/equinix-metadata.json",
             "{}/artifacts/{}/assisted-baremetal-operator-gather/artifacts/equinix-metadata.json",
             "{}/artifacts/{}/assisted-common-gather/artifacts/equinix-metadata.json",
         ],
         "packet-sno": [
-            "{}/artifacts/{}/baremetalds-sno-gather/artifacts/equinix-metadata.json"
+            "{}/artifacts/{}/baremetalds-packet-gather-metadata/artifacts/equinix-metadata.json",
+            "{}/artifacts/{}/baremetalds-sno-gather/artifacts/equinix-metadata.json",
         ],
     }
 

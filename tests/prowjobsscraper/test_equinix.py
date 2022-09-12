@@ -12,27 +12,41 @@ from prowjobsscraper.prowjob import (EquinixMetadata,
 @pytest.mark.parametrize(
     "cloud_cluster_profile, side_effect, expected_metadata_path",
     [
-        (  # Try first to download from assisted-baremetal-gather directory...
+        (  # try to download from baremetalds-packet-gather-metadata directory...
             "packet-assisted",
             [],
+            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/baremetalds-packet-gather-metadata/artifacts/equinix-metadata.json",
+        ),
+        (  # else try to download from assisted-baremetal-gather directory...
+            "packet-assisted",
+            [exceptions.ClientError("not baremetalds-packet-gather-metadata")],
             "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-baremetal-gather/artifacts/equinix-metadata.json",
         ),
-        (  # ... if it fails, try to download from assisted-baremetal-operator-gather
-            "packet-assisted",
-            [exceptions.ClientError("not assisted-baremetal-gather")],
-            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-baremetal-operator-gather/artifacts/equinix-metadata.json",
-        ),
-        (  # ... if it fails again, try to download from assisted-common-gather
+        (  # else try to download from assisted-baremetal-operator-gather
             "packet-assisted",
             [
+                exceptions.ClientError("not baremetalds-packet-gather-metadata"),
+                exceptions.ClientError("not assisted-baremetal-gather"),
+            ],
+            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-baremetal-operator-gather/artifacts/equinix-metadata.json",
+        ),
+        (  # else try to download from assisted-common-gather
+            "packet-assisted",
+            [
+                exceptions.ClientError("not baremetalds-packet-gather-metadata"),
                 exceptions.ClientError("not assisted-baremetal-gather"),
                 exceptions.ClientError("not assisted-baremetal-operator-gather"),
             ],
             "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-common-gather/artifacts/equinix-metadata.json",
         ),
-        (  # try to download from baremetalds-sno-gather
+        (  # try to download from baremetalds-packet-gather-metadata
             "packet-sno",
             [],
+            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/baremetalds-packet-gather-metadata/artifacts/equinix-metadata.json",
+        ),
+        (  # else try to download from baremetalds-sno-gather
+            "packet-sno",
+            [exceptions.ClientError("not baremetalds-packet-gather-metadata")],
             "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/baremetalds-sno-gather/artifacts/equinix-metadata.json",
         ),
     ],
@@ -94,6 +108,9 @@ def test_hydrate_equinix_should_not_fail_when_metadata_are_missing():
 
     storage_client.bucket.assert_called_with("origin-ci-test")
     assert bucket.blob.call_args_list == [
+        call(
+            "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/baremetalds-packet-gather-metadata/artifacts/equinix-metadata.json"
+        ),
         call(
             "pr-logs/pull/openshift_assisted-service/4121/pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted/1549300279667593216/artifacts/e2e-metal-assisted/assisted-baremetal-gather/artifacts/equinix-metadata.json"
         ),
