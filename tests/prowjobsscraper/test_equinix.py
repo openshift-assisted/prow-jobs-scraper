@@ -5,8 +5,11 @@ import pytest
 from google.cloud import exceptions
 
 from prowjobsscraper.equinix import EquinixExtractor
-from prowjobsscraper.prowjob import (EquinixMetadata,
-                                     EquinixMetadataOperationSystem, ProwJobs)
+from prowjobsscraper.prowjob import (
+    EquinixMetadata,
+    EquinixMetadataOperationSystem,
+    ProwJobs,
+)
 
 
 @pytest.mark.parametrize(

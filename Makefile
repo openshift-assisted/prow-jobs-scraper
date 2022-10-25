@@ -22,7 +22,7 @@ unit-tests:
 
 format:
 	black src/ tests/
-	isort src tests/
+	isort --profile black src tests/
 
 mypy:
 	mypy --non-interactive --install-types src/
