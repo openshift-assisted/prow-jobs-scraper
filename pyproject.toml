@@ -41,7 +41,7 @@ coverage = [
 lint = [
     "black==22.10.0",
     "isort==5.10.1",
-    "mypy==0.950",
+    "mypy==0.982",
 ]
 
 [tool.tox]
