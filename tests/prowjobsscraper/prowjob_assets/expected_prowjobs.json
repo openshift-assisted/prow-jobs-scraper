@@ -15,7 +15,14 @@
       },
       "spec": {
         "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
-        "type": "presubmit"
+        "type": "presubmit",
+        "extra_refs": [
+          {
+            "org": "openshift",
+            "repo": "cluster-baremetal-operator",
+            "base_ref": "release-ocm-2.5"
+          }
+        ]
       },
       "status": {
         "state": "failure",

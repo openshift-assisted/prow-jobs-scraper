@@ -63,11 +63,14 @@ def test_valid_json_from_prow_should_be_successfully_parsed(httpserver: HTTPServ
             "periodic",
             None,
         ),
+        (
+            "rehearse-4121-pull-ci-openshift-cluster-baremetal-operator-release-ocm-2.5-e2e-metal-assisted",
+            "presubmit",
+            None,
+        ),
     ],
 )
-def test_context_should_be_successfully_parsed_based_on_job_type(
-    job_name, job_type, job_variant
-):
+def test_context_should_be_successfully_parsed(job_name, job_type, job_variant):
     jobs = prowjob.ProwJobs.create_from_string(
         pkg_resources.resource_string(
             __name__, "prowjob_assets/valid_prow_response.json"

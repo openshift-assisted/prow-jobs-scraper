@@ -36,6 +36,14 @@
         "cluster": "build02",
         "namespace": "ci",
         "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
+        "extra_refs": [
+          {
+            "org": "openshift",
+            "repo": "cluster-baremetal-operator",
+            "base_ref": "release-ocm-2.5",
+            "workdir": true
+          }
+        ],
         "refs": {
           "org": "openshift",
           "repo": "assisted-service",

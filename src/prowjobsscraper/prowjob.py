@@ -17,9 +17,12 @@ _TYPE_PREFIX: Final[dict[str, str]] = {
     "postsubmit": "branch-ci",
 }
 
+
+_JOB_REHEARSE_PREFIX: Final[str] = "rehearse-"
+
 # Base prefix for a job name
 # e.g.: {branch-ci}-{openshift}-{assisted-service}-{master}-
-_JOB_PREFIX: str = "{type}-{org}-{repo}-{branch}-"
+_JOB_PREFIX_TEMPLATE: Final[str] = "{type}-{org}-{repo}-{branch}-"
 
 
 class EquinixMetadataOperationSystem(BaseModel):
@@ -52,9 +55,16 @@ class ProwJobMetadata(BaseModel):
     labels: ProwJobMetadataLabels
 
 
+class ProwJobRef(BaseModel):
+    org: str
+    repo: str
+    base_ref: str
+
+
 class ProwJobSpec(BaseModel):
     job: str
     type: str
+    extra_refs: Optional[list[ProwJobRef]]
 
 
 class ProwJobStatus(BaseModel):
@@ -75,6 +85,22 @@ class ProwJob(BaseModel):
 
     @property
     def context(self) -> str:
+        if self.spec.job.startswith(_JOB_REHEARSE_PREFIX):
+            job_prefix = self._get_job_rehearse_prefix()
+        else:
+            job_prefix = self._get_job_prefix()
+
+        context = self.spec.job.removeprefix(job_prefix)
+        logger.debug(
+            "job=%s job_prefix=%s context=%s : %s",
+            self.spec.job,
+            job_prefix,
+            context,
+            self,
+        )
+        return context
+
+    def _get_job_prefix(self) -> str:
         if not (
             self.metadata.labels.refsOrg
             and self.metadata.labels.refsRepo
@@ -83,7 +109,7 @@ class ProwJob(BaseModel):
             logger.warn("Job name cannot be sanitized %s", self)
             return self.spec.job
 
-        job_prefix = _JOB_PREFIX.format(
+        job_prefix = _JOB_PREFIX_TEMPLATE.format(
             type=_TYPE_PREFIX[self.spec.type],
             org=self.metadata.labels.refsOrg,
             repo=self.metadata.labels.refsRepo,
@@ -92,15 +118,32 @@ class ProwJob(BaseModel):
         if self.metadata.labels.variant:
             job_prefix = f"{job_prefix}{self.metadata.labels.variant}-"
 
-        job_name = self.spec.job.removeprefix(job_prefix)
-        logger.debug(
-            "job=%s job_prefix=%s job_name=%s : %s",
-            self.spec.job,
-            job_prefix,
-            job_name,
-            self,
+        return job_prefix
+
+    def _get_job_rehearse_prefix(self) -> str:
+        if not self.spec.extra_refs or len(self.spec.extra_refs) != 1:
+            logger.warn("Invalid extra_refs to determine rehearse job context %s", self)
+            return self.spec.job
+
+        if not self.metadata.labels.refsPull:
+            logger.warn(
+                "refsPull is required to determine rehearse job context %s", self
+            )
+            return self.spec.job
+
+        job_prefix = f"{_JOB_REHEARSE_PREFIX}{self.metadata.labels.refsPull}-"
+
+        ref = self.spec.extra_refs[0]
+        job_prefix = job_prefix + _JOB_PREFIX_TEMPLATE.format(
+            type=_TYPE_PREFIX[self.spec.type],
+            org=ref.org,
+            repo=ref.repo,
+            branch=ref.base_ref,
         )
-        return job_name
+        if self.metadata.labels.variant:
+            job_prefix = f"{job_prefix}{self.metadata.labels.variant}-"
+
+        return job_prefix
 
 
 class ProwJobs(BaseModel):
