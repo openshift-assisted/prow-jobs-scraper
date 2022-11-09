@@ -8,14 +8,23 @@ PROW_JOBS_SCRAPER_TAG := $(or $(PROW_JOBS_SCRAPER_TAG),latest)
 
 install:
 	pip install .
+	$(MAKE) clean-install
 
 install-lint:
 	pip install .[lint]
+	$(MAKE) clean-install
 
 install-unit-tests:
 	pip install .[test-runner]
+	$(MAKE) clean-install
 
 full-install: install install-lint install-unit-tests
+
+# setuptools leaves a build/ directory behind after "pip install"
+# clean it up in order to be able to install packages during
+# "build" and "test" phases in Prow
+clean-install:
+	rm -rf ./build
 
 unit-tests:
 	tox
