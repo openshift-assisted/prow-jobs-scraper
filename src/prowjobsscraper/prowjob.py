@@ -106,7 +106,7 @@ class ProwJob(BaseModel):
             and self.metadata.labels.refsRepo
             and self.metadata.labels.refsBaseRef
         ):
-            logger.warn("Job name cannot be sanitized %s", self)
+            logger.warning("Job name cannot be sanitized %s", self)
             return self.spec.job
 
         job_prefix = _JOB_PREFIX_TEMPLATE.format(
@@ -122,11 +122,13 @@ class ProwJob(BaseModel):
 
     def _get_job_rehearse_prefix(self) -> str:
         if not self.spec.extra_refs or len(self.spec.extra_refs) != 1:
-            logger.warn("Invalid extra_refs to determine rehearse job context %s", self)
+            logger.warning(
+                "Invalid extra_refs to determine rehearse job context %s", self
+            )
             return self.spec.job
 
         if not self.metadata.labels.refsPull:
-            logger.warn(
+            logger.warning(
                 "refsPull is required to determine rehearse job context %s", self
             )
             return self.spec.job

@@ -38,7 +38,7 @@ class JobStep(BaseModel):
             if case.time:
                 duration = timedelta(seconds=float(case.time))
         except ValueError:
-            logger.warn(
+            logger.warning(
                 "Cannot parse duration in junit because it is malformed, job: %s", job
             )
         return cls(
