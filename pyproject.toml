@@ -20,11 +20,13 @@ dependencies = [
     "junitparser==2.8.0",
     "pydantic==1.10.2",
     "opensearch-py==2.0.0",
+    "slack_sdk==3.18.3",
 ]
 dynamic = ["version"]
 
 [project.scripts]
 prow-jobs-scraper = "prowjobsscraper.main:main"
+jobs-auto-report = "jobsautoreport.main:main"
 
 [project.optional-dependencies]
 test-runner = [
