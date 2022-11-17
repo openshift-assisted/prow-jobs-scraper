@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi8/python-39:latest
 
-COPY . .
+COPY --chown=1001:0 . .
 
-RUN make install
+RUN pip install --upgrade pip && make install
 
 ENTRYPOINT [ "prow-jobs-scraper" ]
