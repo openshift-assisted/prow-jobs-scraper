@@ -60,7 +60,7 @@ objects:
   metadata:
     name: jobs-auto-report
   spec:
-    schedule: ${JOBS_AUTO_REPORT_LOG_SCHEDULE}
+    schedule: ${JOBS_AUTO_REPORT_SCHEDULE}
     suspend: ${{JOBS_AUTO_REPORT_SUSPEND}}
     jobTemplate:
       spec:
