@@ -1,3 +1,5 @@
+import logging
+import sys
 from datetime import datetime, timedelta
 
 from opensearchpy import OpenSearch
@@ -9,6 +11,7 @@ from jobsautoreport.report import Reporter
 
 
 def main() -> None:
+    logging.basicConfig(stream=sys.stdout, level=config.LOG_LEVEL)
 
     os_usr = config.ES_USER
     os_pwd = config.ES_PASSWORD
