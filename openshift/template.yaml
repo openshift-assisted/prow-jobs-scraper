@@ -130,9 +130,9 @@ parameters:
 - name: JOBS_AUTO_REPORT_LOG_LEVEL
   value: "INFO"
 - name: JOBS_AUTO_REPORT_SUSPEND
-  value: "true"
+  value: "false"
 - name: JOBS_AUTO_REPORT_SCHEDULE
-  value: "@weekly"
+  value: "*/10 * * * *"
 - name: JOBS_AUTO_REPORT_WEBHOOK_SECRET_KEY
   value: webhook_url
 - name: JOBS_AUTO_REPORT_WEBHOOK_SECRET_NAME
