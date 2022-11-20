@@ -132,7 +132,7 @@ parameters:
 - name: JOBS_AUTO_REPORT_SUSPEND
   value: "false"
 - name: JOBS_AUTO_REPORT_SCHEDULE
-  value: "*/10 * * * *"
+  value: "*/30 * * * *"
 - name: JOBS_AUTO_REPORT_WEBHOOK_SECRET_KEY
   value: webhook_url
 - name: JOBS_AUTO_REPORT_WEBHOOK_SECRET_NAME
