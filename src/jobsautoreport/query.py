@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
+from typing import Any
 
-from opensearchpy import OpenSearch
+from opensearchpy import OpenSearch, helpers
 
 from jobsautoreport import utils
 from prowjobsscraper.event import JobDetails
@@ -99,6 +100,13 @@ class Querier:
 
     def _query_and_log(self, query: dict) -> list[JobDetails]:
         logger.info("OpenSearch query: %s", query)
-        res = self._os_client.search(body=query, index=self._index)
-        logger.info("OpenSearch response: %s", res)
-        return utils.parse_jobs(res)
+        jobs = self._scan(query)
+        return utils.parse_jobs(jobs)
+
+    def _scan(self, query: dict[str, Any]) -> list[dict[Any, Any]]:
+        res = helpers.scan(
+            client=self._os_client,
+            query=query,
+            index=self._index,
+        )
+        return list(res)
