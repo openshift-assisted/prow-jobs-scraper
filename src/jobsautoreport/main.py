@@ -16,7 +16,7 @@ def main() -> None:
 
     client = OpenSearch(os_host, http_auth=(os_usr, os_pwd))
 
-    index_name = config.ES_JOB_INDEX
+    index_name = config.ES_JOB_INDEX + "-*"
 
     now = datetime.now()
     a_week_ago = now - timedelta(weeks=1)
