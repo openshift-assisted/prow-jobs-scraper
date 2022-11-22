@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Optional
 
 from jobsautoreport.query import Querier
 
@@ -8,13 +9,11 @@ class Reporter:
         self._querier = querier
 
     def get_success_rate(self, from_date: datetime, to_date: datetime) -> str:
-        successfull_jobs_list = self._querier.query_successfull_jobs(from_date, to_date)
-        unsuccessfull_jobs_list = self._querier.query_successfull_jobs(
-            from_date, to_date
-        )
-        if len(successfull_jobs_list) == 0:
+        successful_jobs_list = self._querier.query_successful_jobs(from_date, to_date)
+        unsuccessful_jobs_list = self._querier.query_successful_jobs(from_date, to_date)
+        if len(successful_jobs_list) == 0:
             return "0"
-        return f"{(len(successfull_jobs_list) / (len(unsuccessfull_jobs_list) + len(successfull_jobs_list))) * 100}%"
+        return f"{(len(successful_jobs_list) / (len(unsuccessful_jobs_list) + len(successful_jobs_list))) * 100}%"
 
     def get_number_of_jobs_triggered(
         self, from_date: datetime, to_date: datetime
@@ -24,9 +23,9 @@ class Reporter:
 
     def get_average_duration_of_jobs(
         self, from_date: datetime, to_date: datetime
-    ) -> float:
+    ) -> Optional[timedelta]:
         jobs_list = self._querier.query_number_of_jobs_triggered(from_date, to_date)
         if len(jobs_list) == 0:
-            return 0
-        avg = sum([job.duration for job in jobs_list]) / len(jobs_list)
-        return avg
+            return None
+        avg = int(sum([job.duration for job in jobs_list]) / len(jobs_list))
+        return timedelta(seconds=avg)

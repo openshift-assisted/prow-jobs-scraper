@@ -35,7 +35,7 @@ class Querier:
         }
 
     @staticmethod
-    def _get_query_successfull_jobs(from_date: datetime, to_date: datetime) -> dict:
+    def _get_query_successful_jobs(from_date: datetime, to_date: datetime) -> dict:
         return {
             "query": {
                 "bool": {
@@ -55,7 +55,7 @@ class Querier:
         }
 
     @staticmethod
-    def _get_query_unsuccessfull_jobs(from_date: datetime, to_date: datetime) -> dict:
+    def _get_query_unsuccessful_jobs(from_date: datetime, to_date: datetime) -> dict:
         return {
             "query": {
                 "bool": {
@@ -74,16 +74,16 @@ class Querier:
             }
         }
 
-    def query_successfull_jobs(
+    def query_successful_jobs(
         self, from_date: datetime, to_date: datetime
     ) -> list[JobDetails]:
-        query = self._get_query_successfull_jobs(from_date, to_date)
+        query = self._get_query_successful_jobs(from_date, to_date)
         return self._query_and_log(query)
 
-    def query_unsuccessfull_jobs(
+    def query_unsuccessful_jobs(
         self, from_date: datetime, to_date: datetime
     ) -> list[JobDetails]:
-        query = self._get_query_unsuccessfull_jobs(from_date, to_date)
+        query = self._get_query_unsuccessful_jobs(from_date, to_date)
         return self._query_and_log(query)
 
     def query_number_of_jobs_triggered(

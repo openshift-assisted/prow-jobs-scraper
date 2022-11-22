@@ -25,11 +25,14 @@ def main() -> None:
     a_week_ago = now - timedelta(weeks=1)
 
     querier = Querier(client, index_name)
-    processor = Reporter(querier)
+    reporter = Reporter(querier)
 
-    success_rate = processor.get_success_rate(a_week_ago, now)
-    number_of_jobs_triggered = processor.get_number_of_jobs_triggered(a_week_ago, now)
-    average_job_duration = processor.get_average_duration_of_jobs(a_week_ago, now)
+    success_rate = reporter.get_success_rate(a_week_ago, now)
+    number_of_jobs_triggered = reporter.get_number_of_jobs_triggered(a_week_ago, now)
+    average_jobs_duration = reporter.get_average_duration_of_jobs(a_week_ago, now)
+
+    if average_jobs_duration is None:
+        return
 
     slack_webhook_url = config.SLACK_WEBHOOK_URL
     webhook = WebhookClient(slack_webhook_url)
@@ -43,7 +46,11 @@ def main() -> None:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"• Jobs success rate: _{success_rate}_\n• Number of jobs triggered: _{number_of_jobs_triggered}_\n• Jobs average duration: _{average_job_duration}_",
+                    "text": f"""
+• Jobs success rate: _{success_rate}_
+• Number of jobs triggered: _{number_of_jobs_triggered}_
+• Jobs average duration: _{int(average_jobs_duration.total_seconds()) // 60}_ minutes, and _{int(average_jobs_duration.total_seconds())  % 60}_ seconds
+""",
                 },
             },
         ]
