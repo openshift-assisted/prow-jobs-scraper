@@ -46,11 +46,11 @@ def main() -> None:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"""
-• Jobs success rate: _{success_rate}_
-• Number of jobs triggered: _{number_of_jobs_triggered}_
-• Jobs average duration: _{int(average_jobs_duration.total_seconds()) // 60}_ minutes, and _{int(average_jobs_duration.total_seconds())  % 60}_ seconds
-""",
+                    "text": (
+                        f"• Jobs success rate: _{success_rate}_\n"
+                        f"• Number of jobs triggered: _{number_of_jobs_triggered}_\n"
+                        f"• Jobs average duration: _{int(average_jobs_duration.total_seconds()) // 60}_ minutes, and _{int(average_jobs_duration.total_seconds())  % 60}_ seconds"
+                    ),
                 },
             },
         ]
