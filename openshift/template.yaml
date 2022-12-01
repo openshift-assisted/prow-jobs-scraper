@@ -103,11 +103,17 @@ objects:
                   secretKeyRef:
                     key: master_user_password
                     name: elastic-master-credentials
-              - name: SLACK_WEBHOOK_URL
+              - name: SLACK_BOT_TOKEN
                 valueFrom:
                   secretKeyRef:
-                    key: ${JOBS_AUTO_REPORT_WEBHOOK_SECRET_KEY}
-                    name: ${JOBS_AUTO_REPORT_WEBHOOK_SECRET_NAME}
+                    key: ${JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_KEY}
+                    name: ${JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_NAME}
+              - name: SLACK_CHANNEL_ID
+                valueFrom:
+                  secretKeyRef:
+                    key: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY}
+                    name: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_NAME}
+
 parameters:
 - name: IMAGE_NAME
   value: "quay.io/app-sre/prow-jobs-scraper"
@@ -133,7 +139,11 @@ parameters:
   value: "false"
 - name: JOBS_AUTO_REPORT_SCHEDULE
   value: "@weekly"
-- name: JOBS_AUTO_REPORT_WEBHOOK_SECRET_KEY
-  value: webhook_url
-- name: JOBS_AUTO_REPORT_WEBHOOK_SECRET_NAME
-  value: jobs-auto-report-slack-webhook
+- name: JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_NAME
+  value: jobs-auto-report-slack-bot-token
+- name: JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_KEY
+  value: slack-bot-token
+- name: JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_NAME
+  value: jobs-auto-report-slack-channel-id
+- name: JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY
+  value: slack-channel-id

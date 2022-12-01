@@ -3,11 +3,13 @@ import sys
 from datetime import datetime, timedelta
 
 from opensearchpy import OpenSearch
-from slack_sdk.webhook import WebhookClient
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 from jobsautoreport import config
 from jobsautoreport.query import Querier
 from jobsautoreport.report import Reporter
+from jobsautoreport.slack import SlackReporter
 
 
 def main() -> None:
@@ -27,34 +29,19 @@ def main() -> None:
     querier = Querier(client, index_name)
     reporter = Reporter(querier)
 
-    success_rate = reporter.get_success_rate(a_week_ago, now)
-    number_of_jobs_triggered = reporter.get_number_of_jobs_triggered(a_week_ago, now)
-    average_jobs_duration = reporter.get_average_duration_of_jobs(a_week_ago, now)
+    data = {
+        "success_rate": reporter.get_success_rate(a_week_ago, now),
+        "number_of_jobs_triggered": reporter.get_number_of_jobs_triggered(
+            a_week_ago, now
+        ),
+        "average_jobs_duration": reporter.get_average_duration_of_jobs(a_week_ago, now),
+    }
 
-    if average_jobs_duration is None:
-        return
-
-    slack_webhook_url = config.SLACK_WEBHOOK_URL
-    webhook = WebhookClient(slack_webhook_url)
-    res = webhook.send(
-        blocks=[
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": "*Jobs Weekly Report:*"},
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"• Jobs success rate: _{success_rate}_\n"
-                        f"• Number of jobs triggered: _{number_of_jobs_triggered}_\n"
-                        f"• Jobs average duration: _{int(average_jobs_duration.total_seconds()) // 60}_ minutes, and _{int(average_jobs_duration.total_seconds())  % 60}_ seconds"
-                    ),
-                },
-            },
-        ]
+    web_client = WebClient(token=config.SLACK_BOT_TOKEN)
+    slack_reporter = SlackReporter(
+        web_client=web_client, channel_id=config.SLACK_CHANNEL_ID
     )
+    slack_reporter.send_report(data)
 
 
 if __name__ == "__main__":
