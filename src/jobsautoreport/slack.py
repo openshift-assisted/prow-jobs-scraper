@@ -3,6 +3,9 @@ from typing import Any
 
 from slack_sdk import WebClient
 
+from jobsautoreport.models import JobType
+from jobsautoreport.report import Report
+
 logger = logging.getLogger(__name__)
 
 
@@ -11,32 +14,32 @@ class SlackReporter:
         self._client = web_client
         self._channel_id = channel_id
 
-    def send_report(self, data: dict[str, Any]) -> None:
-        if not self._is_valid(data):
-            return
-
-        blocks_list = self._format_as_message(data)
-        res = self._client.chat_postMessage(
-            channel=self._channel_id, blocks=blocks_list
+    def send_report(self, report: Report) -> None:
+        blocks = self._format_message(report)
+        logger.debug("Message format finished successfully")
+        response = self._client.chat_postMessage(
+            channel=self._channel_id, blocks=blocks
         )
-        time_stamp = res["ts"]
+        response.validate()
+        logger.info("Message sent successfully")
 
-    def comment_on_message(
-        self, msg_time_stamp: str, data: list[dict[str, Any]]
-    ) -> None:
-        blocks_list = self._format_as_comment(data)
-        res = self._client.chat_postMessage(
-            channel=self._channel_id, blocks=blocks_list, ts=msg_time_stamp
+        time_stamp = response["ts"]
+        blocks = self._format_comment(report)
+        logger.debug("comment format finished successfully")
+        response = self._client.chat_postMessage(
+            channel=self._channel_id, blocks=blocks, thread_ts=time_stamp
         )
+        response.validate()
+        logger.info("Comment sent successfully")
 
-    @staticmethod
-    def _format_as_message(data: dict[str, Any]) -> list[dict[str, Any]]:
+    @classmethod
+    def _format_message(cls, report: Report) -> list[dict[str, Any]]:
         return [
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Jobs Weekly Report",
+                    "text": "Periodic e2e/subsystem jobs report:",
                     "emoji": True,
                 },
             },
@@ -45,7 +48,7 @@ class SlackReporter:
                 "fields": [
                     {
                         "type": "mrkdwn",
-                        "text": f"*Jobs success rate*: {data['success_rate']}",
+                        "text": f"*Number of e2e/subsystem periodic jobs:* {report.number_of_e2e_or_subsystem_periodic_jobs} - \n:slack-green: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs}",
                     }
                 ],
             },
@@ -54,72 +57,112 @@ class SlackReporter:
                 "fields": [
                     {
                         "type": "mrkdwn",
-                        "text": f"*Number of jobs triggered*: {data['number_of_jobs_triggered']}",
+                        "text": f"*Success rate for e2e/subsystem periodic jobs:* {report.success_rate_for_e2e_or_subsystem_periodic_jobs}%",
                     }
                 ],
             },
             {
                 "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Average duration*:{data['average_jobs_duration']}",
-                    }
-                ],
+                "fields": cls._build_top_failing_jobs(
+                    report.top_10_failing_e2e_or_subsystem_periodic_jobs,
+                    JobType.PERIODIC,
+                ),
             },
         ]
 
-    @staticmethod
-    def _format_as_comment(data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    @classmethod
+    def _format_comment(cls, report: Report) -> list[dict[str, Any]]:
         return [
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Top 10 failing e2e periodic jobs",
+                    "text": "Presubmit e2e jobs report:",
                     "emoji": True,
                 },
             },
             {
                 "type": "section",
                 "fields": [
-                    {"type": "mrkdwn", "text": f"1. Job name: {data[0]['name']}"},
-                    {"type": "mrkdwn", "text": f"Job score: {data[0]['score']}"},
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Number of e2e/subsystem presubmit jobs:* {report.number_of_e2e_or_subsystem_presubmit_jobs} - \n:slack-green: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs}",
+                    }
                 ],
             },
             {
                 "type": "section",
                 "fields": [
-                    {"type": "mrkdwn", "text": f"2. Job name: {data[1]['name']}"},
-                    {"type": "mrkdwn", "text": f"Job score: {data[1]['score']}"},
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Number of rehearsal jobs:* {report.number_of_rehearsal_jobs}",
+                    }
                 ],
             },
             {
                 "type": "section",
                 "fields": [
-                    {"type": "mrkdwn", "text": f"3. Job name: {data[2]['name']}"},
-                    {"type": "mrkdwn", "text": f"Job score: {data[2]['score']}"},
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Success rate for e2e/subsystem presubmit jobs:* {report.success_rate_for_e2e_or_subsystem_presubmit_jobs}%",
+                    }
                 ],
             },
             {
                 "type": "section",
-                "fields": [
-                    {"type": "mrkdwn", "text": f"4. Job name: {data[3]['name']}"},
-                    {"type": "mrkdwn", "text": f"Job score: {data[3]['score']}"},
-                ],
+                "fields": cls._build_top_failing_jobs(
+                    report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
+                    JobType.PRESUBMIT,
+                ),
             },
             {
                 "type": "section",
-                "fields": [
-                    {"type": "mrkdwn", "text": f"5. Job name: {data[4]['name']}"},
-                    {"type": "mrkdwn", "text": f"Job score: {data[4]['score']}"},
-                ],
+                "fields": cls._build_top_triggered_jobs(
+                    report.top_5_most_triggered_e2e_or_subsystem_jobs
+                ),
             },
         ]
 
     @staticmethod
-    def _is_valid(data: dict[str, Any]) -> bool:
-        for v in data.values():
-            if v is None:
-                return False
-        return True
+    def _build_top_failing_jobs(
+        top_jobs: list[tuple[str, Any]], job_type: JobType
+    ) -> list[dict[str, Any]]:
+        if len(top_jobs) == 0:
+            return []
+        res = [
+            {
+                "type": "mrkdwn",
+                "text": f"*Top {min(10, len(top_jobs))} failed e2e/subsystem {job_type.value} jobs:*",
+            }
+        ]
+
+        for job in top_jobs:
+            res.append(
+                {
+                    "type": "mrkdwn",
+                    "text": f"•\t {job[0]}: {job[1]}%",
+                }
+            )
+        return res
+
+    @staticmethod
+    def _build_top_triggered_jobs(
+        top_jobs: list[tuple[str, Any]]
+    ) -> list[dict[str, Any]]:
+        if len(top_jobs) == 0:
+            return []
+        res = [
+            {
+                "type": "mrkdwn",
+                "text": f"*Top {min(5, len(top_jobs))} triggered e2e/subsystem jobs:*",
+            }
+        ]
+
+        for job in top_jobs:
+            res.append(
+                {
+                    "type": "mrkdwn",
+                    "text": f"•\t {job[0]}:   {job[1]}",
+                }
+            )
+        return res

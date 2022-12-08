@@ -5,6 +5,7 @@ from typing import Any
 from opensearchpy import OpenSearch, helpers
 
 from jobsautoreport import utils
+from jobsautoreport.models import JobState, JobType
 from prowjobsscraper.event import JobDetails
 
 logger = logging.getLogger(__name__)
@@ -29,77 +30,19 @@ class Querier:
                                 }
                             }
                         }
-                    ],
+                    ]
                 }
             }
         }
 
-    @staticmethod
-    def _get_query_successful_jobs(from_date: datetime, to_date: datetime) -> dict:
-        return {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"job.state": "success"}},
-                        {
-                            "range": {
-                                "job.start_time": {
-                                    "gte": from_date,
-                                    "lte": to_date,
-                                }
-                            }
-                        },
-                    ],
-                }
-            }
-        }
-
-    @staticmethod
-    def _get_query_unsuccessful_jobs(from_date: datetime, to_date: datetime) -> dict:
-        return {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"job.state": "failure"}},
-                        {
-                            "range": {
-                                "job.start_time": {
-                                    "gte": from_date,
-                                    "lte": to_date,
-                                }
-                            }
-                        },
-                    ],
-                }
-            }
-        }
-
-    def query_successful_jobs(
-        self, from_date: datetime, to_date: datetime
-    ) -> list[JobDetails]:
-        query = self._get_query_successful_jobs(from_date, to_date)
-        return self._query_and_log(query)
-
-    def query_unsuccessful_jobs(
-        self, from_date: datetime, to_date: datetime
-    ) -> list[JobDetails]:
-        query = self._get_query_unsuccessful_jobs(from_date, to_date)
-        return self._query_and_log(query)
-
-    def query_number_of_jobs_triggered(
-        self, from_date: datetime, to_date: datetime
-    ) -> list[JobDetails]:
-        query = self._get_query_all_jobs(from_date, to_date)
-        return self._query_and_log(query)
-
-    def query_average_duration_of_jobs(
+    def query_all_jobs(
         self, from_date: datetime, to_date: datetime
     ) -> list[JobDetails]:
         query = self._get_query_all_jobs(from_date, to_date)
         return self._query_and_log(query)
 
     def _query_and_log(self, query: dict) -> list[JobDetails]:
-        logger.info("OpenSearch query: %s", query)
+        logger.debug("OpenSearch query: %s", query)
         jobs = self._scan(query)
         return utils.parse_jobs(jobs)
 

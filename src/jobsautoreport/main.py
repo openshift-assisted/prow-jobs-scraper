@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 
 from opensearchpy import OpenSearch
 from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 
 from jobsautoreport import config
 from jobsautoreport.query import Querier
@@ -29,19 +28,13 @@ def main() -> None:
     querier = Querier(client, index_name)
     reporter = Reporter(querier)
 
-    data = {
-        "success_rate": reporter.get_success_rate(a_week_ago, now),
-        "number_of_jobs_triggered": reporter.get_number_of_jobs_triggered(
-            a_week_ago, now
-        ),
-        "average_jobs_duration": reporter.get_average_duration_of_jobs(a_week_ago, now),
-    }
+    report = reporter.get_report(from_date=a_week_ago, to_date=now)
 
     web_client = WebClient(token=config.SLACK_BOT_TOKEN)
     slack_reporter = SlackReporter(
         web_client=web_client, channel_id=config.SLACK_CHANNEL_ID
     )
-    slack_reporter.send_report(data)
+    slack_reporter.send_report(report)
 
 
 if __name__ == "__main__":
