@@ -65,7 +65,7 @@ objects:
     jobTemplate:
       spec:
         ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
-        backoffLimit: 3
+        backoffLimit: 4
         template:
           spec:
             restartPolicy: OnFailure
