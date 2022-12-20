@@ -34,7 +34,7 @@ class SlackReporter:
 
     @classmethod
     def _format_message(cls, report: Report) -> list[dict[str, Any]]:
-        return [
+        result: list[dict[str, Any]] = [
             {
                 "type": "header",
                 "text": {
@@ -48,7 +48,7 @@ class SlackReporter:
                 "fields": [
                     {
                         "type": "mrkdwn",
-                        "text": f"*Number of e2e/subsystem periodic jobs:* {report.number_of_e2e_or_subsystem_periodic_jobs} - \n:slack-green: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs}",
+                        "text": f"*Number of e2e/subsystem periodic jobs:* \n{report.number_of_e2e_or_subsystem_periodic_jobs} - \t:slack-green: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs}",
                     }
                 ],
             },
@@ -61,18 +61,19 @@ class SlackReporter:
                     }
                 ],
             },
-            {
-                "type": "section",
-                "fields": cls._build_top_failing_jobs(
-                    report.top_10_failing_e2e_or_subsystem_periodic_jobs,
-                    JobType.PERIODIC,
-                ),
-            },
         ]
+
+        cls._build_top_failing_jobs(
+            report.top_10_failing_e2e_or_subsystem_periodic_jobs,
+            result,
+            JobType.PERIODIC,
+        )
+
+        return result
 
     @classmethod
     def _format_comment(cls, report: Report) -> list[dict[str, Any]]:
-        return [
+        result: list[dict[str, Any]] = [
             {
                 "type": "header",
                 "text": {
@@ -108,42 +109,76 @@ class SlackReporter:
                     }
                 ],
             },
-            {
-                "type": "section",
-                "fields": cls._build_top_failing_jobs(
-                    report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
-                    JobType.PRESUBMIT,
-                ),
-            },
+        ]
+
+        cls._build_top_failing_jobs(
+            report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
+            result,
+            JobType.PRESUBMIT,
+        )
+
+        result.append(
             {
                 "type": "section",
                 "fields": cls._build_top_triggered_jobs(
                     report.top_5_most_triggered_e2e_or_subsystem_jobs
                 ),
-            },
-        ]
+            }
+        )
+
+        return result
 
     @staticmethod
     def _build_top_failing_jobs(
-        top_jobs: list[tuple[str, Any]], job_type: JobType
-    ) -> list[dict[str, Any]]:
-        if len(top_jobs) == 0:
-            return []
-        res = [
-            {
-                "type": "mrkdwn",
-                "text": f"*Top {min(10, len(top_jobs))} failed e2e/subsystem {job_type.value} jobs:*",
-            }
-        ]
+        top_jobs: list[tuple[str, Any]], result: list[dict[str, Any]], job_type: JobType
+    ) -> None:
 
-        for job in top_jobs:
-            res.append(
-                {
-                    "type": "mrkdwn",
-                    "text": f"•\t {job[0]}: {job[1]}%",
-                }
-            )
-        return res
+        if len(result) == 0:
+            return
+
+        result.append(
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Top {min(10, len(top_jobs))} failed e2e/subsystem {job_type.value} jobs:*",
+                    }
+                ],
+            }
+        )
+
+        for i in range(0, len(top_jobs), 2):
+            left_job = top_jobs[i]
+            if i + 1 < len(top_jobs):
+                right_job = top_jobs[i + 1]
+                result.append(
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": f"•\t {left_job[0]}: \n{left_job[1]}%",
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": f"•\t {right_job[0]}: \n{right_job[1]}%",
+                            },
+                        ],
+                    }
+                )
+            else:
+                result.append(
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": f"•\t {left_job[0]}: \n{left_job[1]}%",
+                            }
+                        ],
+                    }
+                )
 
     @staticmethod
     def _build_top_triggered_jobs(
@@ -162,7 +197,8 @@ class SlackReporter:
             res.append(
                 {
                     "type": "mrkdwn",
-                    "text": f"•\t {job[0]}:   {job[1]}",
+                    "text": f"•\t {job[0]}: \t{job[1]}",
                 }
             )
+
         return res

@@ -23,8 +23,6 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         ],
     )
 
-    test_channel = "abcdefgh"
-
     expected_blocks_periodic = [
         {
             "type": "header",
@@ -39,7 +37,7 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"*Number of e2e/subsystem periodic jobs:* {report.number_of_e2e_or_subsystem_periodic_jobs} - \n:slack-green: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs}",
+                    "text": f"*Number of e2e/subsystem periodic jobs:* \n{report.number_of_e2e_or_subsystem_periodic_jobs} - \t:slack-green: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs}",
                 }
             ],
         },
@@ -58,11 +56,16 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                 {
                     "type": "mrkdwn",
                     "text": f"*Top {min(10, len(report.top_10_failing_e2e_or_subsystem_periodic_jobs))} failed e2e/subsystem periodic jobs:*",
-                },
+                }
+            ],
+        },
+        {
+            "type": "section",
+            "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"•\t {report.top_10_failing_e2e_or_subsystem_periodic_jobs[0][0]}: {report.top_10_failing_e2e_or_subsystem_periodic_jobs[0][1]}%",
-                },
+                    "text": f"•\t {report.top_10_failing_e2e_or_subsystem_periodic_jobs[0][0]}: \n{report.top_10_failing_e2e_or_subsystem_periodic_jobs[0][1]}%",
+                }
             ],
         },
     ]
@@ -109,10 +112,15 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                 {
                     "type": "mrkdwn",
                     "text": f"*Top {min(10, len(report.top_10_failing_e2e_or_subsystem_presubmit_jobs))} failed e2e/subsystem presubmit jobs:*",
-                },
+                }
+            ],
+        },
+        {
+            "type": "section",
+            "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"•\t {report.top_10_failing_e2e_or_subsystem_presubmit_jobs[0][0]}: {report.top_10_failing_e2e_or_subsystem_presubmit_jobs[0][1]}%",
+                    "text": f"•\t {report.top_10_failing_e2e_or_subsystem_presubmit_jobs[0][0]}: \n{report.top_10_failing_e2e_or_subsystem_presubmit_jobs[0][1]}%",
                 },
             ],
         },
@@ -125,17 +133,17 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"•\t {report.top_5_most_triggered_e2e_or_subsystem_jobs[0][0]}:   {report.top_5_most_triggered_e2e_or_subsystem_jobs[0][1]}",
+                    "text": f"•\t {report.top_5_most_triggered_e2e_or_subsystem_jobs[0][0]}: \t{report.top_5_most_triggered_e2e_or_subsystem_jobs[0][1]}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"•\t {report.top_5_most_triggered_e2e_or_subsystem_jobs[1][0]}:   {report.top_5_most_triggered_e2e_or_subsystem_jobs[1][1]}",
+                    "text": f"•\t {report.top_5_most_triggered_e2e_or_subsystem_jobs[1][0]}: \t{report.top_5_most_triggered_e2e_or_subsystem_jobs[1][1]}",
                 },
             ],
         },
     ]
 
-    test_channel = "abcdefgh"
+    test_channel = "test-channel"
     test_thread_time_stamp = {"ts": "test-thread-time_stamp"}
     web_client_mock = MagicMock()
     web_client_mock.chat_postMessage = MagicMock()
