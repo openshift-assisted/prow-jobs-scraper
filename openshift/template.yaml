@@ -93,6 +93,8 @@ objects:
                     name: assisted-installer-elasticsearch
               - name: ES_JOB_INDEX
                 value: "${ES_JOB_INDEX}"
+              - name: ES_STEP_INDEX
+                value: "${ES_STEP_INDEX}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
