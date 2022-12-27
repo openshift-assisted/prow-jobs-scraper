@@ -66,26 +66,26 @@ class Querier:
         }
 
     def query_jobs(self, from_date: datetime, to_date: datetime) -> list[JobDetails]:
-        query = self._get_query_all_jobs(from_date, to_date)
-        return self._query_jobs_and_log(query)
+        query = self._get_query_all_jobs(from_date=from_date, to_date=to_date)
+        return self._query_jobs_and_log(query=query)
 
     def query_packet_setup_step_events(
         self, from_date: datetime, to_date: datetime
     ) -> list[StepEvent]:
         query = self._get_query_steps_by_name(
-            from_date, to_date, "baremetalds-packet-setup"
+            from_date=from_date, to_date=to_date, name="baremetalds-packet-setup"
         )
-        return self._query_step_events_and_log(query)
+        return self._query_step_events_and_log(query=query)
 
     def _query_jobs_and_log(self, query: dict[str, Any]) -> list[JobDetails]:
         logger.debug("OpenSearch query: %s", query)
-        es_jobs = self._scan(query, self._jobs_index)
-        return self._parse_jobs(es_jobs)
+        elastic_search_jobs = self._scan(query=query, index_name=self._jobs_index)
+        return self._parse_jobs(elastic_search_jobs=elastic_search_jobs)
 
     def _query_step_events_and_log(self, query: dict[str, Any]) -> list[StepEvent]:
         logger.debug("OpenSearch query: %s", query)
-        es_steps = self._scan(query, self._steps_index)
-        return self._parse_step_events(es_steps)
+        elastic_search_steps = self._scan(query=query, index_name=self._steps_index)
+        return self._parse_step_events(elastic_search_steps=elastic_search_steps)
 
     def _scan(self, query: dict[str, Any], index_name: str) -> list[dict[Any, Any]]:
         res = helpers.scan(
@@ -95,18 +95,23 @@ class Querier:
         )
         return list(res)
 
-    @classmethod
-    def _parse_jobs(cls, data: list[dict[Any, Any]]) -> list[JobDetails]:
-        return [cls._parse_job(job["_source"]["job"]) for job in data]
+    def _parse_jobs(
+        self, elastic_search_jobs: list[dict[Any, Any]]
+    ) -> list[JobDetails]:
+        return [self._parse_job(job["_source"]["job"]) for job in elastic_search_jobs]
 
-    @classmethod
-    def _parse_step_events(cls, data: list[dict[Any, Any]]) -> list[StepEvent]:
-        return [cls._parse_step_event(step_event["_source"]) for step_event in data]
+    def _parse_step_events(
+        self, elastic_search_steps: list[dict[Any, Any]]
+    ) -> list[StepEvent]:
+        return [
+            self._parse_step_event(step_event["_source"])
+            for step_event in elastic_search_steps
+        ]
 
     @staticmethod
-    def _parse_job(data: dict[Any, Any]) -> JobDetails:
-        return JobDetails.parse_obj(data)
+    def _parse_job(elastic_search_job: dict[Any, Any]) -> JobDetails:
+        return JobDetails.parse_obj(elastic_search_job)
 
     @staticmethod
-    def _parse_step_event(data: dict[Any, Any]) -> StepEvent:
-        return StepEvent.parse_obj(data)
+    def _parse_step_event(elastic_search_step: dict[Any, Any]) -> StepEvent:
+        return StepEvent.parse_obj(elastic_search_step)

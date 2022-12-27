@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
-from jobsautoreport.report import Report, Reporter
+from jobsautoreport.report import JobStatesCount, Report, Reporter
 from prowjobsscraper.event import JobDetails, JobRefs, StepDetails, StepEvent
 
 valid_queried_jobs = [
@@ -219,7 +219,10 @@ expected_report = Report(
     number_of_failing_e2e_or_subsystem_periodic_jobs=1,
     success_rate_for_e2e_or_subsystem_periodic_jobs=66.67,
     top_10_failing_e2e_or_subsystem_periodic_jobs=[
-        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-0", 66.67)
+        (
+            "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-0",
+            JobStatesCount(successes=2, failures=1, success_rate=66.67),
+        )
     ],
     number_of_e2e_or_subsystem_presubmit_jobs=4,
     number_of_successful_e2e_or_subsystem_presubmit_jobs=3,
@@ -228,18 +231,21 @@ expected_report = Report(
     success_rate_for_e2e_or_subsystem_presubmit_jobs=75.0,
     top_10_failing_e2e_or_subsystem_presubmit_jobs=[
         (
-            "pull-ci-openshift-assisted-service-master-edge-subsystem-metal-assisted-3",
-            50.0,
+            "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-2",
+            JobStatesCount(successes=2, failures=0, success_rate=100.0),
         ),
-        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-2", 100.0),
+        (
+            "pull-ci-openshift-assisted-service-master-edge-subsystem-metal-assisted-3",
+            JobStatesCount(successes=1, failures=1, success_rate=50.0),
+        ),
     ],
     top_5_most_triggered_e2e_or_subsystem_jobs=[
-        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-0", 3),
+        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-2", 2),
         (
             "pull-ci-openshift-assisted-service-master-edge-subsystem-metal-assisted-3",
             2,
         ),
-        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-2", 2),
+        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-0", 3),
     ],
     number_of_successful_machine_leases=3,
     number_of_unsuccessful_machine_leases=2,

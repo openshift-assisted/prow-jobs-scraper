@@ -26,8 +26,10 @@ def main() -> None:
     jobs_index = config.ES_JOB_INDEX + "-*"
     steps_index = config.ES_STEP_INDEX + "-*"
 
-    querier = Querier(client, jobs_index, steps_index)
-    reporter = Reporter(querier)
+    querier = Querier(
+        opensearch_client=client, jobs_index=jobs_index, steps_index=steps_index
+    )
+    reporter = Reporter(querier=querier)
 
     report = reporter.get_report(from_date=a_week_ago, to_date=now)
 
@@ -35,7 +37,7 @@ def main() -> None:
     slack_reporter = SlackReporter(
         web_client=web_client, channel_id=config.SLACK_CHANNEL_ID
     )
-    slack_reporter.send_report(report)
+    slack_reporter.send_report(report=report)
 
 
 if __name__ == "__main__":
