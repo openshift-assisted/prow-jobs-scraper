@@ -22,7 +22,7 @@ dependencies = [
     "opensearch-py==2.0.1",
     "slack_sdk==3.19.5",
     "plotly==5.11.0",
-    "kaleido==0.2.1",
+    "kaleido==0.2.1.post1",
 ]
 dynamic = ["version"]
 
