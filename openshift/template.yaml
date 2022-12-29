@@ -140,7 +140,7 @@ parameters:
 - name: JOBS_AUTO_REPORT_SUSPEND
   value: "false"
 - name: JOBS_AUTO_REPORT_SCHEDULE
-  value: "@weekly"
+  value: "*/10 * * * *"
 - name: JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_NAME
   value: jobs-auto-report-slack-bot-token
 - name: JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_KEY
