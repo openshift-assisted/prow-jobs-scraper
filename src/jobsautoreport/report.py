@@ -12,13 +12,13 @@ class JobStatesCount(BaseModel):
 
     successes: int
     failures: int
-    success_rate: float
+    failure_rate: float
 
     def __str__(self) -> str:
         return (
             f"successes: {self.successes}\n"
             f"failures: {self.failures}\n"
-            f"success_rate: {self.success_rate}"
+            f"failure_rate: {self.failure_rate}"
         )
 
 
@@ -86,13 +86,20 @@ class Reporter:
             jobs=jobs, job_state=JobState.SUCCESS
         )
         return (
-            JobStatesCount(successes=0, failures=0, success_rate=0.0)
+            JobStatesCount(successes=0, failures=0, failure_rate=0.0)
             if total_jobs_number == 0
             else JobStatesCount(
                 successes=successful_jobs_number,
                 failures=total_jobs_number - successful_jobs_number,
-                success_rate=float(
-                    round((successful_jobs_number / total_jobs_number) * 100, 2)
+                failure_rate=float(
+                    round(
+                        (
+                            (total_jobs_number - successful_jobs_number)
+                            / total_jobs_number
+                        )
+                        * 100,
+                        2,
+                    )
                 ),
             )
         )
@@ -103,14 +110,15 @@ class Reporter:
         computation_func: Callable[[str, list[JobDetails]], Any],
         n: int,
         comparison_func: Callable,
-        is_reverse: bool = False,
     ) -> list[tuple[str, Any]]:
         distinct_jobs = {job.name for job in jobs}
         res = [
             (job_name, computation_func(job_name, jobs)) for job_name in distinct_jobs
         ]
-        res = sorted(res, key=comparison_func, reverse=is_reverse)
-        return res[0 : min(len(res), n)]
+        res = sorted(res, key=comparison_func, reverse=True)
+        res = res[0 : min(len(res), n)]
+        res.reverse()
+        return res
 
     @staticmethod
     def _is_rehearsal(job: JobDetails) -> bool:
@@ -169,15 +177,13 @@ class Reporter:
             number_of_failing_e2e_or_subsystem_periodic_jobs=self._get_number_of_jobs_by_state(
                 jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
             ),
-            success_rate_for_e2e_or_subsystem_periodic_jobs=self._get_states_count(
-                jobs=periodic_subsystem_and_e2e_jobs
-            ).success_rate,
+            success_rate_for_e2e_or_subsystem_periodic_jobs=100
+            - self._get_states_count(jobs=periodic_subsystem_and_e2e_jobs).failure_rate,
             top_10_failing_e2e_or_subsystem_periodic_jobs=self._get_top_n_jobs(
                 jobs=periodic_subsystem_and_e2e_jobs,
                 computation_func=self._get_job_states_count,
                 n=10,
-                comparison_func=lambda job: (job[1].success_rate, job[0]),
-                is_reverse=True,
+                comparison_func=lambda job: (job[1].failure_rate, job[0]),
             ),
             number_of_e2e_or_subsystem_presubmit_jobs=len(
                 presubmit_subsystem_and_e2e_jobs
@@ -189,22 +195,21 @@ class Reporter:
                 jobs=presubmit_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
             ),
             number_of_rehearsal_jobs=len(rehearsal_jobs),
-            success_rate_for_e2e_or_subsystem_presubmit_jobs=self._get_states_count(
+            success_rate_for_e2e_or_subsystem_presubmit_jobs=100
+            - self._get_states_count(
                 jobs=presubmit_subsystem_and_e2e_jobs
-            ).success_rate,
+            ).failure_rate,
             top_10_failing_e2e_or_subsystem_presubmit_jobs=self._get_top_n_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
                 computation_func=self._get_job_states_count,
                 n=10,
-                comparison_func=lambda job: (job[1].success_rate, job[0]),
-                is_reverse=True,
+                comparison_func=lambda job: (job[1].failure_rate, job[0]),
             ),
             top_5_most_triggered_e2e_or_subsystem_jobs=self._get_top_n_jobs(
                 jobs=subsystem_and_e2e_jobs,
                 computation_func=self._get_job_triggers_count,
                 n=5,
                 comparison_func=lambda job: (job[1], job[0]),
-                is_reverse=False,
             ),
             number_of_successful_machine_leases=len(
                 [

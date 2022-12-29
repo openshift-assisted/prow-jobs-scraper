@@ -11,7 +11,7 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         number_of_failing_e2e_or_subsystem_periodic_jobs=3,
         success_rate_for_e2e_or_subsystem_periodic_jobs=75,
         top_10_failing_e2e_or_subsystem_periodic_jobs=[
-            ("fake-job-1", JobStatesCount(successes=3, failures=1, success_rate=75))
+            ("fake-job-1", JobStatesCount(successes=3, failures=1, failure_rate=25))
         ],
         number_of_e2e_or_subsystem_presubmit_jobs=24,
         number_of_successful_e2e_or_subsystem_presubmit_jobs=8,
@@ -19,7 +19,7 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         number_of_rehearsal_jobs=0,
         success_rate_for_e2e_or_subsystem_presubmit_jobs=33.33,
         top_10_failing_e2e_or_subsystem_presubmit_jobs=[
-            ("fake-job-2", JobStatesCount(successes=1, failures=2, success_rate=33.33))
+            ("fake-job-2", JobStatesCount(successes=1, failures=2, failure_rate=66.67))
         ],
         top_5_most_triggered_e2e_or_subsystem_jobs=[
             ("fake-job-2", 24),

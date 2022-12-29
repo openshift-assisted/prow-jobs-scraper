@@ -221,7 +221,7 @@ expected_report = Report(
     top_10_failing_e2e_or_subsystem_periodic_jobs=[
         (
             "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-0",
-            JobStatesCount(successes=2, failures=1, success_rate=66.67),
+            JobStatesCount(successes=2, failures=1, failure_rate=33.33),
         )
     ],
     number_of_e2e_or_subsystem_presubmit_jobs=4,
@@ -232,11 +232,11 @@ expected_report = Report(
     top_10_failing_e2e_or_subsystem_presubmit_jobs=[
         (
             "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-2",
-            JobStatesCount(successes=2, failures=0, success_rate=100.0),
+            JobStatesCount(successes=2, failures=0, failure_rate=0),
         ),
         (
             "pull-ci-openshift-assisted-service-master-edge-subsystem-metal-assisted-3",
-            JobStatesCount(successes=1, failures=1, success_rate=50.0),
+            JobStatesCount(successes=1, failures=1, failure_rate=50.0),
         ),
     ],
     top_5_most_triggered_e2e_or_subsystem_jobs=[
