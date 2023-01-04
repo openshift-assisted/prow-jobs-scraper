@@ -40,7 +40,7 @@ unit-tests = [
     "pytest-httpserver==1.0.6",
 ]
 coverage = [
-    "coverage[toml]==7.0.2",
+    "coverage[toml]==7.0.3",
 ]
 lint = [
     "black==22.12.0",
