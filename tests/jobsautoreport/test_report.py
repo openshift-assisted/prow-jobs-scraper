@@ -214,6 +214,8 @@ valid_queried_step_events = [
 ]
 
 expected_report = Report(
+    from_date=datetime.now(),
+    to_date=datetime.now(),
     number_of_e2e_or_subsystem_periodic_jobs=3,
     number_of_successful_e2e_or_subsystem_periodic_jobs=2,
     number_of_failing_e2e_or_subsystem_periodic_jobs=1,
@@ -245,7 +247,6 @@ expected_report = Report(
             "pull-ci-openshift-assisted-service-master-edge-subsystem-metal-assisted-3",
             2,
         ),
-        ("pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted-0", 3),
     ],
     number_of_successful_machine_leases=3,
     number_of_unsuccessful_machine_leases=2,
@@ -262,5 +263,7 @@ def test_get_report_should_successfully_create_report_from_queried_jobs():
     reporter = Reporter(querier=querier_mock)
     now = datetime.now()
     a_week_ago = now - timedelta(weeks=1)
+    expected_report.from_date = a_week_ago
+    expected_report.to_date = now
     report = reporter.get_report(from_date=a_week_ago, to_date=now)
     assert report == expected_report

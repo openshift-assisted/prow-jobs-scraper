@@ -19,7 +19,7 @@ class SlackReporter:
         report: Report,
         format_function: Callable[[Report], list[dict[str, Any]]],
         thread_time_stamp: Optional[str],
-    ) -> str:
+    ) -> None:
         blocks = format_function(report)
         logger.debug("Message formatted successfully")
         response = self._client.chat_postMessage(
@@ -27,7 +27,6 @@ class SlackReporter:
         )
         response.validate()
         logger.info("Message sent successfully")
-        return response["ts"]
 
     def _upload_file(
         self,
@@ -47,9 +46,9 @@ class SlackReporter:
         logger.info("%s was uploaded successfully", filename)
 
     def send_report(self, report: Report) -> None:
-        thread_time_stamp = self._post_message(
+        self._post_message(
             report=report,
-            format_function=self._format_message,
+            format_function=self._format_periodic_message,
             thread_time_stamp=None,
         )
         self._upload_most_failing_jobs_graph(
@@ -59,37 +58,51 @@ class SlackReporter:
         )
         self._post_message(
             report=report,
-            format_function=self._format_presubmit_comment,
-            thread_time_stamp=thread_time_stamp,
+            format_function=self._format_presubmit_message,
+            thread_time_stamp=None,
         )
         self._upload_most_failing_jobs_graph(
             jobs=report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
             file_title="Top 10 Failed Presubmit Jobs",
-            thread_time_stamp=thread_time_stamp,
+            thread_time_stamp=None,
         )
         self._create_and_upload_most_triggered_jobs_graph(
             jobs=report.top_5_most_triggered_e2e_or_subsystem_jobs,
-            file_title="Top 5 Triggered Jobs",
-            thread_time_stamp=thread_time_stamp,
+            file_title="Top 5 Triggered Presubmit Jobs",
+            thread_time_stamp=None,
         )
         self._post_message(
             report=report,
-            format_function=self._format_equinix_comment,
-            thread_time_stamp=thread_time_stamp,
+            format_function=self._format_equinix_message,
+            thread_time_stamp=None,
         )
 
     @staticmethod
-    def _format_message(report: Report) -> list[dict[str, Any]]:
+    def _format_periodic_message(report: Report) -> list[dict[str, Any]]:
         return [
             {
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": "Weekly Periodic e2e/subsystem jobs report",
+                    "text": "CI Report",
                     "emoji": True,
                 },
             },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*{report.from_date.strftime('%Y-%m-%d %H:%M:%S')}\t:arrow_right:\t{report.to_date.strftime('%Y-%m-%d %H:%M:%S')}*\n",
+                },
+            },
             {"type": "divider"},
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Periodic e2e/subsystem jobs*\n",
+                },
+            },
             {
                 "type": "section",
                 "text": {
@@ -107,34 +120,29 @@ class SlackReporter:
         ]
 
     @staticmethod
-    def _format_presubmit_comment(report: Report) -> list[dict[str, Any]]:
+    def _format_presubmit_message(report: Report) -> list[dict[str, Any]]:
         return [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Weekly Presubmit e2e/subsystem jobs report",
-                    "emoji": True,
-                },
-            },
             {"type": "divider"},
             {
                 "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ jobs - :slack-green: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs}",
-                    }
-                ],
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Presubmit e2e/subsystem jobs*\n",
+                },
             },
             {
                 "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
-                    }
-                ],
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ jobs - :slack-green: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs}",
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
+                },
             },
             {
                 "type": "section",
@@ -146,51 +154,24 @@ class SlackReporter:
         ]
 
     @staticmethod
-    def _format_equinix_comment(report: Report) -> list[dict[str, Any]]:
-        result: list[dict[str, Any]] = [
+    def _format_equinix_message(report: Report) -> list[dict[str, Any]]:
+        return [
+            {"type": "divider"},
             {
-                "type": "header",
+                "type": "section",
                 "text": {
-                    "type": "plain_text",
-                    "text": "Equinix",
-                    "emoji": True,
+                    "type": "mrkdwn",
+                    "text": "*Equinix*",
                 },
             },
             {
                 "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Number of machines leased:* {report.total_number_of_machine_leased} - \n:slack-green: {report.number_of_successful_machine_leases} :x: {report.number_of_unsuccessful_machine_leases}",
-                    }
-                ],
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"_{report.total_number_of_machine_leased}_ machines leased - :slack-green: {report.number_of_successful_machine_leases} :x: {report.number_of_unsuccessful_machine_leases}",
+                },
             },
         ]
-
-        return result
-
-    @staticmethod
-    def _build_top_triggered_jobs(
-        top_jobs: list[tuple[str, Any]]
-    ) -> list[dict[str, Any]]:
-        if len(top_jobs) == 0:
-            return []
-        res = [
-            {
-                "type": "mrkdwn",
-                "text": f"*Top {min(5, len(top_jobs))} triggered e2e/subsystem jobs:*",
-            }
-        ]
-
-        for job in top_jobs:
-            res.append(
-                {
-                    "type": "mrkdwn",
-                    "text": f"•\t {job[0]}: \t{job[1]}",
-                }
-            )
-
-        return res
 
     def _upload_most_failing_jobs_graph(
         self,

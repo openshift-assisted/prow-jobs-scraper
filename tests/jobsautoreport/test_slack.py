@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import MagicMock
 
 from jobsautoreport.report import JobStatesCount, Report
@@ -6,6 +7,8 @@ from jobsautoreport.slack import SlackReporter
 
 def test_send_report_should_successfully_call_slack_api_with_expected_message_format():
     report = Report(
+        from_date=datetime.now(),
+        to_date=datetime.now(),
         number_of_e2e_or_subsystem_periodic_jobs=12,
         number_of_successful_e2e_or_subsystem_periodic_jobs=9,
         number_of_failing_e2e_or_subsystem_periodic_jobs=3,
@@ -35,11 +38,25 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "Weekly Periodic e2e/subsystem jobs report",
+                "text": "CI Report",
                 "emoji": True,
             },
         },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*{report.from_date.strftime('%Y-%m-%d %H:%M:%S')}\t:arrow_right:\t{report.to_date.strftime('%Y-%m-%d %H:%M:%S')}*\n",
+            },
+        },
         {"type": "divider"},
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Periodic e2e/subsystem jobs*\n",
+            },
+        },
         {
             "type": "section",
             "text": {
@@ -57,32 +74,27 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     ]
 
     expected_blocks_presubmit = [
-        {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": "Weekly Presubmit e2e/subsystem jobs report",
-                "emoji": True,
-            },
-        },
         {"type": "divider"},
         {
             "type": "section",
-            "fields": [
-                {
-                    "type": "mrkdwn",
-                    "text": f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ jobs - :slack-green: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs}",
-                }
-            ],
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Presubmit e2e/subsystem jobs*\n",
+            },
         },
         {
             "type": "section",
-            "fields": [
-                {
-                    "type": "mrkdwn",
-                    "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
-                }
-            ],
+            "text": {
+                "type": "mrkdwn",
+                "text": f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ jobs - :slack-green: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs}",
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
+            },
         },
         {
             "type": "section",
@@ -94,27 +106,24 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     ]
 
     expected_blocks_equinix = [
+        {"type": "divider"},
         {
-            "type": "header",
+            "type": "section",
             "text": {
-                "type": "plain_text",
-                "text": "Equinix",
-                "emoji": True,
+                "type": "mrkdwn",
+                "text": "*Equinix*",
             },
         },
         {
             "type": "section",
-            "fields": [
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Number of machines leased:* {report.total_number_of_machine_leased} - \n:slack-green: {report.number_of_successful_machine_leases} :x: {report.number_of_unsuccessful_machine_leases}",
-                }
-            ],
+            "text": {
+                "type": "mrkdwn",
+                "text": f"_{report.total_number_of_machine_leased}_ machines leased - :slack-green: {report.number_of_successful_machine_leases} :x: {report.number_of_unsuccessful_machine_leases}",
+            },
         },
     ]
 
     test_channel = "test-channel"
-    test_thread_time_stamp = {"ts": "test-thread-time-stamp"}
     web_client_mock = MagicMock()
     web_client_mock.chat_postMessage = MagicMock()
     web_client_mock.files_upload = MagicMock()
@@ -125,7 +134,6 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     response_mock = MagicMock()
     response_mock.validate = MagicMock()
     response_mock.validate.return_value = True
-    response_mock.__getitem__.side_effect = test_thread_time_stamp.__getitem__
     web_client_mock.chat_postMessage.return_value = response_mock
     web_client_mock.files_upload.return_value = response_mock
     slack_reporter = SlackReporter(web_client=web_client_mock, channel_id=test_channel)
@@ -143,24 +151,24 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     web_client_mock.chat_postMessage.assert_any_call(
         channel=test_channel,
         blocks=expected_blocks_presubmit,
-        thread_ts=test_thread_time_stamp["ts"],
+        thread_ts=None,
     )
     web_client_mock.files_upload.assert_any_call(
         channels=[test_channel],
         file="/tmp/top_10_failed_presubmit_jobs.png",
         filename="top_10_failed_presubmit_jobs",
         initial_comment="Top 10 Failed Presubmit Jobs",
-        thread_ts=test_thread_time_stamp["ts"],
+        thread_ts=None,
     )
     web_client_mock.files_upload.assert_any_call(
         channels=[test_channel],
-        file="/tmp/top_5_triggered_jobs.png",
-        filename="top_5_triggered_jobs",
-        initial_comment="Top 5 Triggered Jobs",
-        thread_ts=test_thread_time_stamp["ts"],
+        file="/tmp/top_5_triggered_presubmit_jobs.png",
+        filename="top_5_triggered_presubmit_jobs",
+        initial_comment="Top 5 Triggered Presubmit Jobs",
+        thread_ts=None,
     )
     web_client_mock.chat_postMessage.assert_any_call(
         channel=test_channel,
         blocks=expected_blocks_equinix,
-        thread_ts=test_thread_time_stamp["ts"],
+        thread_ts=None,
     )

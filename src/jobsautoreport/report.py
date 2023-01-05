@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any, Callable
 
@@ -6,6 +7,8 @@ from pydantic import BaseModel
 from jobsautoreport.models import JobState, JobType, StepState
 from jobsautoreport.query import Querier
 from prowjobsscraper.event import JobDetails
+
+logger = logging.getLogger(__name__)
 
 
 class JobStatesCount(BaseModel):
@@ -23,7 +26,8 @@ class JobStatesCount(BaseModel):
 
 
 class Report(BaseModel):
-
+    from_date: datetime
+    to_date: datetime
     number_of_e2e_or_subsystem_periodic_jobs: int
     number_of_successful_e2e_or_subsystem_periodic_jobs: int
     number_of_failing_e2e_or_subsystem_periodic_jobs: int
@@ -42,6 +46,7 @@ class Report(BaseModel):
 
     def __str__(self) -> str:
         return (
+            f"from {self.from_date} to {self.to_date}:\n"
             f"number_of_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_e2e_or_subsystem_periodic_jobs}\n"
             f"number_of_successful_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_successful_e2e_or_subsystem_periodic_jobs}\n"
             f"number_of_failures_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_failing_e2e_or_subsystem_periodic_jobs}\n"
@@ -150,9 +155,11 @@ class Reporter:
 
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
+        logger.debug("%d jobs queried from elasticsearch", len(jobs))
         step_events = self._querier.query_packet_setup_step_events(
             from_date=from_date, to_date=to_date
         )
+        logger.debug("%d step events queried from elasticsearch", len(step_events))
         rehearsal_jobs = [job for job in jobs if self._is_rehearsal(job=job)]
         subsystem_and_e2e_jobs = [
             job
@@ -168,6 +175,8 @@ class Reporter:
         ]
 
         return Report(
+            from_date=from_date,
+            to_date=to_date,
             number_of_e2e_or_subsystem_periodic_jobs=len(
                 periodic_subsystem_and_e2e_jobs
             ),
@@ -206,7 +215,7 @@ class Reporter:
                 comparison_func=lambda job: (job[1].failure_rate, job[0]),
             ),
             top_5_most_triggered_e2e_or_subsystem_jobs=self._get_top_n_jobs(
-                jobs=subsystem_and_e2e_jobs,
+                jobs=presubmit_subsystem_and_e2e_jobs,
                 computation_func=self._get_job_triggers_count,
                 n=5,
                 comparison_func=lambda job: (job[1], job[0]),
