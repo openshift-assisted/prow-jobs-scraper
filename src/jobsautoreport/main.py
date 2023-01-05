@@ -1,6 +1,6 @@
 import logging
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from opensearchpy import OpenSearch
 from slack_sdk import WebClient
@@ -20,8 +20,17 @@ def main() -> None:
 
     client = OpenSearch(os_host, http_auth=(os_usr, os_pwd))
 
-    now = datetime.now()
-    a_week_ago = now - timedelta(weeks=1)
+    now = datetime.now(tz=timezone.utc)
+    report_end_time = datetime(
+        year=now.year,
+        month=now.month,
+        day=now.day,
+        hour=0,
+        minute=0,
+        second=0,
+        tzinfo=timezone.utc,
+    )
+    report_start_time = report_end_time - timedelta(weeks=1)
 
     jobs_index = config.ES_JOB_INDEX + "-*"
     steps_index = config.ES_STEP_INDEX + "-*"
@@ -31,7 +40,7 @@ def main() -> None:
     )
     reporter = Reporter(querier=querier)
 
-    report = reporter.get_report(from_date=a_week_ago, to_date=now)
+    report = reporter.get_report(from_date=report_start_time, to_date=report_end_time)
 
     web_client = WebClient(token=config.SLACK_BOT_TOKEN)
     slack_reporter = SlackReporter(
