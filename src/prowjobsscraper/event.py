@@ -143,23 +143,28 @@ class EventStoreElastic:
 
 
 class _EsIndex:
-    def __init__(self, client: OpenSearch, name: str):
+    def __init__(self, client: OpenSearch, index_prefix: str):
         self._client = client
 
         # Let's create one index per week
         now = datetime.now()
-        self._index_name = "{}-{}".format(name, now.strftime("%Y.%W"))
+        self._index_name = self._format_index_name(index_prefix, now)
 
         a_week_ago = now - timedelta(weeks=1)
-        self._previous_index_name = "{}-{}".format(name, a_week_ago.strftime("%Y.%W"))
+        self._previous_index_name = self._format_index_name(index_prefix, a_week_ago)
 
         # apply the index template
-
         index_schema = pkg_resources.resource_string(
-            __name__, f"indices/{name}_schema.json"
+            __name__, f"indices/{index_prefix}_schema.json"
         )
         if not self._client.indices.exists(index=self._index_name):
             self._client.indices.create(index=self._index_name, body=index_schema)
+
+    @staticmethod
+    def _format_index_name(prefix: str, date: datetime) -> str:
+        iso_calendar = date.isocalendar()
+        # keep the same format as strftime("%W") for week number
+        return f"{prefix}-{iso_calendar.year}.{iso_calendar.week:02d}"
 
     def _gen_documents(
         self, data: Iterator[dict[str, Any]]

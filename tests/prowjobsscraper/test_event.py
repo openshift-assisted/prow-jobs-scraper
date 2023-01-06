@@ -2,10 +2,16 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, call, patch
 
 import pkg_resources
+from freezegun import freeze_time
 
 from prowjobsscraper import event, step
 
+_FREEZE_TIME = "2023-01-01 12:00:00"
+_EXPECTED_CURRENT_INDEX_SUFFIX = "2022.52"
+_EXPECTED_PREVIOUS_INDEX_SUFFIX = "2022.51"
 
+
+@freeze_time(_FREEZE_TIME)
 def test_indices_should_be_created_when_required():
     def exists_side_effect(index: str, **kwargs):
         """
@@ -20,10 +26,9 @@ def test_indices_should_be_created_when_required():
         client=es_client, job_index_basename="jobs", step_index_basename="steps"
     )
 
-    expected_index_suffix = datetime.now().strftime("%Y.%W")
     expected_calls_exists = [
-        call(index=f"jobs-{expected_index_suffix}"),
-        call(index=f"steps-{expected_index_suffix}"),
+        call(index=f"jobs-{_EXPECTED_CURRENT_INDEX_SUFFIX}"),
+        call(index=f"steps-{_EXPECTED_CURRENT_INDEX_SUFFIX}"),
     ]
     assert es_client.indices.exists.call_count == 2
     es_client.indices.exists.assert_has_calls(expected_calls_exists, any_order=True)
@@ -32,10 +37,11 @@ def test_indices_should_be_created_when_required():
     assert "body" in es_client.indices.create.call_args.kwargs
     assert (
         es_client.indices.create.call_args.kwargs["index"]
-        == f"steps-{expected_index_suffix}"
+        == f"steps-{_EXPECTED_CURRENT_INDEX_SUFFIX}"
     )
 
 
+@freeze_time(_FREEZE_TIME)
 @patch("opensearchpy.helpers.scan")
 def test_scan_build_id_when_results_are_expected(scan):
     es_client = MagicMock()
@@ -49,12 +55,8 @@ def test_scan_build_id_when_results_are_expected(scan):
     )
     build_ids = event_store.scan_build_ids()
 
-    now = datetime.now()
-    a_week_ago = now - timedelta(weeks=1)
-    expected_index_suffix = now.strftime("%Y.%W")
-    expected_index_previous_suffix = a_week_ago.strftime("%Y.%W")
     expected_search_indices = (
-        f"jobs-{expected_index_suffix},jobs-{expected_index_previous_suffix}"
+        f"jobs-{_EXPECTED_CURRENT_INDEX_SUFFIX},jobs-{_EXPECTED_PREVIOUS_INDEX_SUFFIX}"
     )
 
     scan.assert_called_once()
@@ -75,9 +77,10 @@ def test_scan_build_id_when_no_results(scan):
     assert len(build_ids) == 0
 
 
+@freeze_time(_FREEZE_TIME)
 @patch("opensearchpy.helpers.bulk", return_value=[])
 def test_index_job_step_when_successful(bulk):
-    expected_step_index = datetime.now().strftime("steps-%Y.%W")
+    expected_step_index = f"steps-{_EXPECTED_CURRENT_INDEX_SUFFIX}"
 
     job_step = step.JobStep.parse_raw(
         pkg_resources.resource_string(__name__, f"event_assets/jobstep.json")
@@ -100,9 +103,10 @@ def test_index_job_step_when_successful(bulk):
     es_client.indices.refresh.assert_called_once_with(index=expected_step_index)
 
 
+@freeze_time(_FREEZE_TIME)
 @patch("opensearchpy.helpers.bulk")
 def test_index_prow_job_when_successful(bulk):
-    expected_job_index = datetime.now().strftime("jobs-%Y.%W")
+    expected_job_index = f"jobs-{_EXPECTED_CURRENT_INDEX_SUFFIX}"
 
     job_step = step.JobStep.parse_raw(
         pkg_resources.resource_string(__name__, f"event_assets/jobstep.json")
