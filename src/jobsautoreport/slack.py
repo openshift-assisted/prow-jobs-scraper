@@ -19,7 +19,7 @@ class SlackReporter:
         report: Report,
         format_function: Callable[[Report], list[dict[str, Any]]],
         thread_time_stamp: Optional[str],
-    ) -> None:
+    ) -> str:
         blocks = format_function(report)
         logger.debug("Message formatted successfully")
         response = self._client.chat_postMessage(
@@ -27,6 +27,8 @@ class SlackReporter:
         )
         response.validate()
         logger.info("Message sent successfully")
+
+        return response["ts"]
 
     def _upload_file(
         self,
@@ -46,39 +48,44 @@ class SlackReporter:
         logger.info("%s was uploaded successfully", filename)
 
     def send_report(self, report: Report) -> None:
+        thread_time_stamp = self._post_message(
+            report=report,
+            format_function=self._format_header_message,
+            thread_time_stamp=None,
+        )
         self._post_message(
             report=report,
-            format_function=self._format_periodic_message,
-            thread_time_stamp=None,
+            format_function=self._format_periodic_comment,
+            thread_time_stamp=thread_time_stamp,
         )
         self._upload_most_failing_jobs_graph(
             jobs=report.top_10_failing_e2e_or_subsystem_periodic_jobs,
             file_title="Top 10 Failed Periodic Jobs",
-            thread_time_stamp=None,
+            thread_time_stamp=thread_time_stamp,
         )
         self._post_message(
             report=report,
             format_function=self._format_presubmit_message,
-            thread_time_stamp=None,
+            thread_time_stamp=thread_time_stamp,
         )
         self._upload_most_failing_jobs_graph(
             jobs=report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
             file_title="Top 10 Failed Presubmit Jobs",
-            thread_time_stamp=None,
+            thread_time_stamp=thread_time_stamp,
         )
         self._create_and_upload_most_triggered_jobs_graph(
             jobs=report.top_5_most_triggered_e2e_or_subsystem_jobs,
             file_title="Top 5 Triggered Presubmit Jobs",
-            thread_time_stamp=None,
+            thread_time_stamp=thread_time_stamp,
         )
         self._post_message(
             report=report,
             format_function=self._format_equinix_message,
-            thread_time_stamp=None,
+            thread_time_stamp=thread_time_stamp,
         )
 
     @staticmethod
-    def _format_periodic_message(report: Report) -> list[dict[str, Any]]:
+    def _format_header_message(report: Report) -> list[dict[str, Any]]:
         return [
             {
                 "type": "header",
@@ -92,10 +99,14 @@ class SlackReporter:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*{report.from_date.strftime('%Y-%m-%d %H:%M:%S')}\t:arrow_right:\t{report.to_date.strftime('%Y-%m-%d %H:%M:%S')}*\n",
+                    "text": f"*{report.from_date.strftime('%Y-%m-%d %H:%M:%S')} UTC\t:arrow_right:\t{report.to_date.strftime('%Y-%m-%d %H:%M:%S')} UTC*\n",
                 },
             },
-            {"type": "divider"},
+        ]
+
+    @staticmethod
+    def _format_periodic_comment(report: Report) -> list[dict[str, Any]]:
+        return [
             {
                 "type": "section",
                 "text": {

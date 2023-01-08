@@ -35,22 +35,6 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
 
     expected_blocks_periodic = [
         {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": "CI Report",
-                "emoji": True,
-            },
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"*{report.from_date.strftime('%Y-%m-%d %H:%M:%S')}\t:arrow_right:\t{report.to_date.strftime('%Y-%m-%d %H:%M:%S')}*\n",
-            },
-        },
-        {"type": "divider"},
-        {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
@@ -123,7 +107,26 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         },
     ]
 
+    expected_blocks_header = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": "CI Report",
+                "emoji": True,
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*{report.from_date.strftime('%Y-%m-%d %H:%M:%S')} UTC\t:arrow_right:\t{report.to_date.strftime('%Y-%m-%d %H:%M:%S')} UTC*\n",
+            },
+        },
+    ]
+
     test_channel = "test-channel"
+    test_thread_time_stamp = {"ts": "test-thread-time-stamp"}
     web_client_mock = MagicMock()
     web_client_mock.chat_postMessage = MagicMock()
     web_client_mock.files_upload = MagicMock()
@@ -134,41 +137,47 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     response_mock = MagicMock()
     response_mock.validate = MagicMock()
     response_mock.validate.return_value = True
+    response_mock.__getitem__.side_effect = test_thread_time_stamp.__getitem__
     web_client_mock.chat_postMessage.return_value = response_mock
     web_client_mock.files_upload.return_value = response_mock
     slack_reporter = SlackReporter(web_client=web_client_mock, channel_id=test_channel)
     slack_reporter.send_report(report)
     web_client_mock.chat_postMessage.assert_any_call(
-        channel=test_channel, blocks=expected_blocks_periodic, thread_ts=None
+        channel=test_channel, blocks=expected_blocks_header, thread_ts=None
+    )
+    web_client_mock.chat_postMessage.assert_any_call(
+        channel=test_channel,
+        blocks=expected_blocks_periodic,
+        thread_ts=test_thread_time_stamp["ts"],
     )
     web_client_mock.files_upload.assert_any_call(
         channels=[test_channel],
         file="/tmp/top_10_failed_periodic_jobs.png",
         filename="top_10_failed_periodic_jobs",
         initial_comment="Top 10 Failed Periodic Jobs",
-        thread_ts=None,
+        thread_ts=test_thread_time_stamp["ts"],
     )
     web_client_mock.chat_postMessage.assert_any_call(
         channel=test_channel,
         blocks=expected_blocks_presubmit,
-        thread_ts=None,
+        thread_ts=test_thread_time_stamp["ts"],
     )
     web_client_mock.files_upload.assert_any_call(
         channels=[test_channel],
         file="/tmp/top_10_failed_presubmit_jobs.png",
         filename="top_10_failed_presubmit_jobs",
         initial_comment="Top 10 Failed Presubmit Jobs",
-        thread_ts=None,
+        thread_ts=test_thread_time_stamp["ts"],
     )
     web_client_mock.files_upload.assert_any_call(
         channels=[test_channel],
         file="/tmp/top_5_triggered_presubmit_jobs.png",
         filename="top_5_triggered_presubmit_jobs",
         initial_comment="Top 5 Triggered Presubmit Jobs",
-        thread_ts=None,
+        thread_ts=test_thread_time_stamp["ts"],
     )
     web_client_mock.chat_postMessage.assert_any_call(
         channel=test_channel,
         blocks=expected_blocks_equinix,
-        thread_ts=None,
+        thread_ts=test_thread_time_stamp["ts"],
     )

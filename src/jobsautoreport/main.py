@@ -25,7 +25,7 @@ def main() -> None:
         year=now.year,
         month=now.month,
         day=now.day,
-        hour=0,
+        hour=8,
         minute=0,
         second=0,
         tzinfo=timezone.utc,
