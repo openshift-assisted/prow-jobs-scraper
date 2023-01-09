@@ -20,14 +20,16 @@ def main() -> None:
 
     client = OpenSearch(os_host, http_auth=(os_usr, os_pwd))
 
-    now = datetime.now(tz=timezone.utc)
+    # Job execution takes 1-2 hours, and is timed out after 5. We want to have at least 6 hours for all the jobs in the report's interval to be indexed in elasticsearch
+    six_hours_ago = datetime.now(tz=timezone.utc) - timedelta(hours=6)
     report_end_time = datetime(
-        year=now.year,
-        month=now.month,
-        day=now.day,
-        hour=8,
+        year=six_hours_ago.year,
+        month=six_hours_ago.month,
+        day=six_hours_ago.day,
+        hour=six_hours_ago.hour,
         minute=0,
         second=0,
+        microsecond=0,
         tzinfo=timezone.utc,
     )
     report_start_time = report_end_time - timedelta(weeks=1)

@@ -45,14 +45,12 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ jobs - :slack-green: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs}",
-            },
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"•\t _{report.success_rate_for_e2e_or_subsystem_periodic_jobs}%_ succeeded",
+                "text": (
+                    f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total\n"
+                    f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
+                    f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
+                    f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs}%_ *success rate*\n"
+                ),
             },
         },
     ]
@@ -70,7 +68,12 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ jobs - :slack-green: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs}",
+                "text": (
+                    f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total\n"
+                    f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
+                    f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
+                    f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs}%_ *success rate*\n"
+                ),
             },
         },
         {
@@ -78,13 +81,6 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "text": {
                 "type": "mrkdwn",
                 "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
-            },
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"•\t _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs}%_ succeeded",
             },
         },
     ]
@@ -102,7 +98,11 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"_{report.total_number_of_machine_leased}_ machines leased - :slack-green: {report.number_of_successful_machine_leases} :x: {report.number_of_unsuccessful_machine_leases}",
+                "text": (
+                    f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts\n"
+                    f" \t\t *-* :done-circle-check: {report.number_of_successful_machine_leases} succeeded\n"
+                    f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed\n"
+                ),
             },
         },
     ]
