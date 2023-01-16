@@ -1,7 +1,12 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from jobsautoreport.report import JobStatesCount, Report
+from jobsautoreport.report import (
+    IdentifiedJobMetrics,
+    JobIdentifier,
+    JobMetrics,
+    Report,
+)
 from jobsautoreport.slack import SlackReporter
 
 
@@ -14,7 +19,15 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         number_of_failing_e2e_or_subsystem_periodic_jobs=3,
         success_rate_for_e2e_or_subsystem_periodic_jobs=75,
         top_10_failing_e2e_or_subsystem_periodic_jobs=[
-            ("fake-job-1", JobStatesCount(successes=3, failures=1, failure_rate=25))
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-1", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(
+                    successes=3,
+                    failures=1,
+                ),
+            )
         ],
         number_of_e2e_or_subsystem_presubmit_jobs=24,
         number_of_successful_e2e_or_subsystem_presubmit_jobs=8,
@@ -22,11 +35,35 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         number_of_rehearsal_jobs=0,
         success_rate_for_e2e_or_subsystem_presubmit_jobs=33.33,
         top_10_failing_e2e_or_subsystem_presubmit_jobs=[
-            ("fake-job-2", JobStatesCount(successes=1, failures=2, failure_rate=66.67))
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-2", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(
+                    successes=1,
+                    failures=2,
+                ),
+            )
         ],
         top_5_most_triggered_e2e_or_subsystem_jobs=[
-            ("fake-job-2", 24),
-            ("fake-job-1", 12),
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-2", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(
+                    successes=1,
+                    failures=2,
+                ),
+            ),
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-1", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(
+                    successes=3,
+                    failures=1,
+                ),
+            ),
         ],
         number_of_successful_machine_leases=1,
         number_of_unsuccessful_machine_leases=2,
@@ -49,7 +86,7 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                     f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total\n"
                     f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
                     f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
-                    f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs}%_ *success rate*\n"
+                    f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*\n"
                 ),
             },
         },
@@ -72,7 +109,7 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                     f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total\n"
                     f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
                     f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
-                    f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs}%_ *success rate*\n"
+                    f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*\n"
                 ),
             },
         },

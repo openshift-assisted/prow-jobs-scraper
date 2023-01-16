@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 import plotly.graph_objects as graph_objects  # type: ignore
 from slack_sdk import WebClient
 
-from jobsautoreport.report import JobStatesCount, Report
+from jobsautoreport.report import IdentifiedJobMetrics, Report
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +122,7 @@ class SlackReporter:
                         f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total\n"
                         f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
                         f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
-                        f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs}%_ *success rate*\n"
+                        f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*\n"
                     ),
                 },
             },
@@ -147,7 +147,7 @@ class SlackReporter:
                         f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total\n"
                         f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
                         f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
-                        f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs}%_ *success rate*\n"
+                        f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*\n"
                     ),
                 },
             },
@@ -186,13 +186,20 @@ class SlackReporter:
 
     def _upload_most_failing_jobs_graph(
         self,
-        jobs: list[tuple[str, JobStatesCount]],
+        jobs: list[IdentifiedJobMetrics],
         file_title: str,
         thread_time_stamp: Optional[str],
     ) -> None:
-        names = [job[0] for job in jobs]
-        successes = [job_states_count.successes for _, job_states_count in jobs]
-        failures = [job_states_count.failures for _, job_states_count in jobs]
+        names = [
+            identified_job_metrics.job_identifier.short_name()
+            for identified_job_metrics in jobs
+        ]
+        successes = [
+            identified_job_metrics.metrics.successes for identified_job_metrics in jobs
+        ]
+        failures = [
+            identified_job_metrics.metrics.failures for identified_job_metrics in jobs
+        ]
         filename, file_path = self._file_name_proccesor(file_title=file_title)
         fig = graph_objects.Figure()
         fig.add_trace(
@@ -238,12 +245,17 @@ class SlackReporter:
 
     def _create_and_upload_most_triggered_jobs_graph(
         self,
-        jobs: list[tuple[str, int]],
+        jobs: list[IdentifiedJobMetrics],
         file_title: str,
         thread_time_stamp: Optional[str],
     ) -> None:
-        names = [job_name for job_name, _ in jobs]
-        quantities = [quantity for _, quantity in jobs]
+        names = [
+            identified_job_metrics.job_identifier.short_name()
+            for identified_job_metrics in jobs
+        ]
+        quantities = [
+            identified_job_metrics.metrics.total for identified_job_metrics in jobs
+        ]
         filename, file_path = self._file_name_proccesor(file_title=file_title)
         fig = graph_objects.Figure()
         fig.add_trace(

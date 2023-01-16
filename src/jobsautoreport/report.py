@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from pydantic import BaseModel
 
@@ -11,17 +11,79 @@ from prowjobsscraper.event import JobDetails
 logger = logging.getLogger(__name__)
 
 
-class JobStatesCount(BaseModel):
+class JobIdentifier(BaseModel):
+
+    name: str
+    repository: str
+    base_ref: str
+    context: Optional[str]
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, self.__class__) and self.name == other.name
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def short_name(self) -> str:
+        return (
+            f"{self.repository}-{self.base_ref}-{self.context}"
+            if self.context is not None
+            else self.name
+        )
+
+    @classmethod
+    def create_from_job_details(cls, job_details: JobDetails) -> "JobIdentifier":
+        return cls(
+            name=job_details.name,
+            repository=job_details.refs.repo,
+            base_ref=job_details.refs.base_ref,
+            context=job_details.context,
+        )
+
+
+class JobMetrics(BaseModel):
 
     successes: int
     failures: int
-    failure_rate: float
+
+    @property
+    def total(self) -> int:
+        return self.successes + self.failures
+
+    @property
+    def failure_rate(self) -> float:
+        return 0 if self.total == 0 else (self.failures / self.total) * 100
+
+    @property
+    def success_rate(self) -> float:
+        return 0 if self.total == 0 else 100 - self.failure_rate
 
     def __str__(self) -> str:
         return (
             f"successes: {self.successes}\n"
             f"failures: {self.failures}\n"
-            f"failure_rate: {self.failure_rate}"
+            f"success_rate: {self.success_rate}\n"
+            f"failure_rate: {self.failure_rate}\n"
+            f"total: {self.total}\n"
+        )
+
+
+class IdentifiedJobMetrics(BaseModel):
+
+    job_identifier: JobIdentifier
+    metrics: JobMetrics
+
+    def __str__(self) -> str:
+        return (
+            f"job name: {self.job_identifier.name}"
+            f"successes: {self.metrics.successes}\n"
+            f"failures: {self.metrics.failures}\n"
+            f"success_rate: {self.metrics.success_rate}\n"
+            f"failure_rate: {self.metrics.failure_rate}\n"
+            f"total: {self.metrics.total}\n"
         )
 
 
@@ -32,14 +94,14 @@ class Report(BaseModel):
     number_of_successful_e2e_or_subsystem_periodic_jobs: int
     number_of_failing_e2e_or_subsystem_periodic_jobs: int
     success_rate_for_e2e_or_subsystem_periodic_jobs: float
-    top_10_failing_e2e_or_subsystem_periodic_jobs: list[tuple[str, JobStatesCount]]
+    top_10_failing_e2e_or_subsystem_periodic_jobs: list[IdentifiedJobMetrics]
     number_of_e2e_or_subsystem_presubmit_jobs: int
     number_of_successful_e2e_or_subsystem_presubmit_jobs: int
     number_of_failing_e2e_or_subsystem_presubmit_jobs: int
     number_of_rehearsal_jobs: int
     success_rate_for_e2e_or_subsystem_presubmit_jobs: float
-    top_10_failing_e2e_or_subsystem_presubmit_jobs: list[tuple[str, JobStatesCount]]
-    top_5_most_triggered_e2e_or_subsystem_jobs: list[tuple[str, int]]
+    top_10_failing_e2e_or_subsystem_presubmit_jobs: list[IdentifiedJobMetrics]
+    top_5_most_triggered_e2e_or_subsystem_jobs: list[IdentifiedJobMetrics]
     number_of_successful_machine_leases: int
     number_of_unsuccessful_machine_leases: int
     total_number_of_machine_leased: int
@@ -73,52 +135,43 @@ class Reporter:
     def _get_job_triggers_count(job_name: str, jobs: list[JobDetails]) -> int:
         return sum(1 for job in jobs if job.name == job_name)
 
-    def _get_job_states_count(
-        self, job_name: str, jobs: list[JobDetails]
-    ) -> JobStatesCount:
-        job_by_name = [job for job in jobs if job.name == job_name]
-        return self._get_states_count(job_by_name)
-
     @staticmethod
     def _get_number_of_jobs_by_state(
         jobs: list[JobDetails], job_state: JobState
     ) -> int:
         return len([job for job in jobs if job.state == job_state.value])
 
-    def _get_states_count(self, jobs: list[JobDetails]) -> JobStatesCount:
+    def _get_job_metrics(
+        self, job_identifier: JobIdentifier, jobs: list[JobDetails]
+    ) -> IdentifiedJobMetrics:
+        job_by_name = [job for job in jobs if job.name == job_identifier.name]
+        return IdentifiedJobMetrics(
+            job_identifier=job_identifier,
+            metrics=self._compute_job_metrics(job_by_name),
+        )
+
+    def _compute_job_metrics(self, jobs: list[JobDetails]) -> JobMetrics:
         total_jobs_number = len(jobs)
         successful_jobs_number = self._get_number_of_jobs_by_state(
             jobs=jobs, job_state=JobState.SUCCESS
         )
-        return (
-            JobStatesCount(successes=0, failures=0, failure_rate=0.0)
-            if total_jobs_number == 0
-            else JobStatesCount(
-                successes=successful_jobs_number,
-                failures=total_jobs_number - successful_jobs_number,
-                failure_rate=float(
-                    round(
-                        (
-                            (total_jobs_number - successful_jobs_number)
-                            / total_jobs_number
-                        )
-                        * 100,
-                        2,
-                    )
-                ),
-            )
+        if total_jobs_number == 0:
+            return JobMetrics(successes=0, failures=0)
+        return JobMetrics(
+            successes=successful_jobs_number,
+            failures=total_jobs_number - successful_jobs_number,
         )
 
-    @staticmethod
     def _get_top_n_jobs(
+        self,
         jobs: list[JobDetails],
-        computation_func: Callable[[str, list[JobDetails]], Any],
         n: int,
         comparison_func: Callable,
-    ) -> list[tuple[str, Any]]:
-        distinct_jobs = {job.name for job in jobs}
+    ) -> list[IdentifiedJobMetrics]:
+        distinct_jobs = {JobIdentifier.create_from_job_details(job) for job in jobs}
         res = [
-            (job_name, computation_func(job_name, jobs)) for job_name in distinct_jobs
+            self._get_job_metrics(job_identifier, jobs)
+            for job_identifier in distinct_jobs
         ]
         res = sorted(res, key=comparison_func, reverse=True)
         res = res[0 : min(len(res), n)]
@@ -186,13 +239,17 @@ class Reporter:
             number_of_failing_e2e_or_subsystem_periodic_jobs=self._get_number_of_jobs_by_state(
                 jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
             ),
-            success_rate_for_e2e_or_subsystem_periodic_jobs=100
-            - self._get_states_count(jobs=periodic_subsystem_and_e2e_jobs).failure_rate,
+            success_rate_for_e2e_or_subsystem_periodic_jobs=self._compute_job_metrics(
+                jobs=periodic_subsystem_and_e2e_jobs
+            ).success_rate,
             top_10_failing_e2e_or_subsystem_periodic_jobs=self._get_top_n_jobs(
                 jobs=periodic_subsystem_and_e2e_jobs,
-                computation_func=self._get_job_states_count,
                 n=10,
-                comparison_func=lambda job: (job[1].failure_rate, job[0]),
+                comparison_func=lambda identified_job_metrics: (
+                    identified_job_metrics.metrics.failure_rate,
+                    identified_job_metrics.metrics.failures,
+                    identified_job_metrics.job_identifier.name,
+                ),
             ),
             number_of_e2e_or_subsystem_presubmit_jobs=len(
                 presubmit_subsystem_and_e2e_jobs
@@ -204,21 +261,25 @@ class Reporter:
                 jobs=presubmit_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
             ),
             number_of_rehearsal_jobs=len(rehearsal_jobs),
-            success_rate_for_e2e_or_subsystem_presubmit_jobs=100
-            - self._get_states_count(
+            success_rate_for_e2e_or_subsystem_presubmit_jobs=self._compute_job_metrics(
                 jobs=presubmit_subsystem_and_e2e_jobs
-            ).failure_rate,
+            ).success_rate,
             top_10_failing_e2e_or_subsystem_presubmit_jobs=self._get_top_n_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
-                computation_func=self._get_job_states_count,
                 n=10,
-                comparison_func=lambda job: (job[1].failure_rate, job[0]),
+                comparison_func=lambda identified_job_metrics: (
+                    identified_job_metrics.metrics.failure_rate,
+                    identified_job_metrics.metrics.failures,
+                    identified_job_metrics.job_identifier.name,
+                ),
             ),
             top_5_most_triggered_e2e_or_subsystem_jobs=self._get_top_n_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
-                computation_func=self._get_job_triggers_count,
                 n=5,
-                comparison_func=lambda job: (job[1], job[0]),
+                comparison_func=lambda identified_job_metrics: (
+                    identified_job_metrics.metrics.total,
+                    identified_job_metrics.job_identifier.name,
+                ),
             ),
             number_of_successful_machine_leases=len(
                 [
