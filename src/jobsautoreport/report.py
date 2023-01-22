@@ -178,6 +178,26 @@ class Reporter:
         res.reverse()
         return res
 
+    def _get_top_n_failed_jobs(
+        self,
+        jobs: list[JobDetails],
+        n: int,
+    ) -> list[IdentifiedJobMetrics]:
+        top_failed_jobs = self._get_top_n_jobs(
+            jobs=jobs,
+            n=n,
+            comparison_func=lambda identified_job_metrics: (
+                identified_job_metrics.metrics.failure_rate,
+                identified_job_metrics.metrics.failures,
+                identified_job_metrics.job_identifier.name,
+            ),
+        )
+        return [
+            identified_job
+            for identified_job in top_failed_jobs
+            if identified_job.metrics.failures > 0
+        ]
+
     @staticmethod
     def _is_rehearsal(job: JobDetails) -> bool:
         return (
@@ -242,14 +262,9 @@ class Reporter:
             success_rate_for_e2e_or_subsystem_periodic_jobs=self._compute_job_metrics(
                 jobs=periodic_subsystem_and_e2e_jobs
             ).success_rate,
-            top_10_failing_e2e_or_subsystem_periodic_jobs=self._get_top_n_jobs(
+            top_10_failing_e2e_or_subsystem_periodic_jobs=self._get_top_n_failed_jobs(
                 jobs=periodic_subsystem_and_e2e_jobs,
                 n=10,
-                comparison_func=lambda identified_job_metrics: (
-                    identified_job_metrics.metrics.failure_rate,
-                    identified_job_metrics.metrics.failures,
-                    identified_job_metrics.job_identifier.name,
-                ),
             ),
             number_of_e2e_or_subsystem_presubmit_jobs=len(
                 presubmit_subsystem_and_e2e_jobs
@@ -264,14 +279,9 @@ class Reporter:
             success_rate_for_e2e_or_subsystem_presubmit_jobs=self._compute_job_metrics(
                 jobs=presubmit_subsystem_and_e2e_jobs
             ).success_rate,
-            top_10_failing_e2e_or_subsystem_presubmit_jobs=self._get_top_n_jobs(
+            top_10_failing_e2e_or_subsystem_presubmit_jobs=self._get_top_n_failed_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
                 n=10,
-                comparison_func=lambda identified_job_metrics: (
-                    identified_job_metrics.metrics.failure_rate,
-                    identified_job_metrics.metrics.failures,
-                    identified_job_metrics.job_identifier.name,
-                ),
             ),
             top_5_most_triggered_e2e_or_subsystem_jobs=self._get_top_n_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
