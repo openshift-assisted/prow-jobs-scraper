@@ -65,7 +65,7 @@ class SlackReporter:
         )
         self._post_message(
             report=report,
-            format_function=self._format_presubmit_message,
+            format_function=self._format_presubmit_comment,
             thread_time_stamp=thread_time_stamp,
         )
         self._upload_most_failing_jobs_graph(
@@ -76,6 +76,16 @@ class SlackReporter:
         self._create_and_upload_most_triggered_jobs_graph(
             jobs=report.top_5_most_triggered_e2e_or_subsystem_jobs,
             file_title="Top 5 Triggered Presubmit Jobs",
+            thread_time_stamp=thread_time_stamp,
+        )
+        self._post_message(
+            report=report,
+            format_function=self._format_postsubmit_comment,
+            thread_time_stamp=thread_time_stamp,
+        )
+        self._upload_most_failing_jobs_graph(
+            jobs=report.top_10_failing_postsubmit_jobs,
+            file_title="Top 10 Failed Postsubmit Jobs",
             thread_time_stamp=thread_time_stamp,
         )
         self._post_message(
@@ -129,7 +139,32 @@ class SlackReporter:
         ]
 
     @staticmethod
-    def _format_presubmit_message(report: Report) -> list[dict[str, Any]]:
+    def _format_postsubmit_comment(report: Report) -> list[dict[str, Any]]:
+        return [
+            {"type": "divider"},
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Postsubmit jobs*\n",
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"•\t _{report.number_of_postsubmit_jobs}_ in total\n"
+                        f" \t\t *-* :done-circle-check: {report.number_of_successful_postsubmit_jobs} succeeded\n"
+                        f" \t\t *-* :x: {report.number_of_failing_postsubmit_jobs} failed\n"
+                        f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*\n"
+                    ),
+                },
+            },
+        ]
+
+    @staticmethod
+    def _format_presubmit_comment(report: Report) -> list[dict[str, Any]]:
         return [
             {"type": "divider"},
             {

@@ -102,6 +102,11 @@ class Report(BaseModel):
     success_rate_for_e2e_or_subsystem_presubmit_jobs: float
     top_10_failing_e2e_or_subsystem_presubmit_jobs: list[IdentifiedJobMetrics]
     top_5_most_triggered_e2e_or_subsystem_jobs: list[IdentifiedJobMetrics]
+    number_of_postsubmit_jobs: int
+    number_of_successful_postsubmit_jobs: int
+    number_of_failing_postsubmit_jobs: int
+    success_rate_for_postsubmit_jobs: float
+    top_10_failing_postsubmit_jobs: list[IdentifiedJobMetrics]
     number_of_successful_machine_leases: int
     number_of_unsuccessful_machine_leases: int
     total_number_of_machine_leased: int
@@ -121,6 +126,11 @@ class Report(BaseModel):
             f"success_rate_for_e2e_or_subsystem_presubmit_jobs: {self.success_rate_for_e2e_or_subsystem_presubmit_jobs}\n"
             f"top_10_failed_e2e_or_subsystem_presubmit_jobs: {self.top_10_failing_e2e_or_subsystem_presubmit_jobs}\n"
             f"top_5_most_triggered_e2e_or_subsystem_jobs: {self.top_5_most_triggered_e2e_or_subsystem_jobs}\n"
+            f"number_of_postsubmit_jobs_triggered: {self.number_of_postsubmit_jobs}\n"
+            f"number_of_successful_postsubmit_jobs_triggered: {self.number_of_successful_postsubmit_jobs}\n"
+            f"number_of_failures_postsubmit_jobs_triggered: {self.number_of_failing_postsubmit_jobs}\n"
+            f"success_rate_for_postsubmit_jobs: {self.success_rate_for_postsubmit_jobs}\n"
+            f"top_10_failed_postsubmit_jobs: {self.top_10_failing_postsubmit_jobs}\n"
             f"number_of_successful_machine_leases: {self.number_of_successful_machine_leases}\n"
             f"number_of_unsuccessful_machine_leases: {self.number_of_unsuccessful_machine_leases}\n"
             f"total_number_of_machine_leased: {self.total_number_of_machine_leased}\n"
@@ -234,17 +244,24 @@ class Reporter:
         )
         logger.debug("%d step events queried from elasticsearch", len(step_events))
         rehearsal_jobs = [job for job in jobs if self._is_rehearsal(job=job)]
+        assisted_components_jobs = [
+            job for job in jobs if self._is_assisted_repository(job)
+        ]
         subsystem_and_e2e_jobs = [
             job
-            for job in jobs
-            if self._is_assisted_repository(job)
-            and self._is_e2e_or_subsystem_class(job)
+            for job in assisted_components_jobs
+            if self._is_e2e_or_subsystem_class(job)
         ]
         periodic_subsystem_and_e2e_jobs = [
             job for job in subsystem_and_e2e_jobs if job.type == JobType.PERIODIC.value
         ]
         presubmit_subsystem_and_e2e_jobs = [
             job for job in subsystem_and_e2e_jobs if job.type == JobType.PRESUBMIT.value
+        ]
+        postsubmit_jobs = [
+            job
+            for job in assisted_components_jobs
+            if job.type == JobType.POSTSUBMIT.value
         ]
 
         return Report(
@@ -290,6 +307,20 @@ class Reporter:
                     identified_job_metrics.metrics.total,
                     identified_job_metrics.job_identifier.name,
                 ),
+            ),
+            number_of_postsubmit_jobs=len(postsubmit_jobs),
+            number_of_successful_postsubmit_jobs=self._get_number_of_jobs_by_state(
+                jobs=postsubmit_jobs, job_state=JobState.SUCCESS
+            ),
+            number_of_failing_postsubmit_jobs=self._get_number_of_jobs_by_state(
+                jobs=postsubmit_jobs, job_state=JobState.FAILURE
+            ),
+            success_rate_for_postsubmit_jobs=self._compute_job_metrics(
+                jobs=postsubmit_jobs
+            ).success_rate,
+            top_10_failing_postsubmit_jobs=self._get_top_n_failed_jobs(
+                jobs=postsubmit_jobs,
+                n=10,
             ),
             number_of_successful_machine_leases=len(
                 [

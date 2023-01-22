@@ -65,6 +65,21 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                 ),
             ),
         ],
+        number_of_postsubmit_jobs=12,
+        number_of_successful_postsubmit_jobs=9,
+        number_of_failing_postsubmit_jobs=3,
+        success_rate_for_postsubmit_jobs=75,
+        top_10_failing_postsubmit_jobs=[
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-3", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(
+                    successes=3,
+                    failures=1,
+                ),
+            )
+        ],
         number_of_successful_machine_leases=1,
         number_of_unsuccessful_machine_leases=2,
         total_number_of_machine_leased=3,
@@ -118,6 +133,29 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "text": {
                 "type": "mrkdwn",
                 "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
+            },
+        },
+    ]
+
+    expected_blocks_postsubmit = [
+        {"type": "divider"},
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Postsubmit jobs*\n",
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"•\t _{report.number_of_postsubmit_jobs}_ in total\n"
+                    f" \t\t *-* :done-circle-check: {report.number_of_successful_postsubmit_jobs} succeeded\n"
+                    f" \t\t *-* :x: {report.number_of_failing_postsubmit_jobs} failed\n"
+                    f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*\n"
+                ),
             },
         },
     ]
@@ -211,6 +249,18 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         file="/tmp/top_5_triggered_presubmit_jobs.png",
         filename="top_5_triggered_presubmit_jobs",
         initial_comment="Top 5 Triggered Presubmit Jobs",
+        thread_ts=test_thread_time_stamp["ts"],
+    )
+    web_client_mock.chat_postMessage.assert_any_call(
+        channel=test_channel,
+        blocks=expected_blocks_postsubmit,
+        thread_ts=test_thread_time_stamp["ts"],
+    )
+    web_client_mock.files_upload.assert_any_call(
+        channels=[test_channel],
+        file="/tmp/top_10_failed_postsubmit_jobs.png",
+        filename="top_10_failed_postsubmit_jobs",
+        initial_comment="Top 10 Failed Postsubmit Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
     web_client_mock.chat_postMessage.assert_any_call(
