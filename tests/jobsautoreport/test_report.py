@@ -404,6 +404,7 @@ expected_report = Report(
                 repository="assisted-service",
                 base_ref="master",
                 context="edge-e2e-metal-assisted",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=3,
@@ -423,6 +424,7 @@ expected_report = Report(
                 repository="assisted-service",
                 base_ref="master",
                 context="edge-e2e-metal-assisted",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=4,
@@ -435,6 +437,7 @@ expected_report = Report(
                 repository="assisted-service",
                 base_ref="master",
                 context="edge-e2e-metal-assisted",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=2,
@@ -449,6 +452,7 @@ expected_report = Report(
                 repository="assisted-service",
                 base_ref="master",
                 context="edge-e2e-metal-assisted",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=2,
@@ -461,6 +465,7 @@ expected_report = Report(
                 repository="assisted-service",
                 base_ref="master",
                 context="edge-e2e-metal-assisted",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=4,
@@ -479,6 +484,7 @@ expected_report = Report(
                 repository="assisted-test-infra",
                 base_ref="master",
                 context="images",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=5,
@@ -491,6 +497,7 @@ expected_report = Report(
                 repository="assisted-service",
                 base_ref="release-ocm-2.6",
                 context="unit-test-postsubmit",
+                variant="test",
             ),
             metrics=JobMetrics(
                 successes=1,

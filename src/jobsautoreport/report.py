@@ -17,6 +17,7 @@ class JobIdentifier(BaseModel):
     repository: str
     base_ref: str
     context: Optional[str]
+    variant: Optional[str]
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -27,12 +28,16 @@ class JobIdentifier(BaseModel):
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-    def short_name(self) -> str:
-        return (
-            f"{self.repository}-{self.base_ref}-{self.context}"
-            if self.context is not None
-            else self.name
-        )
+    def get_slack_name(self, display_variant: bool) -> str:
+        if self.context is None:
+            return self.name
+        if self.variant is None or not display_variant:
+            return f"{self.repository}/{self.base_ref}<br>{self.context}"
+        return f"{self.repository}/{self.base_ref}<br>{self.variant}-{self.context}"
+
+    @staticmethod
+    def is_variant_unique(job_identifiers: list["JobIdentifier"]) -> bool:
+        return len({job_identifier.variant for job_identifier in job_identifiers}) != 1
 
     @classmethod
     def create_from_job_details(cls, job_details: JobDetails) -> "JobIdentifier":
@@ -41,6 +46,7 @@ class JobIdentifier(BaseModel):
             repository=job_details.refs.repo,
             base_ref=job_details.refs.base_ref,
             context=job_details.context,
+            variant=job_details.variant,
         )
 
 

@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 import plotly.graph_objects as graph_objects  # type: ignore
 from slack_sdk import WebClient
 
-from jobsautoreport.report import IdentifiedJobMetrics, Report
+from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier, Report
 
 logger = logging.getLogger(__name__)
 
@@ -225,8 +225,11 @@ class SlackReporter:
         file_title: str,
         thread_time_stamp: Optional[str],
     ) -> None:
+        is_variant_unique = JobIdentifier.is_variant_unique(
+            [identified_job_metrics.job_identifier for identified_job_metrics in jobs]
+        )
         names = [
-            identified_job_metrics.job_identifier.short_name()
+            identified_job_metrics.job_identifier.get_slack_name(is_variant_unique)
             for identified_job_metrics in jobs
         ]
         successes = [
@@ -284,8 +287,11 @@ class SlackReporter:
         file_title: str,
         thread_time_stamp: Optional[str],
     ) -> None:
+        is_variant_unique = JobIdentifier.is_variant_unique(
+            [identified_job_metrics.job_identifier for identified_job_metrics in jobs]
+        )
         names = [
-            identified_job_metrics.job_identifier.short_name()
+            identified_job_metrics.job_identifier.get_slack_name(is_variant_unique)
             for identified_job_metrics in jobs
         ]
         quantities = [

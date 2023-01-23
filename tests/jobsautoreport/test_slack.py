@@ -9,81 +9,118 @@ from jobsautoreport.report import (
 )
 from jobsautoreport.slack import SlackReporter
 
+report = Report(
+    from_date=datetime.now(),
+    to_date=datetime.now(),
+    number_of_e2e_or_subsystem_periodic_jobs=12,
+    number_of_successful_e2e_or_subsystem_periodic_jobs=9,
+    number_of_failing_e2e_or_subsystem_periodic_jobs=3,
+    success_rate_for_e2e_or_subsystem_periodic_jobs=75,
+    top_10_failing_e2e_or_subsystem_periodic_jobs=[
+        # same variant
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="pull-ci-openshift-repo-branch-variant-context-1",
+                repository="repo",
+                base_ref="branch",
+                variant="variant",
+                context="context-1",
+            ),
+            metrics=JobMetrics(
+                successes=3,
+                failures=1,
+            ),
+        ),
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="pull-ci-openshift-repo-branch-variant-context-2",
+                repository="repo",
+                base_ref="branch",
+                variant="variant",
+                context="context-2",
+            ),
+            metrics=JobMetrics(
+                successes=3,
+                failures=1,
+            ),
+        ),
+    ],
+    number_of_e2e_or_subsystem_presubmit_jobs=24,
+    number_of_successful_e2e_or_subsystem_presubmit_jobs=8,
+    number_of_failing_e2e_or_subsystem_presubmit_jobs=16,
+    number_of_rehearsal_jobs=0,
+    success_rate_for_e2e_or_subsystem_presubmit_jobs=33.33,
+    top_10_failing_e2e_or_subsystem_presubmit_jobs=[
+        # different variant
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="pull-ci-openshift-repo-branch-variant-1-context-3",
+                repository="repo",
+                base_ref="branch",
+                variant="variant-1",
+                context="context-3",
+            ),
+            metrics=JobMetrics(
+                successes=1,
+                failures=2,
+            ),
+        ),
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="pull-ci-openshift-repo-branch-variant-2-context-4",
+                repository="repo",
+                base_ref="branch",
+                variant="variant-2",
+                context="context-4",
+            ),
+            metrics=JobMetrics(
+                successes=1,
+                failures=2,
+            ),
+        ),
+    ],
+    top_5_most_triggered_e2e_or_subsystem_jobs=[
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="fake-job-2", repository="test", base_ref="test"
+            ),
+            metrics=JobMetrics(
+                successes=1,
+                failures=2,
+            ),
+        ),
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="fake-job-1", repository="test", base_ref="test"
+            ),
+            metrics=JobMetrics(
+                successes=3,
+                failures=1,
+            ),
+        ),
+    ],
+    number_of_postsubmit_jobs=12,
+    number_of_successful_postsubmit_jobs=9,
+    number_of_failing_postsubmit_jobs=3,
+    success_rate_for_postsubmit_jobs=75,
+    top_10_failing_postsubmit_jobs=[
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="fake-job-3", repository="test", base_ref="test"
+            ),
+            metrics=JobMetrics(
+                successes=3,
+                failures=1,
+            ),
+        )
+    ],
+    number_of_successful_machine_leases=1,
+    number_of_unsuccessful_machine_leases=2,
+    total_number_of_machine_leased=3,
+)
+
 
 def test_send_report_should_successfully_call_slack_api_with_expected_message_format():
-    report = Report(
-        from_date=datetime.now(),
-        to_date=datetime.now(),
-        number_of_e2e_or_subsystem_periodic_jobs=12,
-        number_of_successful_e2e_or_subsystem_periodic_jobs=9,
-        number_of_failing_e2e_or_subsystem_periodic_jobs=3,
-        success_rate_for_e2e_or_subsystem_periodic_jobs=75,
-        top_10_failing_e2e_or_subsystem_periodic_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-1", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(
-                    successes=3,
-                    failures=1,
-                ),
-            )
-        ],
-        number_of_e2e_or_subsystem_presubmit_jobs=24,
-        number_of_successful_e2e_or_subsystem_presubmit_jobs=8,
-        number_of_failing_e2e_or_subsystem_presubmit_jobs=16,
-        number_of_rehearsal_jobs=0,
-        success_rate_for_e2e_or_subsystem_presubmit_jobs=33.33,
-        top_10_failing_e2e_or_subsystem_presubmit_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-2", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(
-                    successes=1,
-                    failures=2,
-                ),
-            )
-        ],
-        top_5_most_triggered_e2e_or_subsystem_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-2", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(
-                    successes=1,
-                    failures=2,
-                ),
-            ),
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-1", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(
-                    successes=3,
-                    failures=1,
-                ),
-            ),
-        ],
-        number_of_postsubmit_jobs=12,
-        number_of_successful_postsubmit_jobs=9,
-        number_of_failing_postsubmit_jobs=3,
-        success_rate_for_postsubmit_jobs=75,
-        top_10_failing_postsubmit_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-3", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(
-                    successes=3,
-                    failures=1,
-                ),
-            )
-        ],
-        number_of_successful_machine_leases=1,
-        number_of_unsuccessful_machine_leases=2,
-        total_number_of_machine_leased=3,
-    )
 
     expected_blocks_periodic = [
         {
@@ -267,4 +304,43 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         channel=test_channel,
         blocks=expected_blocks_equinix,
         thread_ts=test_thread_time_stamp["ts"],
+    )
+
+
+def test_JobIdentifier_short_names_in_slack():
+
+    expected_top_10_failing_e2e_or_subsystem_periodic_jobs_slack_names = [
+        "repo/branch<br>context-1",
+        "repo/branch<br>context-2",
+    ]
+
+    expected_top_10_failing_e2e_or_subsystem_presubmit_jobs_slack_names = [
+        "repo/branch<br>variant-1-context-3",
+        "repo/branch<br>variant-2-context-4",
+    ]
+
+    top_failing_periodics = report.top_10_failing_e2e_or_subsystem_periodic_jobs
+    is_unique_variant_periodics = JobIdentifier.is_variant_unique(
+        [identified_job.job_identifier for identified_job in top_failing_periodics]
+    )
+    slack_names_periodics = [
+        job.job_identifier.get_slack_name(is_unique_variant_periodics)
+        for job in top_failing_periodics
+    ]
+    top_failing_presubmits = report.top_10_failing_e2e_or_subsystem_presubmit_jobs
+    is_unique_variant_presubmits = JobIdentifier.is_variant_unique(
+        [identified_job.job_identifier for identified_job in top_failing_presubmits]
+    )
+    slack_names_presubmits = [
+        job.job_identifier.get_slack_name(is_unique_variant_presubmits)
+        for job in top_failing_presubmits
+    ]
+
+    assert (
+        slack_names_periodics
+        == expected_top_10_failing_e2e_or_subsystem_periodic_jobs_slack_names
+    )
+    assert (
+        slack_names_presubmits
+        == expected_top_10_failing_e2e_or_subsystem_presubmit_jobs_slack_names
     )
