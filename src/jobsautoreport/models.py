@@ -15,3 +15,8 @@ class JobState(Enum):
 
 
 StepState = NewType("StepState", JobState)(JobState)
+
+
+class ReportInterval(Enum):
+    WEEK = "week"
+    MONTH = "month"

@@ -58,10 +58,10 @@ objects:
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
-    name: jobs-auto-report
+    name: jobs-auto-weekly-report
   spec:
-    schedule: ${JOBS_AUTO_REPORT_SCHEDULE}
-    suspend: ${{JOBS_AUTO_REPORT_SUSPEND}}
+    schedule: ${JOBS_AUTO_WEEKLY_REPORT_SCHEDULE}
+    suspend: ${{JOBS_AUTO_WEEKLY_REPORT_SUSPEND}}
     jobTemplate:
       spec:
         ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
@@ -71,10 +71,10 @@ objects:
             restartPolicy: OnFailure
             serviceAccountName: assisted-service
             containers:
-            - name: jobs-auto-report
+            - name: jobs-auto-weekly-report
               image: ${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: ${IMAGE_PULL_POLICY}
-              command: 
+              command:
               - jobs-auto-report
               resources:
                 limits:
@@ -84,8 +84,72 @@ objects:
                   cpu: 300m
                   memory: 400Mi
               env:
+              - name: REPORT_INTERVAL
+                value: ${JOBS_AUTO_WEEKLY_REPORT_INTERVAL}
               - name: LOG_LEVEL
-                value: "${JOBS_AUTO_REPORT_LOG_LEVEL}"
+                value: "${JOBS_AUTO_WEEKLY_REPORT_LOG_LEVEL}"
+              - name: ES_URL
+                valueFrom:
+                  secretKeyRef:
+                    key: endpoint
+                    name: assisted-installer-elasticsearch
+              - name: ES_JOB_INDEX
+                value: "${ES_JOB_INDEX}"
+              - name: ES_STEP_INDEX
+                value: "${ES_STEP_INDEX}"
+              - name: ES_USER
+                valueFrom:
+                  secretKeyRef:
+                    key: master_user_name
+                    name: elastic-master-credentials
+              - name: ES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    key: master_user_password
+                    name: elastic-master-credentials
+              - name: SLACK_BOT_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    key: ${JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_KEY}
+                    name: ${JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_NAME}
+              - name: SLACK_CHANNEL_ID
+                valueFrom:
+                  secretKeyRef:
+                    key: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY}
+                    name: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_NAME}
+- apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    name: jobs-auto-monthly-report
+  spec:
+    schedule: ${JOBS_AUTO_MONTHLY_REPORT_SCHEDULE}
+    suspend: ${{JOBS_AUTO_MONTHLY_REPORT_SUSPEND}}
+    jobTemplate:
+      spec:
+        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        backoffLimit: 4
+        template:
+          spec:
+            restartPolicy: OnFailure
+            serviceAccountName: assisted-service
+            containers:
+            - name: jobs-auto-monthly-report
+              image: ${IMAGE_NAME}:${IMAGE_TAG}
+              imagePullPolicy: ${IMAGE_PULL_POLICY}
+              command:
+              - jobs-auto-report
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 2000Mi
+                requests:
+                  cpu: 300m
+                  memory: 400Mi
+              env:
+              - name: REPORT_INTERVAL
+                value: ${JOBS_AUTO_MONTHLY_REPORT_INTERVAL}
+              - name: LOG_LEVEL
+                value: "${JOBS_AUTO_MONTHLY_REPORT_LOG_LEVEL}"
               - name: ES_URL
                 valueFrom:
                   secretKeyRef:
@@ -135,12 +199,22 @@ parameters:
   value: "false"
 - name: PROW_JOBS_SCRAPER_SCHEDULE
   value: "@hourly"
-- name: JOBS_AUTO_REPORT_LOG_LEVEL
+- name: JOBS_AUTO_WEEKLY_REPORT_LOG_LEVEL
   value: "INFO"
-- name: JOBS_AUTO_REPORT_SUSPEND
+- name: JOBS_AUTO_MONTHLY_REPORT_LOG_LEVEL
+  value: "INFO"
+- name: JOBS_AUTO_WEEKLY_REPORT_SUSPEND
   value: "false"
-- name: JOBS_AUTO_REPORT_SCHEDULE
+- name: JOBS_AUTO_MONTHLY_REPORT_SUSPEND
+  value: "false"
+- name: JOBS_AUTO_WEEKLY_REPORT_SCHEDULE
   value: "@weekly"
+- name: JOBS_AUTO_MONTHLY_REPORT_SCHEDULE
+  value: "@monthly"
+- name: JOBS_AUTO_WEEKLY_REPORT_INTERVAL
+  value: "week"
+- name: JOBS_AUTO_MONTHLY_REPORT_INTERVAL
+  value: "month"
 - name: JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_NAME
   value: jobs-auto-report-slack-bot-token
 - name: JOBS_AUTO_REPORT_SLACK_BOT_TOKEN_KEY
