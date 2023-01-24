@@ -42,7 +42,12 @@ lint-manifest:
 lint: mypy format
 	git diff --exit-code
 
+publish-coverage:
+	@if [ "${OPENSHIFT_CI}" = "true" ]; then \
+		hack/publish-codecov.sh; \
+	fi
+
 build-image:
 	$(CONTAINER_CMD) build $(CONTAINER_BUILD_EXTRA_PARAMS) -t $(PROW_JOBS_SCRAPER_IMAGE):$(PROW_JOBS_SCRAPER_TAG) .
 
-.PHONY: install install-lint install-unit-tests full-install unit-tests format mypy lint lint-manifest build-image
+.PHONY: install install-lint install-unit-tests full-install unit-tests format mypy lint lint-manifest build-image publish-coverage
