@@ -121,7 +121,6 @@ report = Report(
 
 
 def test_send_report_should_successfully_call_slack_api_with_expected_message_format():
-
     expected_blocks_periodic = [
         {
             "type": "section",
@@ -308,7 +307,6 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
 
 
 def test_JobIdentifier_short_names_in_slack():
-
     expected_top_10_failing_e2e_or_subsystem_periodic_jobs_slack_names = [
         "repo/branch<br>context-1",
         "repo/branch<br>context-2",

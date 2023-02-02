@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class JobIdentifier(BaseModel):
-
     name: str
     repository: str
     base_ref: str
@@ -51,7 +50,6 @@ class JobIdentifier(BaseModel):
 
 
 class JobMetrics(BaseModel):
-
     successes: int
     failures: int
 
@@ -78,7 +76,6 @@ class JobMetrics(BaseModel):
 
 
 class IdentifiedJobMetrics(BaseModel):
-
     job_identifier: JobIdentifier
     metrics: JobMetrics
 
