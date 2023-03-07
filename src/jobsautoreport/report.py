@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 class JobIdentifier(BaseModel):
     name: str
-    repository: str
-    base_ref: str
+    repository: Optional[str]
+    base_ref: Optional[str]
     context: Optional[str]
     variant: Optional[str]
 
@@ -28,7 +28,7 @@ class JobIdentifier(BaseModel):
         return not self.__eq__(other)
 
     def get_slack_name(self, display_variant: bool) -> str:
-        if self.context is None:
+        if self.context is None or self.base_ref is None or self.repository is None:
             return self.name
         if self.variant is None or not display_variant:
             return f"{self.repository}/{self.base_ref}<br>{self.context}"

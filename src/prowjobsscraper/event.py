@@ -12,10 +12,10 @@ from prowjobsscraper.step import JobStep
 
 
 class JobRefs(BaseModel):
-    base_ref: str
-    org: str
+    base_ref: Optional[str]
+    org: Optional[str]
     pull: Optional[str]
-    repo: str
+    repo: Optional[str]
 
     @classmethod
     def create_from_prow_job(cls, job: ProwJob) -> "JobRefs":
@@ -55,7 +55,7 @@ class JobEquinixDetails(BaseModel):
 
 
 class JobDetails(BaseModel):
-    build_id: str
+    build_id: Optional[str]
     cloud_cluster_profile: Optional[str]
     cloud: Optional[str]
     context: Optional[str]
@@ -63,10 +63,10 @@ class JobDetails(BaseModel):
     equinix: Optional[JobEquinixDetails]
     name: str
     refs: JobRefs
-    start_time: datetime
-    state: str
+    start_time: Optional[datetime]
+    state: Optional[str]
     type: str
-    url: str
+    url: Optional[str]
     variant: Optional[str]
 
 
