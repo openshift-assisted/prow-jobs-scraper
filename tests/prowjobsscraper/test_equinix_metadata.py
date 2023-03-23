@@ -1,10 +1,11 @@
-from unittest.mock import MagicMock, call
+from typing import Any
+from unittest.mock import MagicMock, call, patch
 
 import pkg_resources
 import pytest
 from google.cloud import exceptions
 
-from prowjobsscraper.equinix import EquinixExtractor
+from prowjobsscraper.equinix_metadata import EquinixMetadataExtractor
 from prowjobsscraper.prowjob import (
     EquinixMetadata,
     EquinixMetadataOperationSystem,
@@ -39,7 +40,7 @@ def test_hydrate_equinix_should_succeed_when_metadata_are_available():
     bucket.blob.return_value = blob
     blob.download_as_string.return_value = equinix_metadata
 
-    equinix = EquinixExtractor(storage_client)
+    equinix = EquinixMetadataExtractor(storage_client)
     equinix.hydrate(jobs)
 
     storage_client.bucket.assert_called_with("origin-ci-test")
@@ -62,7 +63,7 @@ def test_hydrate_equinix_should_not_fail_when_metadata_are_missing():
     bucket.blob.return_value = blob
     blob.download_as_string.side_effect = exceptions.ClientError("test")
 
-    equinix = EquinixExtractor(storage_client)
+    equinix = EquinixMetadataExtractor(storage_client)
     equinix.hydrate(jobs)
 
     storage_client.bucket.assert_called_with("origin-ci-test")
@@ -82,7 +83,7 @@ def test_hydrate_equinix_should_skip_when_non_equinix_job():
     ].metadata.labels.cloudClusterProfile = "not-equinix-cloud-cluster-profile"
 
     storage_client = MagicMock()
-    equinix = EquinixExtractor(storage_client)
+    equinix = EquinixMetadataExtractor(storage_client)
     equinix.hydrate(jobs)
 
     storage_client.bucket.assert_not_called()

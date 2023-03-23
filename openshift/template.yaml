@@ -43,8 +43,12 @@ objects:
                 value: "${ES_STEP_INDEX}"
               - name: ES_JOB_INDEX
                 value: "${ES_JOB_INDEX}"
+              - name: ES_USAGE_INDEX
+                value: "${ES_USAGE_INDEX}"
               - name: JOB_LIST_URL
                 value: "${JOB_LIST_URL}"
+              - name: EQUINIX_USAGES_SCRAPE_INTERVAL
+                value: "${EQUINIX_USAGES_SCRAPE_INTERVAL}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -55,6 +59,16 @@ objects:
                   secretKeyRef:
                     key: master_user_password
                     name: elastic-master-credentials
+              - name: EQUINIX_PROJECT_ID
+                valueFrom:
+                  secretKeyRef:
+                    key: equinix_project_id_key
+                    name: equinix_project_id
+              - name: EQUINIX_PROJECT_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    key: equinix_project_token_key
+                    name: equinix_project_token
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
@@ -189,6 +203,8 @@ parameters:
   value: "steps"
 - name: ES_JOB_INDEX
   value: "jobs"
+- name: "ES_USAGE_INDEX"
+  value: "usages"
 - name: JOB_LIST_URL
   value: "https://prow.ci.openshift.org/prowjobs.js?omit=annotations,decoration_config,pod_spec"
 - name: PROW_JOBS_SCRAPER_LOG_LEVEL
@@ -199,6 +215,8 @@ parameters:
   value: "false"
 - name: PROW_JOBS_SCRAPER_SCHEDULE
   value: "@hourly"
+- name: EQUINIX_USAGES_SCRAPE_INTERVAL
+  value: "day"
 - name: JOBS_AUTO_WEEKLY_REPORT_LOG_LEVEL
   value: "INFO"
 - name: JOBS_AUTO_MONTHLY_REPORT_LOG_LEVEL

@@ -6,7 +6,8 @@ import pkg_resources
 from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
-from prowjobsscraper.equinix import EquinixMetadata
+from prowjobsscraper.equinix_metadata import EquinixMetadata
+from prowjobsscraper.equinix_usages import EquinixUsage, EquinixUsageEvent
 from prowjobsscraper.prowjob import ProwJob
 from prowjobsscraper.step import JobStep
 
@@ -125,9 +126,12 @@ class StepEvent(BaseModel):
 
 
 class EventStoreElastic:
-    def __init__(self, client, job_index_basename, step_index_basename):
+    def __init__(
+        self, client, job_index_basename, step_index_basename, usage_index_basename
+    ):
         self._jobs_index = _EsIndex(client, job_index_basename)
         self._steps_index = _EsIndex(client, step_index_basename)
+        self._usages_index = _EsIndex(client, usage_index_basename)
 
     def index_job_steps(self, steps: list[JobStep]):
         step_events = (StepEvent.create_from_job_step(s).dict() for s in steps)
@@ -137,9 +141,17 @@ class EventStoreElastic:
         job_events = (JobEvent.create_from_prow_job(j).dict() for j in jobs)
         self._jobs_index.index(job_events)
 
-    def scan_build_ids(self) -> set[str]:
-        results = self._jobs_index.scan({"_source": ["job.build_id"]})
-        return {r["_source"]["job"]["build_id"] for r in results}
+    def index_equinix_usages(self, usages: list[EquinixUsage]):
+        equinix_usages = (
+            EquinixUsageEvent.create_from_equinix_usage(u).dict() for u in usages
+        )
+        self._usages_index.index(equinix_usages)
+
+    def scan_build_ids_from_index(self, index_prefix_singular: str) -> set[str]:
+        results = self.__dict__[f"_{index_prefix_singular}s_index"].scan(
+            {"_source": [f"{index_prefix_singular}.build_id"]}
+        )
+        return {r["_source"][f"{index_prefix_singular}"]["build_id"] for r in results}
 
 
 class _EsIndex:

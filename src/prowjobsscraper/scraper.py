@@ -1,7 +1,7 @@
 import logging
 import re
 
-from prowjobsscraper import equinix, event, prowjob, step
+from prowjobsscraper import equinix_metadata, equinix_usages, event, prowjob, step
 
 logger = logging.getLogger(__name__)
 
@@ -11,11 +11,13 @@ class Scraper:
         self,
         event_store: event.EventStoreElastic,
         step_extractor: step.StepExtractor,
-        equinix_extractor: equinix.EquinixExtractor,
+        equinix_metadate_extractor: equinix_metadata.EquinixMetadataExtractor,
+        equinix_usages_extractor: equinix_usages.EquinixUsagesExtractor,
     ):
         self._event_store = event_store
         self._step_extractor = step_extractor
-        self._equinix_extractor = equinix_extractor
+        self._equinix_metadata_extractor = equinix_metadate_extractor
+        self._equinix_usages_extractor = equinix_usages_extractor
 
     def execute(self, jobs: prowjob.ProwJobs):
         logger.info("%s jobs will be processed", len(jobs.items))
@@ -24,21 +26,34 @@ class Scraper:
         jobs.items = [j for j in jobs.items if self._is_assisted_job(j)]
 
         # filter out jobs already stored
-        known_build_ids = self._event_store.scan_build_ids()
-        jobs.items = [j for j in jobs.items if j.status.build_id not in known_build_ids]
+        known_jobs_build_ids = self._event_store.scan_build_ids_from_index("job")
+        jobs.items = [
+            j for j in jobs.items if j.status.build_id not in known_jobs_build_ids
+        ]
 
         # Retrieve equinix metadata for each job
-        self._equinix_extractor.hydrate(jobs)
+        self._equinix_metadata_extractor.hydrate(jobs)
 
         # Retrieve executed steps for each job
         steps = self._step_extractor.parse_prow_jobs(jobs)
+
+        # Retrieve equinix machines usages not already stored
+        known_usages_build_ids = self._event_store.scan_build_ids_from_index("usage")
+        usages = [
+            usage
+            for usage in self._equinix_usages_extractor.get_project_usages()
+            if usage.job_build_id not in known_usages_build_ids
+        ]
 
         # Store jobs and steps into their respective indices
         logger.info("%s jobs will be pushed to ES", len(jobs.items))
         self._event_store.index_prow_jobs(jobs.items)
 
-        logger.info("%s steps will be pushed to ES", {len(steps)})
+        logger.info("%s steps will be pushed to ES", len(steps))
         self._event_store.index_job_steps(steps)
+
+        logger.info("%s equinix usages will be pushed to ES", len(usages))
+        self._event_store.index_equinix_usages(usages)
 
     @staticmethod
     def _is_assisted_job(j: prowjob.ProwJob) -> bool:
