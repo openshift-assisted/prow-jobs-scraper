@@ -111,6 +111,8 @@ objects:
                 value: "${ES_JOB_INDEX}"
               - name: ES_STEP_INDEX
                 value: "${ES_STEP_INDEX}"
+              - name: ES_USAGE_INDEX
+                value: "${ES_USAGE_INDEX}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -173,6 +175,8 @@ objects:
                 value: "${ES_JOB_INDEX}"
               - name: ES_STEP_INDEX
                 value: "${ES_STEP_INDEX}"
+              - name: ES_USAGE_INDEX
+                value: "${ES_USAGE_INDEX}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:

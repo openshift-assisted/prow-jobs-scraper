@@ -8,6 +8,7 @@ from jobsautoreport.report import (
     Report,
     Reporter,
 )
+from prowjobsscraper.equinix_usages import EquinixUsage, EquinixUsageEvent
 from prowjobsscraper.event import JobDetails, JobRefs, StepDetails, StepEvent
 
 valid_queried_jobs = [
@@ -390,6 +391,43 @@ valid_queried_step_events = [
     ),
 ]
 
+valid_queried_usage_events = [
+    EquinixUsageEvent.create_from_equinix_usage(
+        EquinixUsage(
+            description=None,
+            end_date="2023-03-31T23:59:59Z",
+            facility="dc13",
+            metro="dc",
+            name="ipi-ci-op-nnk50j82-5ed26-1634705984507088896",
+            plan="Outbound Bandwidth",
+            plan_version="Outbound Bandwidth",
+            price=0.05,
+            quantity=2,
+            start_date="2023-03-01T00:00:00Z",
+            total=0.1,
+            type="Instance",
+            unit="GB",
+        )
+    ),
+    EquinixUsageEvent.create_from_equinix_usage(
+        usage=EquinixUsage(
+            description=None,
+            end_date="2023-03-31T23:59:59Z",
+            facility="dc13",
+            metro="dc",
+            name="ipi-ci-op-tb33cyhd-20a45-1638140834400440320",
+            plan="Outbound Bandwidth",
+            plan_version="Outbound Bandwidth",
+            price=0.05,
+            quantity=2,
+            start_date="2023-03-01T00:00:00Z",
+            total=0.1,
+            type="Instance",
+            unit="GB",
+        )
+    ),
+]
+
 expected_report = Report(
     from_date=datetime.now(),
     to_date=datetime.now(),
@@ -508,20 +546,21 @@ expected_report = Report(
     number_of_successful_machine_leases=3,
     number_of_unsuccessful_machine_leases=2,
     total_number_of_machine_leased=5,
+    total_equinix_machines_cost=0.2,
 )
 
 
 def test_get_report_should_successfully_create_report_from_queried_jobs():
     querier_mock = MagicMock()
-    querier_mock.query_jobs = MagicMock()
-    querier_mock.query_packet_setup_step_events = MagicMock()
     querier_mock.query_jobs.return_value = valid_queried_jobs
     querier_mock.query_packet_setup_step_events.return_value = valid_queried_step_events
+    querier_mock.query_usage_events.return_value = valid_queried_usage_events
     reporter = Reporter(querier=querier_mock)
     now = datetime.now()
     a_week_ago = now - timedelta(weeks=1)
     expected_report.from_date = a_week_ago
     expected_report.to_date = now
+
     report = reporter.get_report(from_date=a_week_ago, to_date=now)
 
     assert report == expected_report

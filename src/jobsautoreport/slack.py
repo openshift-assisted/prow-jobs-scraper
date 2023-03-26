@@ -217,6 +217,13 @@ class SlackReporter:
                     ),
                 },
             },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  ",
+                },
+            },
         ]
 
     def _upload_most_failing_jobs_graph(

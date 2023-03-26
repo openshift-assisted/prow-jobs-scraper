@@ -117,6 +117,7 @@ report = Report(
     number_of_successful_machine_leases=1,
     number_of_unsuccessful_machine_leases=2,
     total_number_of_machine_leased=3,
+    total_equinix_machines_cost=10,
 )
 
 
@@ -216,6 +217,13 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
                 ),
             },
         },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  ",
+            },
+        },
     ]
 
     expected_blocks_header = [
@@ -239,14 +247,9 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     test_channel = "test-channel"
     test_thread_time_stamp = {"ts": "test-thread-time-stamp"}
     web_client_mock = MagicMock()
-    web_client_mock.chat_postMessage = MagicMock()
-    web_client_mock.files_upload = MagicMock()
-    web_client_mock._create_quantity_image = MagicMock()
     web_client_mock._create_quantity_image.return_value = None
-    web_client_mock._create_success_image = MagicMock()
     web_client_mock._create_success_image.return_value = None
     response_mock = MagicMock()
-    response_mock.validate = MagicMock()
     response_mock.validate.return_value = True
     response_mock.__getitem__.side_effect = test_thread_time_stamp.__getitem__
     web_client_mock.chat_postMessage.return_value = response_mock

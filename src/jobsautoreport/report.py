@@ -113,6 +113,7 @@ class Report(BaseModel):
     number_of_successful_machine_leases: int
     number_of_unsuccessful_machine_leases: int
     total_number_of_machine_leased: int
+    total_equinix_machines_cost: float
 
     def __str__(self) -> str:
         return (
@@ -137,6 +138,7 @@ class Report(BaseModel):
             f"number_of_successful_machine_leases: {self.number_of_successful_machine_leases}\n"
             f"number_of_unsuccessful_machine_leases: {self.number_of_unsuccessful_machine_leases}\n"
             f"total_number_of_machine_leased: {self.total_number_of_machine_leased}\n"
+            f"total_equinix_machines_cost: {self.total_equinix_machines_cost}\n"
         )
 
 
@@ -267,6 +269,8 @@ class Reporter:
             if job.type == JobType.POSTSUBMIT.value
         ]
 
+        usages = self._querier.query_usage_events(from_date=from_date, to_date=to_date)
+
         return Report(
             from_date=from_date,
             to_date=to_date,
@@ -340,4 +344,5 @@ class Reporter:
                 ]
             ),
             total_number_of_machine_leased=len(step_events),
+            total_equinix_machines_cost=sum(usage.usage.total for usage in usages),
         )
