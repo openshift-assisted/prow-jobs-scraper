@@ -233,7 +233,7 @@ def test_should_index_usage():
     prow_jobs.items = []
 
     scrape.execute(prow_jobs)
-    assert len(event_store.index_equinix_usages.call_args[0][0]) == 3
+    assert len(event_store.index_equinix_usages.call_args[0][0]) == 2
 
 
 def test_jobs_and_steps_are_indexed():

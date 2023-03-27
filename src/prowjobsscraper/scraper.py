@@ -71,10 +71,17 @@ class Scraper:
         known_usages_identifiers: set[equinix_usages.EquinixUsageIdentifier],
         usages: list[equinix_usages.EquinixUsage],
     ) -> bool:
+        """Determines wether a usage should be indexed according to:
+        - If the is a regular usage (not bandwidth), it should be in the collecting time interval
+        - If it is a bandwidth usage, it start_date and end_date doesn't mean anything so it should be indexed when its corresponding regular usage is in the time interval
+        """
         return usage.to_identifier() not in known_usages_identifiers and (
-            not usage.is_bandwidth_usage()
-            or self._is_usage_in_interval(
-                self._find_non_bandwidth_usage(usage.name, usages)
+            (not usage.is_bandwidth_usage() and self._is_usage_in_interval(usage))
+            or (
+                usage.is_bandwidth_usage()
+                and self._is_usage_in_interval(
+                    self._find_non_bandwidth_usage(usage.name, usages)
+                )
             )
         )
 

@@ -1,12 +1,15 @@
 import logging
+import time
 from typing import Any, Callable, Optional
 
 import plotly.graph_objects as graph_objects  # type: ignore
 from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 from jobsautoreport.report import (
     IdentifiedJobMetrics,
     JobIdentifier,
+    JobTypeMetrics,
     MachineMetrics,
     Report,
 )
@@ -50,7 +53,7 @@ class SlackReporter:
             thread_ts=thread_time_stamp,
         )
         response.validate()
-        logger.info("%s was uploaded successfully", filename)
+        logger.info(f"{filename} was uploaded successfully")
 
     def send_report(self, report: Report) -> None:
         thread_time_stamp = self._post_message(
@@ -58,46 +61,54 @@ class SlackReporter:
             format_function=self._format_header_message,
             thread_time_stamp=None,
         )
-        self._post_message(
-            report=report,
-            format_function=self._format_periodic_comment,
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._upload_most_failing_jobs_graph(
-            jobs=report.top_10_failing_e2e_or_subsystem_periodic_jobs,
-            file_title="Top 10 Failed Periodic Jobs",
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._post_message(
-            report=report,
-            format_function=self._format_presubmit_comment,
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._upload_most_failing_jobs_graph(
-            jobs=report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
-            file_title="Top 10 Failed Presubmit Jobs",
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._create_and_upload_most_triggered_jobs_graph(
-            jobs=report.top_5_most_triggered_e2e_or_subsystem_jobs,
-            file_title="Top 5 Triggered Presubmit Jobs",
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._post_message(
-            report=report,
-            format_function=self._format_postsubmit_comment,
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._upload_most_failing_jobs_graph(
-            jobs=report.top_10_failing_postsubmit_jobs,
-            file_title="Top 10 Failed Postsubmit Jobs",
-            thread_time_stamp=thread_time_stamp,
-        )
-        self._post_message(
-            report=report,
-            format_function=self._format_equinix_message,
-            thread_time_stamp=thread_time_stamp,
-        )
+
+        if report.success_rate_for_e2e_or_subsystem_periodic_jobs is not None:
+            self._post_message(
+                report=report,
+                format_function=self._format_periodic_comment,
+                thread_time_stamp=thread_time_stamp,
+            )
+            self._upload_most_failing_jobs_graph(
+                jobs=report.top_10_failing_e2e_or_subsystem_periodic_jobs,
+                file_title="Top 10 Failed Periodic Jobs",
+                thread_time_stamp=thread_time_stamp,
+            )
+
+        if report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None:
+            self._post_message(
+                report=report,
+                format_function=self._format_presubmit_comment,
+                thread_time_stamp=thread_time_stamp,
+            )
+            self._upload_most_failing_jobs_graph(
+                jobs=report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
+                file_title="Top 10 Failed Presubmit Jobs",
+                thread_time_stamp=thread_time_stamp,
+            )
+            self._create_and_upload_most_triggered_jobs_graph(
+                jobs=report.top_5_most_triggered_e2e_or_subsystem_jobs,
+                file_title="Top 5 Triggered Presubmit Jobs",
+                thread_time_stamp=thread_time_stamp,
+            )
+
+        if report.success_rate_for_postsubmit_jobs is not None:
+            self._post_message(
+                report=report,
+                format_function=self._format_postsubmit_comment,
+                thread_time_stamp=thread_time_stamp,
+            )
+            self._upload_most_failing_jobs_graph(
+                jobs=report.top_10_failing_postsubmit_jobs,
+                file_title="Top 10 Failed Postsubmit Jobs",
+                thread_time_stamp=thread_time_stamp,
+            )
+
+        if report.total_equinix_machines_cost > 0:
+            self._post_message(
+                report=report,
+                format_function=self._format_equinix_message,
+                thread_time_stamp=thread_time_stamp,
+            )
 
     @staticmethod
     def _format_header_message(report: Report) -> list[dict[str, Any]]:
@@ -234,6 +245,7 @@ class SlackReporter:
         cls._create_cost_by_machine_type_section(
             equinix_message, report.cost_by_machine_type
         )
+        cls._create_cost_by_job_type_section(equinix_message, report.cost_by_job_type)
 
         return equinix_message
 
@@ -258,6 +270,30 @@ class SlackReporter:
                 new_section["text"]["text"] = (
                     new_section["text"]["text"]
                     + f" \t\t *-* {formatted_machine_type}: *_{int(cost)}_ $*\n"
+                )
+
+        equinix_message.append(new_section)
+
+    @staticmethod
+    def _create_cost_by_job_type_section(
+        equinix_message: list[dict[str, Any]], job_type_metrics: JobTypeMetrics
+    ):
+        if job_type_metrics.is_zero():
+            return
+
+        new_section: dict[str, Any] = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (f"•\t Cost by job type:\n"),
+            },
+        }
+
+        for job_type, cost in job_type_metrics.dict().items():
+            if int(cost) > 0:
+                new_section["text"]["text"] = (
+                    new_section["text"]["text"]
+                    + f" \t\t *-* {job_type}: *_{int(cost)}_ $*\n"
                 )
 
         equinix_message.append(new_section)

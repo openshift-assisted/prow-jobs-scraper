@@ -5,6 +5,7 @@ from jobsautoreport.report import (
     IdentifiedJobMetrics,
     JobIdentifier,
     JobMetrics,
+    JobTypeMetrics,
     MachineMetrics,
     Report,
     Reporter,
@@ -292,7 +293,7 @@ valid_queried_jobs = [
         context="unit-test-postsubmit",
     ),
     JobDetails(
-        build_id="test",
+        build_id="1634705984507088896",
         duration=2053,
         name="branch-ci-openshift-assisted-service-release-ocm-2.6-unit-test-postsubmit",
         refs=JobRefs(
@@ -549,8 +550,9 @@ expected_report = Report(
     total_number_of_machine_leased=5,
     total_equinix_machines_cost=0.2,
     cost_by_machine_type=MachineMetrics(
-        metrics={"m3.small.x86": 0.1, "c3.medium.x86": 0.1}
+        metrics={"c3.medium.x86": 0.1, "m3.small.x86": 0.1}
     ),
+    cost_by_job_type=JobTypeMetrics(postsubmit=0.1),
 )
 
 

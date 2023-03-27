@@ -4,28 +4,19 @@ from typing import Any, Callable, Optional
 
 from pydantic import BaseModel
 
-from jobsautoreport.models import JobState, JobType, MachineMetrics, StepState
+from jobsautoreport.models import (
+    JobMetrics,
+    JobState,
+    JobType,
+    JobTypeMetrics,
+    MachineMetrics,
+    StepState,
+)
 from jobsautoreport.query import Querier
 from prowjobsscraper.equinix_usages import EquinixUsageEvent
 from prowjobsscraper.event import JobDetails
 
 logger = logging.getLogger(__name__)
-
-
-class MachineMetrics(BaseModel):
-    m3_small_x86: float = 0
-    c3_medium_x86: float = 0
-    a3_large_x86: float = 0
-    c3_large_arm64: float = 0
-    m3_large_x86: float = 0
-    n3_xlarge_x86: float = 0
-    s3_xlarge_x86: float = 0
-
-    def is_zero(self) -> bool:
-        for cost in self.dict().values():
-            if cost > 0:
-                return False
-        return True
 
 
 class JobIdentifier(BaseModel):
@@ -66,45 +57,9 @@ class JobIdentifier(BaseModel):
         )
 
 
-class JobMetrics(BaseModel):
-    successes: int
-    failures: int
-
-    @property
-    def total(self) -> int:
-        return self.successes + self.failures
-
-    @property
-    def failure_rate(self) -> float:
-        return 0 if self.total == 0 else (self.failures / self.total) * 100
-
-    @property
-    def success_rate(self) -> float:
-        return 0 if self.total == 0 else 100 - self.failure_rate
-
-    def __str__(self) -> str:
-        return (
-            f"successes: {self.successes}\n"
-            f"failures: {self.failures}\n"
-            f"success_rate: {self.success_rate}\n"
-            f"failure_rate: {self.failure_rate}\n"
-            f"total: {self.total}\n"
-        )
-
-
 class IdentifiedJobMetrics(BaseModel):
     job_identifier: JobIdentifier
     metrics: JobMetrics
-
-    def __str__(self) -> str:
-        return (
-            f"job name: {self.job_identifier.name}"
-            f"successes: {self.metrics.successes}\n"
-            f"failures: {self.metrics.failures}\n"
-            f"success_rate: {self.metrics.success_rate}\n"
-            f"failure_rate: {self.metrics.failure_rate}\n"
-            f"total: {self.metrics.total}\n"
-        )
 
 
 class Report(BaseModel):
@@ -113,25 +68,26 @@ class Report(BaseModel):
     number_of_e2e_or_subsystem_periodic_jobs: int
     number_of_successful_e2e_or_subsystem_periodic_jobs: int
     number_of_failing_e2e_or_subsystem_periodic_jobs: int
-    success_rate_for_e2e_or_subsystem_periodic_jobs: float
+    success_rate_for_e2e_or_subsystem_periodic_jobs: Optional[float]
     top_10_failing_e2e_or_subsystem_periodic_jobs: list[IdentifiedJobMetrics]
     number_of_e2e_or_subsystem_presubmit_jobs: int
     number_of_successful_e2e_or_subsystem_presubmit_jobs: int
     number_of_failing_e2e_or_subsystem_presubmit_jobs: int
     number_of_rehearsal_jobs: int
-    success_rate_for_e2e_or_subsystem_presubmit_jobs: float
+    success_rate_for_e2e_or_subsystem_presubmit_jobs: Optional[float]
     top_10_failing_e2e_or_subsystem_presubmit_jobs: list[IdentifiedJobMetrics]
     top_5_most_triggered_e2e_or_subsystem_jobs: list[IdentifiedJobMetrics]
     number_of_postsubmit_jobs: int
     number_of_successful_postsubmit_jobs: int
     number_of_failing_postsubmit_jobs: int
-    success_rate_for_postsubmit_jobs: float
+    success_rate_for_postsubmit_jobs: Optional[float]
     top_10_failing_postsubmit_jobs: list[IdentifiedJobMetrics]
     number_of_successful_machine_leases: int
     number_of_unsuccessful_machine_leases: int
     total_number_of_machine_leased: int
     total_equinix_machines_cost: float
     cost_by_machine_type: MachineMetrics
+    cost_by_job_type: JobTypeMetrics
 
 
 class Reporter:
@@ -251,6 +207,56 @@ class Reporter:
             [usage.usage.total for usage in usages if usage.usage.plan == machine_type]
         )
 
+    @classmethod
+    def _get_job_type_metrics(
+        cls, usages: list[EquinixUsageEvent], jobs: list[JobDetails]
+    ) -> JobTypeMetrics:
+        return JobTypeMetrics(
+            presubmit=sum(
+                [
+                    usage.usage.total
+                    for usage in cls._filter_usages_by_job_type(
+                        usages, jobs, JobType.PRESUBMIT
+                    )
+                ]
+            ),
+            periodic=sum(
+                [
+                    usage.usage.total
+                    for usage in cls._filter_usages_by_job_type(
+                        usages, jobs, JobType.PERIODIC
+                    )
+                ]
+            ),
+            postsubmit=sum(
+                [
+                    usage.usage.total
+                    for usage in cls._filter_usages_by_job_type(
+                        usages, jobs, JobType.POSTSUBMIT
+                    )
+                ]
+            ),
+            batch=sum(
+                [
+                    usage.usage.total
+                    for usage in cls._filter_usages_by_job_type(
+                        usages, jobs, JobType.BATCH
+                    )
+                ]
+            ),
+        )
+
+    @staticmethod
+    def _filter_usages_by_job_type(
+        usages: list[EquinixUsageEvent], jobs: list[JobDetails], job_type: JobType
+    ) -> list[EquinixUsageEvent]:
+        jobs_build_id_to_type = {job.build_id: job.type for job in jobs}
+        return [
+            usage
+            for usage in usages
+            if jobs_build_id_to_type.get(usage.job.build_id) == job_type.value
+        ]
+
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
         logger.debug("%d jobs queried from elasticsearch", len(jobs))
@@ -356,4 +362,7 @@ class Reporter:
             total_number_of_machine_leased=len(step_events),
             total_equinix_machines_cost=sum(usage.usage.total for usage in usages),
             cost_by_machine_type=self._get_machine_metrics(usages),
+            cost_by_job_type=self._get_job_type_metrics(
+                usages, assisted_components_jobs
+            ),
         )
