@@ -19,7 +19,22 @@ from prowjobsscraper.event import JobDetails
 logger = logging.getLogger(__name__)
 
 
-class MachineMetrics(BaseModel):
+class Metric(BaseModel):
+    def is_zero(self) -> bool:
+        for cost in self.dict().values():
+            if cost > 0:
+                return False
+        return True
+
+
+class JobTypeMetrics(Metric):
+    presubmit: float = 0
+    periodic: float = 0
+    postsubmit: float = 0
+    batch: float = 0
+
+
+class MachineMetrics(Metric):
     m3_small_x86: float = 0
     c3_medium_x86: float = 0
     a3_large_x86: float = 0
@@ -27,12 +42,6 @@ class MachineMetrics(BaseModel):
     m3_large_x86: float = 0
     n3_xlarge_x86: float = 0
     s3_xlarge_x86: float = 0
-
-    def is_zero(self) -> bool:
-        for cost in self.dict().values():
-            if cost > 0:
-                return False
-        return True
 
 
 class JobIdentifier(BaseModel):
@@ -70,6 +79,32 @@ class JobIdentifier(BaseModel):
             base_ref=job_details.refs.base_ref,
             context=job_details.context,
             variant=job_details.variant,
+        )
+
+
+class JobMetrics(Metric):
+    successes: int
+    failures: int
+
+    @property
+    def total(self) -> int:
+        return self.successes + self.failures
+
+    @property
+    def failure_rate(self) -> float:
+        return 0 if self.total == 0 else (self.failures / self.total) * 100
+
+    @property
+    def success_rate(self) -> float:
+        return 0 if self.total == 0 else 100 - self.failure_rate
+
+    def __str__(self) -> str:
+        return (
+            f"successes: {self.successes}\n"
+            f"failures: {self.failures}\n"
+            f"success_rate: {self.success_rate}\n"
+            f"failure_rate: {self.failure_rate}\n"
+            f"total: {self.total}\n"
         )
 
 
