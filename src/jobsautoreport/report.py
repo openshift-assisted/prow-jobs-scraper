@@ -4,8 +4,9 @@ from typing import Any, Callable, Optional
 
 from pydantic import BaseModel
 
-from jobsautoreport.models import JobState, JobType, StepState
+from jobsautoreport.models import JobState, JobType, MachineMetrics, StepState
 from jobsautoreport.query import Querier
+from prowjobsscraper.equinix_usages import EquinixUsageEvent
 from prowjobsscraper.event import JobDetails
 
 logger = logging.getLogger(__name__)
@@ -114,32 +115,7 @@ class Report(BaseModel):
     number_of_unsuccessful_machine_leases: int
     total_number_of_machine_leased: int
     total_equinix_machines_cost: float
-
-    def __str__(self) -> str:
-        return (
-            f"from {self.from_date} to {self.to_date}:\n"
-            f"number_of_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_e2e_or_subsystem_periodic_jobs}\n"
-            f"number_of_successful_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_successful_e2e_or_subsystem_periodic_jobs}\n"
-            f"number_of_failures_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_failing_e2e_or_subsystem_periodic_jobs}\n"
-            f"success_rate_for_e2e_or_subsystem_periodic_jobs: {self.success_rate_for_e2e_or_subsystem_periodic_jobs}\n"
-            f"top_10_failed_e2e_or_subsystem_periodic_jobs: {self.top_10_failing_e2e_or_subsystem_periodic_jobs}\n"
-            f"number_of_e2e_or_subsystem_presubmit_jobs_triggered: {self.number_of_e2e_or_subsystem_presubmit_jobs}\n"
-            f"number_of_successful_e2e_or_subsystem_presubmit_jobs_triggered: {self.number_of_successful_e2e_or_subsystem_presubmit_jobs}\n"
-            f"number_of_failures_e2e_or_subsystem_pre_submit_jobs_triggered: {self.number_of_failing_e2e_or_subsystem_presubmit_jobs}\n"
-            f"number_of_rehearsal_jobs_triggered: {self.number_of_rehearsal_jobs}\n"
-            f"success_rate_for_e2e_or_subsystem_presubmit_jobs: {self.success_rate_for_e2e_or_subsystem_presubmit_jobs}\n"
-            f"top_10_failed_e2e_or_subsystem_presubmit_jobs: {self.top_10_failing_e2e_or_subsystem_presubmit_jobs}\n"
-            f"top_5_most_triggered_e2e_or_subsystem_jobs: {self.top_5_most_triggered_e2e_or_subsystem_jobs}\n"
-            f"number_of_postsubmit_jobs_triggered: {self.number_of_postsubmit_jobs}\n"
-            f"number_of_successful_postsubmit_jobs_triggered: {self.number_of_successful_postsubmit_jobs}\n"
-            f"number_of_failures_postsubmit_jobs_triggered: {self.number_of_failing_postsubmit_jobs}\n"
-            f"success_rate_for_postsubmit_jobs: {self.success_rate_for_postsubmit_jobs}\n"
-            f"top_10_failed_postsubmit_jobs: {self.top_10_failing_postsubmit_jobs}\n"
-            f"number_of_successful_machine_leases: {self.number_of_successful_machine_leases}\n"
-            f"number_of_unsuccessful_machine_leases: {self.number_of_unsuccessful_machine_leases}\n"
-            f"total_number_of_machine_leased: {self.total_number_of_machine_leased}\n"
-            f"total_equinix_machines_cost: {self.total_equinix_machines_cost}\n"
-        )
+    cost_by_machine_type: MachineMetrics
 
 
 class Reporter:
@@ -240,6 +216,24 @@ class Reporter:
     @staticmethod
     def _is_e2e_or_subsystem_class(job: JobDetails) -> bool:
         return "e2e" in job.name or "subsystem" in job.name
+
+    @classmethod
+    def _get_machine_metrics(cls, usages: list[EquinixUsageEvent]) -> MachineMetrics:
+        machine_types = {usage.usage.plan for usage in usages}
+        return MachineMetrics(
+            metrics={
+                machine_type: cls._count_cost_by_machine_type(usages, machine_type)
+                for machine_type in machine_types
+            }
+        )
+
+    @staticmethod
+    def _count_cost_by_machine_type(
+        usages: list[EquinixUsageEvent], machine_type: str
+    ) -> float:
+        return sum(
+            [usage.usage.total for usage in usages if usage.usage.plan == machine_type]
+        )
 
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
@@ -345,4 +339,5 @@ class Reporter:
             ),
             total_number_of_machine_leased=len(step_events),
             total_equinix_machines_cost=sum(usage.usage.total for usage in usages),
+            cost_by_machine_type=self._get_machine_metrics(usages),
         )

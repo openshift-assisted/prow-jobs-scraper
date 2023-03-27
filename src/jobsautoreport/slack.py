@@ -4,7 +4,12 @@ from typing import Any, Callable, Optional
 import plotly.graph_objects as graph_objects  # type: ignore
 from slack_sdk import WebClient
 
-from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier, Report
+from jobsautoreport.report import (
+    IdentifiedJobMetrics,
+    JobIdentifier,
+    MachineMetrics,
+    Report,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -195,9 +200,9 @@ class SlackReporter:
             },
         ]
 
-    @staticmethod
-    def _format_equinix_message(report: Report) -> list[dict[str, Any]]:
-        return [
+    @classmethod
+    def _format_equinix_message(cls, report: Report) -> list[dict[str, Any]]:
+        equinix_message: list[dict[str, Any]] = [
             {"type": "divider"},
             {
                 "type": "section",
@@ -225,6 +230,37 @@ class SlackReporter:
                 },
             },
         ]
+
+        cls._create_cost_by_machine_type_section(
+            equinix_message, report.cost_by_machine_type
+        )
+
+        return equinix_message
+
+    @staticmethod
+    def _create_cost_by_machine_type_section(
+        equinix_message: list[dict[str, Any]], machine_metrics: MachineMetrics
+    ):
+        if machine_metrics.is_zero():
+            return
+
+        new_section: dict[str, Any] = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (f"•\t Cost by machine type:\n"),
+            },
+        }
+
+        for machine_type, cost in machine_metrics.metrics.items():
+            if "Bandwidth" not in machine_type and int(cost) > 0:
+                formatted_machine_type = machine_type.replace(".", " ")
+                new_section["text"]["text"] = (
+                    new_section["text"]["text"]
+                    + f" \t\t *-* {formatted_machine_type}: *_{int(cost)}_ $*\n"
+                )
+
+        equinix_message.append(new_section)
 
     def _upload_most_failing_jobs_graph(
         self,

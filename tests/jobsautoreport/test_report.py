@@ -5,6 +5,7 @@ from jobsautoreport.report import (
     IdentifiedJobMetrics,
     JobIdentifier,
     JobMetrics,
+    MachineMetrics,
     Report,
     Reporter,
 )
@@ -399,7 +400,7 @@ valid_queried_usage_events = [
             facility="dc13",
             metro="dc",
             name="ipi-ci-op-nnk50j82-5ed26-1634705984507088896",
-            plan="Outbound Bandwidth",
+            plan="c3.medium.x86",
             plan_version="Outbound Bandwidth",
             price=0.05,
             quantity=2,
@@ -416,7 +417,7 @@ valid_queried_usage_events = [
             facility="dc13",
             metro="dc",
             name="ipi-ci-op-tb33cyhd-20a45-1638140834400440320",
-            plan="Outbound Bandwidth",
+            plan="m3.small.x86",
             plan_version="Outbound Bandwidth",
             price=0.05,
             quantity=2,
@@ -547,6 +548,9 @@ expected_report = Report(
     number_of_unsuccessful_machine_leases=2,
     total_number_of_machine_leased=5,
     total_equinix_machines_cost=0.2,
+    cost_by_machine_type=MachineMetrics(
+        metrics={"m3.small.x86": 0.1, "c3.medium.x86": 0.1}
+    ),
 )
 
 

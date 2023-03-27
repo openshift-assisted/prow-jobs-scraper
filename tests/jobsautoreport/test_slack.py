@@ -1,6 +1,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
+from jobsautoreport.models import MachineMetrics
 from jobsautoreport.report import (
     IdentifiedJobMetrics,
     JobIdentifier,
@@ -118,6 +119,9 @@ report = Report(
     number_of_unsuccessful_machine_leases=2,
     total_number_of_machine_leased=3,
     total_equinix_machines_cost=10,
+    cost_by_machine_type=MachineMetrics(
+        metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
+    ),
 )
 
 
@@ -222,6 +226,17 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
             "text": {
                 "type": "mrkdwn",
                 "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  ",
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"•\t Cost by machine type:\n"
+                    f" \t\t *-* m3 large x86: *_{int(report.cost_by_machine_type.metrics['m3.large.x86'])}_ $*\n"
+                    f" \t\t *-* c3 medium x86: *_{int(report.cost_by_machine_type.metrics['c3.medium.x86'])}_ $*\n"
+                ),
             },
         },
     ]
