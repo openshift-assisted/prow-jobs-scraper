@@ -19,6 +19,22 @@ from prowjobsscraper.event import JobDetails
 logger = logging.getLogger(__name__)
 
 
+class MachineMetrics(BaseModel):
+    m3_small_x86: float = 0
+    c3_medium_x86: float = 0
+    a3_large_x86: float = 0
+    c3_large_arm64: float = 0
+    m3_large_x86: float = 0
+    n3_xlarge_x86: float = 0
+    s3_xlarge_x86: float = 0
+
+    def is_zero(self) -> bool:
+        for cost in self.dict().values():
+            if cost > 0:
+                return False
+        return True
+
+
 class JobIdentifier(BaseModel):
     name: str
     repository: Optional[str]
