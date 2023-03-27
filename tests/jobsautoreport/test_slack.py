@@ -6,6 +6,7 @@ from jobsautoreport.report import (
     IdentifiedJobMetrics,
     JobIdentifier,
     JobMetrics,
+    MachineMetrics,
     Report,
 )
 from jobsautoreport.slack import SlackReporter
