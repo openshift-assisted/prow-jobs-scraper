@@ -49,6 +49,7 @@ class JobTypeMetrics(Metric):
 class JobMetrics(Metric):
     successes: int
     failures: int
+    cost: float
 
     @property
     def total(self) -> int:

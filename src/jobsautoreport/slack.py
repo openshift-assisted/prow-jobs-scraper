@@ -7,18 +7,15 @@ from retry import retry
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from jobsautoreport.report import (
-    IdentifiedJobMetrics,
-    JobIdentifier,
-    JobTypeMetrics,
-    MachineMetrics,
-    Report,
-)
+from jobsautoreport.models import JobTypeMetrics, MachineMetrics
+from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier, Report
 
 logger = logging.getLogger(__name__)
 
 
 class SlackReporter:
+    """SlackReporter sends the report the Reporter generated to a given slack channel"""
+
     def __init__(self, web_client: WebClient, channel_id: str) -> None:
         self._client = web_client
         self._channel_id = channel_id
@@ -109,6 +106,11 @@ class SlackReporter:
             self._post_message(
                 report=report,
                 format_function=self._format_equinix_message,
+                thread_time_stamp=thread_time_stamp,
+            )
+            self._create_and_upload_most_expensive_jobs_graph(
+                jobs=report.top_5_most_expensive_jobs,
+                file_title="Top 5 Most Expensive Jobs",
                 thread_time_stamp=thread_time_stamp,
             )
 
@@ -331,6 +333,9 @@ class SlackReporter:
                     color="rgba(90, 212, 90, 0.7)",
                     line=dict(color="rgba(90, 212, 90, 1)", width=3),
                 ),
+                text=successes,
+                textposition="auto",
+                textfont=dict(size=14, color="white"),
             )
         )
 
@@ -344,6 +349,9 @@ class SlackReporter:
                     color="rgba(230, 0, 73, 0.7)",
                     line=dict(color="rgba(230, 0, 73, 1.0)", width=3),
                 ),
+                text=failures,
+                textposition="auto",
+                textfont=dict(size=14, color="white"),
             )
         )
 
@@ -351,6 +359,7 @@ class SlackReporter:
             barmode="stack",
             title_text="Top 10 Failed Jobs",
             font=dict(family="Times New Roman", size=8),
+            xaxis=dict(title="Successes & Failures"),
         )
         fig.write_image(file_path, scale=3)
         logger.info("image created at %s successfully", file_path)
@@ -390,11 +399,61 @@ class SlackReporter:
                     color="rgba(26, 83, 255, 0.7)",
                     line=dict(color="rgba(26, 83, 255, 1)", width=3),
                 ),
+                text=quantities,
+                textposition="auto",
+                textfont=dict(size=14, color="white"),
             )
         )
         fig.update_layout(
             title_text="Top 5 Triggered Jobs",
             font=dict(family="Times New Roman", size=10),
+            xaxis=dict(title="Trigger Count"),
+        )
+        fig.write_image(file_path, scale=3)
+        logger.info("image created at %s successfully", file_path)
+
+        self._upload_file(
+            file_title=file_title,
+            filename=filename,
+            file_path=file_path,
+            thread_time_stamp=thread_time_stamp,
+        )
+
+    def _create_and_upload_most_expensive_jobs_graph(
+        self,
+        jobs: list[IdentifiedJobMetrics],
+        file_title: str,
+        thread_time_stamp: Optional[str],
+    ) -> None:
+        is_variant_unique = JobIdentifier.is_variant_unique(
+            [identified_job_metrics.job_identifier for identified_job_metrics in jobs]
+        )
+        names = [
+            identified_job_metrics.job_identifier.get_slack_name(is_variant_unique)
+            for identified_job_metrics in jobs
+        ]
+        costs = [identified_job_metrics.metrics.cost for identified_job_metrics in jobs]
+        filename, file_path = self._file_name_proccesor(file_title=file_title)
+        fig = graph_objects.Figure()
+        fig.add_trace(
+            graph_objects.Bar(
+                x=costs,
+                y=names,
+                name="costs",
+                orientation="h",
+                marker=dict(
+                    color="rgba(62, 156, 53, 0.7)",
+                    line=dict(color="rgba(62, 156, 53, 1)", width=3),
+                ),
+                text=[int(cost) for cost in costs],
+                textposition="auto",
+                textfont=dict(size=14, color="white"),
+            )
+        )
+        fig.update_layout(
+            title_text="Top 5 Most Expensive Jobs",
+            font=dict(family="Times New Roman", size=10),
+            xaxis=dict(title="Cost (USD)"),
         )
         fig.write_image(file_path, scale=3)
         logger.info("image created at %s successfully", file_path)

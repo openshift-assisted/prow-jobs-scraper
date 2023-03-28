@@ -19,31 +19,6 @@ from prowjobsscraper.event import JobDetails
 logger = logging.getLogger(__name__)
 
 
-class Metric(BaseModel):
-    def is_zero(self) -> bool:
-        for cost in self.dict().values():
-            if cost > 0:
-                return False
-        return True
-
-
-class JobTypeMetrics(Metric):
-    presubmit: float = 0
-    periodic: float = 0
-    postsubmit: float = 0
-    batch: float = 0
-
-
-class MachineMetrics(Metric):
-    m3_small_x86: float = 0
-    c3_medium_x86: float = 0
-    a3_large_x86: float = 0
-    c3_large_arm64: float = 0
-    m3_large_x86: float = 0
-    n3_xlarge_x86: float = 0
-    s3_xlarge_x86: float = 0
-
-
 class JobIdentifier(BaseModel):
     name: str
     repository: Optional[str]
@@ -61,7 +36,7 @@ class JobIdentifier(BaseModel):
         return not self.__eq__(other)
 
     def get_slack_name(self, display_variant: bool) -> str:
-        if self.context is None or self.base_ref is None or self.repository is None:
+        if self.context is None:
             return self.name
         if self.variant is None or not display_variant:
             return f"{self.repository}/{self.base_ref}<br>{self.context}"
@@ -79,32 +54,6 @@ class JobIdentifier(BaseModel):
             base_ref=job_details.refs.base_ref,
             context=job_details.context,
             variant=job_details.variant,
-        )
-
-
-class JobMetrics(Metric):
-    successes: int
-    failures: int
-
-    @property
-    def total(self) -> int:
-        return self.successes + self.failures
-
-    @property
-    def failure_rate(self) -> float:
-        return 0 if self.total == 0 else (self.failures / self.total) * 100
-
-    @property
-    def success_rate(self) -> float:
-        return 0 if self.total == 0 else 100 - self.failure_rate
-
-    def __str__(self) -> str:
-        return (
-            f"successes: {self.successes}\n"
-            f"failures: {self.failures}\n"
-            f"success_rate: {self.success_rate}\n"
-            f"failure_rate: {self.failure_rate}\n"
-            f"total: {self.total}\n"
         )
 
 
@@ -139,9 +88,12 @@ class Report(BaseModel):
     total_equinix_machines_cost: float
     cost_by_machine_type: MachineMetrics
     cost_by_job_type: JobTypeMetrics
+    top_5_most_expensive_jobs: list[IdentifiedJobMetrics]
 
 
 class Reporter:
+    """Reporter computes metrics from the data Querier retrieves, and generates report"""
+
     def __init__(self, querier: Querier):
         self._querier = querier
 
@@ -156,24 +108,44 @@ class Reporter:
         return len([job for job in jobs if job.state == job_state.value])
 
     def _get_job_metrics(
-        self, job_identifier: JobIdentifier, jobs: list[JobDetails]
+        self,
+        job_identifier: JobIdentifier,
+        jobs: list[JobDetails],
+        usages: list[EquinixUsageEvent],
     ) -> IdentifiedJobMetrics:
         job_by_name = [job for job in jobs if job.name == job_identifier.name]
         return IdentifiedJobMetrics(
             job_identifier=job_identifier,
-            metrics=self._compute_job_metrics(job_by_name),
+            metrics=self._compute_job_metrics(job_by_name, usages),
         )
 
-    def _compute_job_metrics(self, jobs: list[JobDetails]) -> JobMetrics:
+    def _compute_job_metrics(
+        self, jobs: list[JobDetails], usages: list[EquinixUsageEvent]
+    ) -> JobMetrics:
         total_jobs_number = len(jobs)
+        if total_jobs_number == 0:
+            return JobMetrics(successes=0, failures=0, cost=0)
+
         successful_jobs_number = self._get_number_of_jobs_by_state(
             jobs=jobs, job_state=JobState.SUCCESS
         )
-        if total_jobs_number == 0:
-            return JobMetrics(successes=0, failures=0)
+        total_cost = sum(
+            [
+                self._compute_job_cost(usages, job.build_id)
+                for job in jobs
+                if job.build_id is not None
+            ]
+        )
         return JobMetrics(
             successes=successful_jobs_number,
             failures=total_jobs_number - successful_jobs_number,
+            cost=total_cost,
+        )
+
+    @staticmethod
+    def _compute_job_cost(usages: list[EquinixUsageEvent], build_id: str) -> float:
+        return sum(
+            [usage.usage.total for usage in usages if usage.job.build_id == build_id]
         )
 
     def _get_top_n_jobs(
@@ -181,10 +153,11 @@ class Reporter:
         jobs: list[JobDetails],
         n: int,
         comparison_func: Callable,
+        usages: list[EquinixUsageEvent],
     ) -> list[IdentifiedJobMetrics]:
         distinct_jobs = {JobIdentifier.create_from_job_details(job) for job in jobs}
         res = [
-            self._get_job_metrics(job_identifier, jobs)
+            self._get_job_metrics(job_identifier, jobs, usages)
             for job_identifier in distinct_jobs
         ]
         res = sorted(res, key=comparison_func, reverse=True)
@@ -193,9 +166,7 @@ class Reporter:
         return res
 
     def _get_top_n_failed_jobs(
-        self,
-        jobs: list[JobDetails],
-        n: int,
+        self, jobs: list[JobDetails], n: int, usages: list[EquinixUsageEvent]
     ) -> list[IdentifiedJobMetrics]:
         top_failed_jobs = self._get_top_n_jobs(
             jobs=jobs,
@@ -205,6 +176,7 @@ class Reporter:
                 identified_job_metrics.metrics.failures,
                 identified_job_metrics.job_identifier.name,
             ),
+            usages=usages,
         )
         return [
             identified_job
@@ -308,6 +280,24 @@ class Reporter:
             if jobs_build_id_to_type.get(usage.job.build_id) == job_type.value
         ]
 
+    def _get_top_n_most_expensive_jobs(
+        self, jobs: list[JobDetails], usages: list[EquinixUsageEvent], n: int
+    ) -> list[IdentifiedJobMetrics]:
+        most_expensive_jobs = self._get_top_n_jobs(
+            jobs=jobs,
+            n=n,
+            comparison_func=lambda identified_job_metrics: (
+                identified_job_metrics.metrics.cost,
+                identified_job_metrics.job_identifier.name,
+            ),
+            usages=usages,
+        )
+        return [
+            identified_job
+            for identified_job in most_expensive_jobs
+            if identified_job.metrics.cost > 0
+        ]
+
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
         logger.debug("%d jobs queried from elasticsearch", len(jobs))
@@ -351,11 +341,10 @@ class Reporter:
                 jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
             ),
             success_rate_for_e2e_or_subsystem_periodic_jobs=self._compute_job_metrics(
-                jobs=periodic_subsystem_and_e2e_jobs
+                jobs=periodic_subsystem_and_e2e_jobs, usages=usages
             ).success_rate,
             top_10_failing_e2e_or_subsystem_periodic_jobs=self._get_top_n_failed_jobs(
-                jobs=periodic_subsystem_and_e2e_jobs,
-                n=10,
+                jobs=periodic_subsystem_and_e2e_jobs, n=10, usages=usages
             ),
             number_of_e2e_or_subsystem_presubmit_jobs=len(
                 presubmit_subsystem_and_e2e_jobs
@@ -368,11 +357,10 @@ class Reporter:
             ),
             number_of_rehearsal_jobs=len(rehearsal_jobs),
             success_rate_for_e2e_or_subsystem_presubmit_jobs=self._compute_job_metrics(
-                jobs=presubmit_subsystem_and_e2e_jobs
+                jobs=presubmit_subsystem_and_e2e_jobs, usages=usages
             ).success_rate,
             top_10_failing_e2e_or_subsystem_presubmit_jobs=self._get_top_n_failed_jobs(
-                jobs=presubmit_subsystem_and_e2e_jobs,
-                n=10,
+                jobs=presubmit_subsystem_and_e2e_jobs, n=10, usages=usages
             ),
             top_5_most_triggered_e2e_or_subsystem_jobs=self._get_top_n_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
@@ -381,6 +369,7 @@ class Reporter:
                     identified_job_metrics.metrics.total,
                     identified_job_metrics.job_identifier.name,
                 ),
+                usages=usages,
             ),
             number_of_postsubmit_jobs=len(postsubmit_jobs),
             number_of_successful_postsubmit_jobs=self._get_number_of_jobs_by_state(
@@ -390,11 +379,10 @@ class Reporter:
                 jobs=postsubmit_jobs, job_state=JobState.FAILURE
             ),
             success_rate_for_postsubmit_jobs=self._compute_job_metrics(
-                jobs=postsubmit_jobs
+                jobs=postsubmit_jobs, usages=usages
             ).success_rate,
             top_10_failing_postsubmit_jobs=self._get_top_n_failed_jobs(
-                jobs=postsubmit_jobs,
-                n=10,
+                jobs=postsubmit_jobs, n=10, usages=usages
             ),
             number_of_successful_machine_leases=len(
                 [
@@ -415,5 +403,8 @@ class Reporter:
             cost_by_machine_type=self._get_machine_metrics(usages),
             cost_by_job_type=self._get_job_type_metrics(
                 usages, assisted_components_jobs
+            ),
+            top_5_most_expensive_jobs=self._get_top_n_most_expensive_jobs(
+                jobs=assisted_components_jobs, usages=usages, n=5
             ),
         )

@@ -2,15 +2,8 @@ from datetime import datetime
 from typing import Any
 from unittest.mock import MagicMock
 
-from jobsautoreport.models import MachineMetrics
-from jobsautoreport.report import (
-    IdentifiedJobMetrics,
-    JobIdentifier,
-    JobMetrics,
-    JobTypeMetrics,
-    MachineMetrics,
-    Report,
-)
+from jobsautoreport.models import JobMetrics, JobTypeMetrics, MachineMetrics
+from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier, Report
 from jobsautoreport.slack import SlackReporter
 
 report_1 = Report(
@@ -30,10 +23,7 @@ report_1 = Report(
                 variant="variant",
                 context="context-1",
             ),
-            metrics=JobMetrics(
-                successes=3,
-                failures=1,
-            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=0),
         ),
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
@@ -43,10 +33,7 @@ report_1 = Report(
                 variant="variant",
                 context="context-2",
             ),
-            metrics=JobMetrics(
-                successes=3,
-                failures=1,
-            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=0),
         ),
     ],
     number_of_e2e_or_subsystem_presubmit_jobs=24,
@@ -64,10 +51,7 @@ report_1 = Report(
                 variant="variant-1",
                 context="context-3",
             ),
-            metrics=JobMetrics(
-                successes=1,
-                failures=2,
-            ),
+            metrics=JobMetrics(successes=1, failures=2, cost=1),
         ),
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
@@ -77,10 +61,7 @@ report_1 = Report(
                 variant="variant-2",
                 context="context-4",
             ),
-            metrics=JobMetrics(
-                successes=1,
-                failures=2,
-            ),
+            metrics=JobMetrics(successes=1, failures=2, cost=1),
         ),
     ],
     top_5_most_triggered_e2e_or_subsystem_jobs=[
@@ -88,19 +69,13 @@ report_1 = Report(
             job_identifier=JobIdentifier(
                 name="fake-job-2", repository="test", base_ref="test"
             ),
-            metrics=JobMetrics(
-                successes=1,
-                failures=2,
-            ),
+            metrics=JobMetrics(successes=1, failures=2, cost=1),
         ),
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
                 name="fake-job-1", repository="test", base_ref="test"
             ),
-            metrics=JobMetrics(
-                successes=3,
-                failures=1,
-            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=1),
         ),
     ],
     number_of_postsubmit_jobs=12,
@@ -112,10 +87,7 @@ report_1 = Report(
             job_identifier=JobIdentifier(
                 name="fake-job-3", repository="test", base_ref="test"
             ),
-            metrics=JobMetrics(
-                successes=3,
-                failures=1,
-            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=1),
         )
     ],
     number_of_successful_machine_leases=1,
@@ -126,6 +98,14 @@ report_1 = Report(
         metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
     ),
     cost_by_job_type=JobTypeMetrics(postsubmit=4),
+    top_5_most_expensive_jobs=[
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="fake-job-3", repository="test", base_ref="test"
+            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=1),
+        )
+    ],
 )
 
 report_2 = Report(
@@ -151,10 +131,7 @@ report_2 = Report(
                 variant="variant-1",
                 context="context-3",
             ),
-            metrics=JobMetrics(
-                successes=1,
-                failures=2,
-            ),
+            metrics=JobMetrics(successes=1, failures=2, cost=3),
         ),
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
@@ -164,10 +141,7 @@ report_2 = Report(
                 variant="variant-2",
                 context="context-4",
             ),
-            metrics=JobMetrics(
-                successes=1,
-                failures=2,
-            ),
+            metrics=JobMetrics(successes=1, failures=2, cost=3),
         ),
     ],
     top_5_most_triggered_e2e_or_subsystem_jobs=[
@@ -175,19 +149,13 @@ report_2 = Report(
             job_identifier=JobIdentifier(
                 name="fake-job-2", repository="test", base_ref="test"
             ),
-            metrics=JobMetrics(
-                successes=1,
-                failures=2,
-            ),
+            metrics=JobMetrics(successes=1, failures=2, cost=3),
         ),
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
                 name="fake-job-1", repository="test", base_ref="test"
             ),
-            metrics=JobMetrics(
-                successes=3,
-                failures=1,
-            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=4),
         ),
     ],
     number_of_postsubmit_jobs=0,
@@ -199,10 +167,7 @@ report_2 = Report(
             job_identifier=JobIdentifier(
                 name="fake-job-3", repository="test", base_ref="test"
             ),
-            metrics=JobMetrics(
-                successes=3,
-                failures=1,
-            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=4),
         )
     ],
     number_of_successful_machine_leases=1,
@@ -213,6 +178,14 @@ report_2 = Report(
         metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
     ),
     cost_by_job_type=JobTypeMetrics(postsubmit=4),
+    top_5_most_expensive_jobs=[
+        IdentifiedJobMetrics(
+            job_identifier=JobIdentifier(
+                name="fake-job-3", repository="test", base_ref="test"
+            ),
+            metrics=JobMetrics(successes=3, failures=1, cost=1),
+        )
+    ],
 )
 
 
@@ -434,6 +407,13 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         blocks=blocks["expected_blocks_equinix"],
         thread_ts=test_thread_time_stamp["ts"],
     )
+    web_client_mock.files_upload.assert_any_call(
+        channels=[test_channel],
+        file="/tmp/top_5_most_expensive_jobs.png",
+        filename="top_5_most_expensive_jobs",
+        initial_comment="Top 5 Most Expensive Jobs",
+        thread_ts=test_thread_time_stamp["ts"],
+    )
 
 
 def test_send_report_should_successfully_call_slack_api_with_filtering_none_success_rates():
@@ -476,6 +456,13 @@ def test_send_report_should_successfully_call_slack_api_with_filtering_none_succ
     web_client_mock.chat_postMessage.assert_any_call(
         channel=test_channel,
         blocks=blocks["expected_blocks_equinix"],
+        thread_ts=test_thread_time_stamp["ts"],
+    )
+    web_client_mock.files_upload.assert_any_call(
+        channels=[test_channel],
+        file="/tmp/top_5_most_expensive_jobs.png",
+        filename="top_5_most_expensive_jobs",
+        initial_comment="Top 5 Most Expensive Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
 

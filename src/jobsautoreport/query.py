@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class Querier:
+    """Querier queries data from elasticsearch database and parses it"""
+
     def __init__(
         self,
         opensearch_client: OpenSearch,
