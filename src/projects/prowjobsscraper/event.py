@@ -6,9 +6,9 @@ import pkg_resources
 from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
-from prowjobsscraper.equinix import EquinixMetadata
-from prowjobsscraper.prowjob import ProwJob
-from prowjobsscraper.step import JobStep
+from projects.prowjobsscraper.equinix import EquinixMetadata
+from projects.prowjobsscraper.prowjob import ProwJob
+from projects.prowjobsscraper.step import JobStep
 
 
 class JobRefs(BaseModel):

@@ -3,8 +3,8 @@ from typing import Final, Optional
 
 from google.cloud import exceptions, storage  # type: ignore
 
-from prowjobsscraper import utils
-from prowjobsscraper.prowjob import EquinixMetadata, ProwJob, ProwJobs
+from projects.prowjobsscraper import utils
+from projects.prowjobsscraper.prowjob import EquinixMetadata, ProwJob, ProwJobs
 
 logger = logging.getLogger(__name__)
 

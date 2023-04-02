@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 import plotly.graph_objects as graph_objects  # type: ignore
 from slack_sdk import WebClient
 
-from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier, Report
+from projects.jobsautoreport.models import IdentifiedJobMetrics, JobIdentifier, Report
 
 logger = logging.getLogger(__name__)
 

@@ -6,8 +6,8 @@ from google.cloud import exceptions, storage  # type: ignore
 from junitparser import Failure, JUnitXml, TestCase  # type: ignore
 from pydantic import BaseModel, HttpUrl
 
-from prowjobsscraper import utils
-from prowjobsscraper.prowjob import ProwJob, ProwJobs
+from projects.prowjobsscraper import utils
+from projects.prowjobsscraper.prowjob import ProwJob, ProwJobs
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ from typing import Any
 
 from opensearchpy import OpenSearch, helpers
 
-from prowjobsscraper.event import JobDetails, StepEvent
+from projects.prowjobsscraper.event import JobDetails, StepEvent
 
 logger = logging.getLogger(__name__)
 

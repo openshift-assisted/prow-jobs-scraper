@@ -1,13 +1,13 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from jobsautoreport.report import (
+from projects.jobsautoreport.report import (
     IdentifiedJobMetrics,
     JobIdentifier,
     JobMetrics,
     Report,
 )
-from jobsautoreport.slack import SlackReporter
+from projects.jobsautoreport.slack import SlackReporter
 
 report = Report(
     from_date=datetime.now(),

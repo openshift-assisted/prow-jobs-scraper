@@ -1,7 +1,7 @@
 import logging
 import re
 
-from prowjobsscraper import equinix, event, prowjob, step
+from projects.prowjobsscraper import equinix, event, prowjob, step
 
 logger = logging.getLogger(__name__)
 

@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pkg_resources
 from google.cloud import exceptions
 
-from prowjobsscraper import step
-from prowjobsscraper.prowjob import ProwJobs
+from projects.prowjobsscraper import step
+from projects.prowjobsscraper.prowjob import ProwJobs
 
 
 def test_step_extractor_when_junit_is_not_available_should_return_no_steps():

@@ -4,7 +4,7 @@ import pkg_resources
 import pytest
 from pytest_httpserver import HTTPServer
 
-from prowjobsscraper import prowjob, scraper, step
+from projects.prowjobsscraper import prowjob, scraper, step
 
 
 @pytest.mark.parametrize(

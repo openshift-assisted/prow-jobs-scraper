@@ -4,8 +4,8 @@ import pkg_resources
 import pytest
 from google.cloud import exceptions
 
-from prowjobsscraper.equinix import EquinixExtractor
-from prowjobsscraper.prowjob import (
+from projects.prowjobsscraper.equinix import EquinixExtractor
+from projects.prowjobsscraper.prowjob import (
     EquinixMetadata,
     EquinixMetadataOperationSystem,
     ProwJobs,

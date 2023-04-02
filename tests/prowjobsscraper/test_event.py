@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
 from unittest.mock import MagicMock, call, patch
 
 import pkg_resources
 from freezegun import freeze_time
 
-from prowjobsscraper import event, step
+from projects.prowjobsscraper import event, step
 
 _FREEZE_TIME = "2023-01-01 12:00:00"
 _EXPECTED_CURRENT_INDEX_SUFFIX = "2022.52"

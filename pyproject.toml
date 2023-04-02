@@ -28,8 +28,8 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
-prow-jobs-scraper = "prowjobsscraper.main:main"
-jobs-auto-report = "jobsautoreport.main:main"
+prow-jobs-scraper = "projects.prowjobsscraper.main:main"
+jobs-auto-report = "projects.jobsautoreport.main:main"
 
 [project.optional-dependencies]
 test-runner = [

@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
-from jobsautoreport.report import (
+from projects.jobsautoreport.models import (
     IdentifiedJobMetrics,
     JobIdentifier,
     JobMetrics,
     Report,
-    Reporter,
 )
-from prowjobsscraper.event import JobDetails, JobRefs, StepDetails, StepEvent
+from projects.jobsautoreport.report import Reporter
+from projects.prowjobsscraper.event import JobDetails, JobRefs, StepDetails, StepEvent
 
 valid_queried_jobs = [
     JobDetails(

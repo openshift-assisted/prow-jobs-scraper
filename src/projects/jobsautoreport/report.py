@@ -1,143 +1,20 @@
 import logging
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Callable
 
-from pydantic import BaseModel
-
-from jobsautoreport.models import JobState, JobType, StepState
-from jobsautoreport.query import Querier
-from prowjobsscraper.event import JobDetails
+from projects.jobsautoreport.models import (
+    IdentifiedJobMetrics,
+    JobIdentifier,
+    JobMetrics,
+    JobState,
+    JobType,
+    Report,
+    StepState,
+)
+from projects.jobsautoreport.query import Querier
+from projects.prowjobsscraper.event import JobDetails
 
 logger = logging.getLogger(__name__)
-
-
-class JobIdentifier(BaseModel):
-    name: str
-    repository: Optional[str]
-    base_ref: Optional[str]
-    context: Optional[str]
-    variant: Optional[str]
-
-    def __hash__(self) -> int:
-        return hash(self.name)
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, self.__class__) and self.name == other.name
-
-    def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
-
-    def get_slack_name(self, display_variant: bool) -> str:
-        if self.context is None or self.base_ref is None or self.repository is None:
-            return self.name
-        if self.variant is None or not display_variant:
-            return f"{self.repository}/{self.base_ref}<br>{self.context}"
-        return f"{self.repository}/{self.base_ref}<br>{self.variant}-{self.context}"
-
-    @staticmethod
-    def is_variant_unique(job_identifiers: list["JobIdentifier"]) -> bool:
-        return len({job_identifier.variant for job_identifier in job_identifiers}) != 1
-
-    @classmethod
-    def create_from_job_details(cls, job_details: JobDetails) -> "JobIdentifier":
-        return cls(
-            name=job_details.name,
-            repository=job_details.refs.repo,
-            base_ref=job_details.refs.base_ref,
-            context=job_details.context,
-            variant=job_details.variant,
-        )
-
-
-class JobMetrics(BaseModel):
-    successes: int
-    failures: int
-
-    @property
-    def total(self) -> int:
-        return self.successes + self.failures
-
-    @property
-    def failure_rate(self) -> float:
-        return 0 if self.total == 0 else (self.failures / self.total) * 100
-
-    @property
-    def success_rate(self) -> float:
-        return 0 if self.total == 0 else 100 - self.failure_rate
-
-    def __str__(self) -> str:
-        return (
-            f"successes: {self.successes}\n"
-            f"failures: {self.failures}\n"
-            f"success_rate: {self.success_rate}\n"
-            f"failure_rate: {self.failure_rate}\n"
-            f"total: {self.total}\n"
-        )
-
-
-class IdentifiedJobMetrics(BaseModel):
-    job_identifier: JobIdentifier
-    metrics: JobMetrics
-
-    def __str__(self) -> str:
-        return (
-            f"job name: {self.job_identifier.name}"
-            f"successes: {self.metrics.successes}\n"
-            f"failures: {self.metrics.failures}\n"
-            f"success_rate: {self.metrics.success_rate}\n"
-            f"failure_rate: {self.metrics.failure_rate}\n"
-            f"total: {self.metrics.total}\n"
-        )
-
-
-class Report(BaseModel):
-    from_date: datetime
-    to_date: datetime
-    number_of_e2e_or_subsystem_periodic_jobs: int
-    number_of_successful_e2e_or_subsystem_periodic_jobs: int
-    number_of_failing_e2e_or_subsystem_periodic_jobs: int
-    success_rate_for_e2e_or_subsystem_periodic_jobs: float
-    top_10_failing_e2e_or_subsystem_periodic_jobs: list[IdentifiedJobMetrics]
-    number_of_e2e_or_subsystem_presubmit_jobs: int
-    number_of_successful_e2e_or_subsystem_presubmit_jobs: int
-    number_of_failing_e2e_or_subsystem_presubmit_jobs: int
-    number_of_rehearsal_jobs: int
-    success_rate_for_e2e_or_subsystem_presubmit_jobs: float
-    top_10_failing_e2e_or_subsystem_presubmit_jobs: list[IdentifiedJobMetrics]
-    top_5_most_triggered_e2e_or_subsystem_jobs: list[IdentifiedJobMetrics]
-    number_of_postsubmit_jobs: int
-    number_of_successful_postsubmit_jobs: int
-    number_of_failing_postsubmit_jobs: int
-    success_rate_for_postsubmit_jobs: float
-    top_10_failing_postsubmit_jobs: list[IdentifiedJobMetrics]
-    number_of_successful_machine_leases: int
-    number_of_unsuccessful_machine_leases: int
-    total_number_of_machine_leased: int
-
-    def __str__(self) -> str:
-        return (
-            f"from {self.from_date} to {self.to_date}:\n"
-            f"number_of_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_e2e_or_subsystem_periodic_jobs}\n"
-            f"number_of_successful_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_successful_e2e_or_subsystem_periodic_jobs}\n"
-            f"number_of_failures_e2e_or_subsystem_periodic_jobs_triggered: {self.number_of_failing_e2e_or_subsystem_periodic_jobs}\n"
-            f"success_rate_for_e2e_or_subsystem_periodic_jobs: {self.success_rate_for_e2e_or_subsystem_periodic_jobs}\n"
-            f"top_10_failed_e2e_or_subsystem_periodic_jobs: {self.top_10_failing_e2e_or_subsystem_periodic_jobs}\n"
-            f"number_of_e2e_or_subsystem_presubmit_jobs_triggered: {self.number_of_e2e_or_subsystem_presubmit_jobs}\n"
-            f"number_of_successful_e2e_or_subsystem_presubmit_jobs_triggered: {self.number_of_successful_e2e_or_subsystem_presubmit_jobs}\n"
-            f"number_of_failures_e2e_or_subsystem_pre_submit_jobs_triggered: {self.number_of_failing_e2e_or_subsystem_presubmit_jobs}\n"
-            f"number_of_rehearsal_jobs_triggered: {self.number_of_rehearsal_jobs}\n"
-            f"success_rate_for_e2e_or_subsystem_presubmit_jobs: {self.success_rate_for_e2e_or_subsystem_presubmit_jobs}\n"
-            f"top_10_failed_e2e_or_subsystem_presubmit_jobs: {self.top_10_failing_e2e_or_subsystem_presubmit_jobs}\n"
-            f"top_5_most_triggered_e2e_or_subsystem_jobs: {self.top_5_most_triggered_e2e_or_subsystem_jobs}\n"
-            f"number_of_postsubmit_jobs_triggered: {self.number_of_postsubmit_jobs}\n"
-            f"number_of_successful_postsubmit_jobs_triggered: {self.number_of_successful_postsubmit_jobs}\n"
-            f"number_of_failures_postsubmit_jobs_triggered: {self.number_of_failing_postsubmit_jobs}\n"
-            f"success_rate_for_postsubmit_jobs: {self.success_rate_for_postsubmit_jobs}\n"
-            f"top_10_failed_postsubmit_jobs: {self.top_10_failing_postsubmit_jobs}\n"
-            f"number_of_successful_machine_leases: {self.number_of_successful_machine_leases}\n"
-            f"number_of_unsuccessful_machine_leases: {self.number_of_unsuccessful_machine_leases}\n"
-            f"total_number_of_machine_leased: {self.total_number_of_machine_leased}\n"
-        )
 
 
 class Reporter:
