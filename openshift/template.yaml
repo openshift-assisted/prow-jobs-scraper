@@ -62,13 +62,13 @@ objects:
               - name: EQUINIX_PROJECT_ID
                 valueFrom:
                   secretKeyRef:
-                    key: equinix_project_id_key
-                    name: equinix_project_id
+                    key: ${PROW_JOBS_SCRAPER_EQUINIX_PROJECT_ID_KEY}
+                    name: ${PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME}
               - name: EQUINIX_PROJECT_TOKEN
                 valueFrom:
                   secretKeyRef:
-                    key: equinix_project_token_key
-                    name: equinix_project_token
+                    key: ${PROW_JOBS_SCRAPER_EQUINIX_PROJECT_TOKEN_KEY}
+                    name: ${PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME}
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
@@ -217,6 +217,12 @@ parameters:
   value: "@hourly"
 - name: EQUINIX_USAGES_SCRAPE_INTERVAL
   value: "day"
+- name: PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME
+  value: prow-jobs-scraper-equinix-secret
+- name: PROW_JOBS_SCRAPER_EQUINIX_PROJECT_ID_KEY
+  value: prow-jobs-scraper-equinix-project-id-key
+- name: PROW_JOBS_SCRAPER_EQUINIX_PROJECT_TOKEN_KEY
+  value: prow-jobs-scraper-equinix-project-token-key
 - name: JOBS_AUTO_WEEKLY_REPORT_LOG_LEVEL
   value: "INFO"
 - name: JOBS_AUTO_MONTHLY_REPORT_LOG_LEVEL
