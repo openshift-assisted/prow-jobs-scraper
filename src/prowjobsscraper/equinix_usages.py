@@ -75,8 +75,6 @@ class EquinixUsagesExtractor:
     def get_project_usages(
         self,
     ) -> list[EquinixUsage]:
-        print(self._start_time.strftime(self._USAGES_TIME_FORMAT))
-        print(self._end_time.strftime(self._USAGES_TIME_FORMAT))
         equinix_project_usages = requests.get(
             url=self._EQUINIX_METAL_ENDPOINT.format(
                 self._project_id,

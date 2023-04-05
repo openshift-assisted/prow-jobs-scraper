@@ -147,11 +147,11 @@ class EventStoreElastic:
         )
         self._usages_index.index(equinix_usages)
 
-    def scan_build_ids_from_index(self, index_prefix_singular: str) -> set[str]:
-        results = self.__dict__[f"_{index_prefix_singular}s_index"].scan(
-            {"_source": [f"{index_prefix_singular}.build_id"]}
+    def scan_build_ids_from_index(self, index_prefix: str) -> set[str]:
+        results = self.__dict__[f"_{index_prefix}_index"].scan(
+            {"_source": ["job.build_id"]}
         )
-        return {r["_source"][f"{index_prefix_singular}"]["build_id"] for r in results}
+        return {r["_source"]["job"]["build_id"] for r in results}
 
 
 class _EsIndex:

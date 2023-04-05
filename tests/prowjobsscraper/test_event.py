@@ -60,7 +60,7 @@ def test_scan_build_id_from_jobs_index_when_results_are_expected(scan):
         step_index_basename="steps",
         usage_index_basename="usages",
     )
-    build_ids = event_store.scan_build_ids_from_index("job")
+    build_ids = event_store.scan_build_ids_from_index("jobs")
 
     expected_search_indices = (
         f"jobs-{_EXPECTED_CURRENT_INDEX_SUFFIX},jobs-{_EXPECTED_PREVIOUS_INDEX_SUFFIX}"
@@ -76,9 +76,9 @@ def test_scan_build_id_from_jobs_index_when_results_are_expected(scan):
 def test_scan_build_id_from_usages_index_when_results_are_expected(scan):
     es_client = MagicMock()
     scan.return_value = [
-        {"_source": {"usage": {"build_id": 1}}},
-        {"_source": {"usage": {"build_id": 2}}},
-        {"_source": {"usage": {"build_id": 3}}},
+        {"_source": {"job": {"build_id": 1}}},
+        {"_source": {"job": {"build_id": 2}}},
+        {"_source": {"job": {"build_id": 3}}},
     ]
     event_store = event.EventStoreElastic(
         client=es_client,
@@ -86,12 +86,12 @@ def test_scan_build_id_from_usages_index_when_results_are_expected(scan):
         step_index_basename="steps",
         usage_index_basename="usages",
     )
-    build_ids = event_store.scan_build_ids_from_index("usage")
+    build_ids = event_store.scan_build_ids_from_index("usages")
 
     expected_search_indices = f"usages-{_EXPECTED_CURRENT_INDEX_SUFFIX},usages-{_EXPECTED_PREVIOUS_INDEX_SUFFIX}"
 
     scan.assert_called_once()
-    print(scan.call_args.kwargs["index"])
+
     assert scan.call_args.kwargs["index"] == expected_search_indices
     assert build_ids == {1, 2, 3}
 
@@ -106,7 +106,7 @@ def test_scan_build_id_from_jobs_index_when_no_results(scan):
         step_index_basename="steps",
         usage_index_basename="usages",
     )
-    build_ids = event_store.scan_build_ids_from_index("job")
+    build_ids = event_store.scan_build_ids_from_index("jobs")
 
     scan.assert_called_once()
     assert len(build_ids) == 0
