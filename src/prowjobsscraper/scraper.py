@@ -26,7 +26,7 @@ class Scraper:
         jobs.items = [j for j in jobs.items if self._is_assisted_job(j)]
 
         # filter out jobs already stored
-        known_jobs_build_ids = self._event_store.scan_build_ids_from_index("jobs")
+        known_jobs_build_ids = self._event_store.scan_build_ids()
         jobs.items = [
             j for j in jobs.items if j.status.build_id not in known_jobs_build_ids
         ]
@@ -38,11 +38,11 @@ class Scraper:
         steps = self._step_extractor.parse_prow_jobs(jobs)
 
         # Retrieve equinix machines usages not already stored
-        known_usages_build_ids = self._event_store.scan_build_ids_from_index("usages")
+        known_usages_identifiers = self._event_store.scan_usages_identifiers()
         usages = [
             usage
             for usage in self._equinix_usages_extractor.get_project_usages()
-            if usage.job_build_id not in known_usages_build_ids
+            if usage.to_identifier() not in known_usages_identifiers
         ]
 
         # Store jobs and steps into their respective indices

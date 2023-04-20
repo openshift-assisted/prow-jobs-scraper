@@ -54,7 +54,7 @@ def test_job_filtering(job_name, job_state, job_description, is_valid_job):
     )
 
     event_store = MagicMock()
-    event_store.scan_build_ids_from_index.return_value = []
+    event_store.scan_build_ids.return_value = []
 
     step_extractor = MagicMock()
     step_extractor.parse_prow_jobs.return_value = []
@@ -88,7 +88,7 @@ def test_existing_jobs_in_event_store_are_filtered_out():
     )
 
     event_store = MagicMock()
-    event_store.scan_build_ids_from_index.return_value = [jobs.items[0].status.build_id]
+    event_store.scan_build_ids.return_value = [jobs.items[0].status.build_id]
 
     step_extractor = MagicMock()
     step_extractor.parse_prow_jobs.return_value = []
@@ -158,7 +158,12 @@ def test_existing_usages_in_event_store_are_filtered_out():
     ]
 
     event_store = MagicMock()
-    event_store.scan_build_ids_from_index.return_value = {"1633695483341836288"}
+    event_store.scan_usages_identifiers.return_value = {
+        equinix_usages.EquinixUsageIdentifier(
+            name="ipi-ci-op-3i64pdkt-0f69d-1633695483341836288",
+            plan="Outbound Bandwidth",
+        )
+    }
 
     step_extractor = MagicMock()
     step_extractor.parse_prow_jobs.return_value = []

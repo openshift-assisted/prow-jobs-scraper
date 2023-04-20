@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from multiprocessing import context
 from typing import Any, Iterator, Optional
 
 import pkg_resources
@@ -7,7 +6,11 @@ from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
 from prowjobsscraper.equinix_metadata import EquinixMetadata
-from prowjobsscraper.equinix_usages import EquinixUsage, EquinixUsageEvent
+from prowjobsscraper.equinix_usages import (
+    EquinixUsage,
+    EquinixUsageEvent,
+    EquinixUsageIdentifier,
+)
 from prowjobsscraper.prowjob import ProwJob
 from prowjobsscraper.step import JobStep
 
@@ -147,11 +150,18 @@ class EventStoreElastic:
         )
         self._usages_index.index(equinix_usages)
 
-    def scan_build_ids_from_index(self, index_prefix: str) -> set[str]:
-        results = self.__dict__[f"_{index_prefix}_index"].scan(
-            {"_source": ["job.build_id"]}
-        )
+    def scan_build_ids(self) -> set[str]:
+        results = self._jobs_index.scan({"_source": ["job.build_id"]})
         return {r["_source"]["job"]["build_id"] for r in results}
+
+    def scan_usages_identifiers(self) -> set[EquinixUsageIdentifier]:
+        results = self._usages_index.scan({"query": {"match_all": {}}})
+        return {
+            EquinixUsageIdentifier(
+                name=r["_source"]["usage"]["name"], plan=r["_source"]["usage"]["plan"]
+            )
+            for r in results
+        }
 
 
 class _EsIndex:

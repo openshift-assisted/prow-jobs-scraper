@@ -4,7 +4,11 @@ import pkg_resources
 from freezegun import freeze_time
 
 from prowjobsscraper import event, step
-from prowjobsscraper.equinix_usages import EquinixUsage, EquinixUsageEvent
+from prowjobsscraper.equinix_usages import (
+    EquinixUsage,
+    EquinixUsageEvent,
+    EquinixUsageIdentifier,
+)
 
 _FREEZE_TIME = "2023-01-01 12:00:00"
 _EXPECTED_CURRENT_INDEX_SUFFIX = "2022.52"
@@ -60,38 +64,13 @@ def test_scan_build_id_from_jobs_index_when_results_are_expected(scan):
         step_index_basename="steps",
         usage_index_basename="usages",
     )
-    build_ids = event_store.scan_build_ids_from_index("jobs")
+    build_ids = event_store.scan_build_ids()
 
     expected_search_indices = (
         f"jobs-{_EXPECTED_CURRENT_INDEX_SUFFIX},jobs-{_EXPECTED_PREVIOUS_INDEX_SUFFIX}"
     )
 
     scan.assert_called_once()
-    assert scan.call_args.kwargs["index"] == expected_search_indices
-    assert build_ids == {1, 2, 3}
-
-
-@freeze_time(_FREEZE_TIME)
-@patch("opensearchpy.helpers.scan")
-def test_scan_build_id_from_usages_index_when_results_are_expected(scan):
-    es_client = MagicMock()
-    scan.return_value = [
-        {"_source": {"job": {"build_id": 1}}},
-        {"_source": {"job": {"build_id": 2}}},
-        {"_source": {"job": {"build_id": 3}}},
-    ]
-    event_store = event.EventStoreElastic(
-        client=es_client,
-        job_index_basename="jobs",
-        step_index_basename="steps",
-        usage_index_basename="usages",
-    )
-    build_ids = event_store.scan_build_ids_from_index("usages")
-
-    expected_search_indices = f"usages-{_EXPECTED_CURRENT_INDEX_SUFFIX},usages-{_EXPECTED_PREVIOUS_INDEX_SUFFIX}"
-
-    scan.assert_called_once()
-
     assert scan.call_args.kwargs["index"] == expected_search_indices
     assert build_ids == {1, 2, 3}
 
@@ -106,10 +85,106 @@ def test_scan_build_id_from_jobs_index_when_no_results(scan):
         step_index_basename="steps",
         usage_index_basename="usages",
     )
-    build_ids = event_store.scan_build_ids_from_index("jobs")
+    build_ids = event_store.scan_build_ids()
 
     scan.assert_called_once()
     assert len(build_ids) == 0
+
+
+@freeze_time(_FREEZE_TIME)
+@patch("opensearchpy.helpers.scan")
+def test_scan_usage_identifiers_from_usages_index_when_results_are_expected(scan):
+    es_client = MagicMock()
+    scan.return_value = [
+        {
+            "_source": {
+                "job": {"build_id": 1},
+                "usage": {
+                    "description": None,
+                    "end_date": "2023-04-13T12:47:40+00:00",
+                    "facility": "da11",
+                    "instance": None,
+                    "metro": "da",
+                    "name": "ipi-ci-op-w7y9z2qq-34a4a-1646469006330171392",
+                    "plan": "c3.medium.x86",
+                    "plan_version": "c3.medium.x86 v2 (Dell EPYC 7402P)",
+                    "price": 1.5,
+                    "quantity": 2.0,
+                    "start_date": "2023-04-13T11:14:20+00:00",
+                    "total": 3.0,
+                    "type": "Instance",
+                    "unit": "hour",
+                },
+            }
+        },
+        {
+            "_source": {
+                "job": {"build_id": 2},
+                "usage": {
+                    "description": None,
+                    "end_date": "2023-04-13T11:18:56+00:00",
+                    "facility": "dc13",
+                    "instance": None,
+                    "metro": "dc",
+                    "name": "ipi-ci-op-wyxmd7pq-21be9-1646436741441130496",
+                    "plan": "m3.large.x86",
+                    "plan_version": "m3.large.x86 v1",
+                    "price": 3.1,
+                    "quantity": 2.0,
+                    "start_date": "2023-04-13T09:29:06+00:00",
+                    "total": 6.2,
+                    "type": "Instance",
+                    "unit": "hour",
+                },
+            }
+        },
+        {
+            "_source": {
+                "job": {"build_id": 3},
+                "usage": {
+                    "description": None,
+                    "end_date": "2023-04-13T10:22:43+00:00",
+                    "facility": "da11",
+                    "instance": None,
+                    "metro": "da",
+                    "name": "ipi-ci-op-wyxmd7pq-21be9-1646436741441130496",
+                    "plan": "Outbound Bandwidth",
+                    "plan_version": "c3.medium.x86 v2 (Dell EPYC 7402P)",
+                    "price": 1.5,
+                    "quantity": 1.0,
+                    "start_date": "2023-04-13T10:20:24+00:00",
+                    "total": 1.5,
+                    "type": "Instance",
+                    "unit": "hour",
+                },
+            }
+        },
+    ]
+    event_store = event.EventStoreElastic(
+        client=es_client,
+        job_index_basename="jobs",
+        step_index_basename="steps",
+        usage_index_basename="usages",
+    )
+    usage_identifiers = event_store.scan_usages_identifiers()
+
+    expected_search_indices = f"usages-{_EXPECTED_CURRENT_INDEX_SUFFIX},usages-{_EXPECTED_PREVIOUS_INDEX_SUFFIX}"
+
+    scan.assert_called_once()
+
+    assert scan.call_args.kwargs["index"] == expected_search_indices
+    assert usage_identifiers == {
+        EquinixUsageIdentifier(
+            name="ipi-ci-op-w7y9z2qq-34a4a-1646469006330171392", plan="c3.medium.x86"
+        ),
+        EquinixUsageIdentifier(
+            name="ipi-ci-op-wyxmd7pq-21be9-1646436741441130496", plan="m3.large.x86"
+        ),
+        EquinixUsageIdentifier(
+            name="ipi-ci-op-wyxmd7pq-21be9-1646436741441130496",
+            plan="Outbound Bandwidth",
+        ),
+    }
 
 
 @freeze_time(_FREEZE_TIME)

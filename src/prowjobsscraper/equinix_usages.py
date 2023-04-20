@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Final, Optional
+from typing import Any, Final, Optional
 
 import requests
 from pydantic import BaseModel
@@ -14,6 +14,24 @@ class EquinixUsagesScrapeInterval(Enum):
     DAY = "day"
     WEEK = "week"
     MONTH = "month"
+
+
+class EquinixUsageIdentifier(BaseModel):
+    name: str
+    plan: str
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.plan))
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            isinstance(other, self.__class__)
+            and self.name == other.name
+            and self.plan == self.plan
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
 
 class EquinixUsage(BaseModel):
@@ -35,6 +53,9 @@ class EquinixUsage(BaseModel):
     @property
     def job_build_id(self) -> str:
         return self.name.split("-")[-1]
+
+    def to_identifier(self) -> EquinixUsageIdentifier:
+        return EquinixUsageIdentifier(name=self.name, plan=self.plan)
 
 
 class EquinixUsageEvent(BaseModel):
