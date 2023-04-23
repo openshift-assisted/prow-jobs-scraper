@@ -39,10 +39,13 @@ class Scraper:
 
         # Retrieve equinix machines usages not already stored
         known_usages_identifiers = self._event_store.scan_usages_identifiers()
+        unfiltered_usages = self._equinix_usages_extractor.get_project_usages()
         usages = [
             usage
-            for usage in self._equinix_usages_extractor.get_project_usages()
-            if usage.to_identifier() not in known_usages_identifiers
+            for usage in unfiltered_usages
+            if self._should_index_usage(
+                usage, known_usages_identifiers, unfiltered_usages
+            )
         ]
 
         # Store jobs and steps into their respective indices
@@ -54,6 +57,36 @@ class Scraper:
 
         logger.info("%s equinix usages will be pushed to ES", len(usages))
         self._event_store.index_equinix_usages(usages)
+
+    def _is_usage_in_interval(self, usage: equinix_usages.EquinixUsage) -> bool:
+        return (
+            usage.end_date is not None
+            and usage.start_date >= self._equinix_usages_extractor._start_time
+            and usage.end_date <= self._equinix_usages_extractor._end_time
+        )
+
+    def _should_index_usage(
+        self,
+        usage: equinix_usages.EquinixUsage,
+        known_usages_identifiers: set[equinix_usages.EquinixUsageIdentifier],
+        usages: list[equinix_usages.EquinixUsage],
+    ) -> bool:
+        return usage.to_identifier() not in known_usages_identifiers and (
+            not usage.is_bandwidth_usage()
+            or self._is_usage_in_interval(
+                self._find_non_bandwidth_usage(usage.name, usages)
+            )
+        )
+
+    @staticmethod
+    def _find_non_bandwidth_usage(
+        usage_name: str, usages: list[equinix_usages.EquinixUsage]
+    ) -> equinix_usages.EquinixUsage:
+        return next(
+            usage
+            for usage in usages
+            if usage.name == usage_name and not usage.is_bandwidth_usage()
+        )
 
     @staticmethod
     def _is_assisted_job(j: prowjob.ProwJob) -> bool:

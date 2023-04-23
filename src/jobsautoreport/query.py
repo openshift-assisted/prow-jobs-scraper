@@ -28,7 +28,7 @@ class Querier:
         return {
             "query": {
                 "bool": {
-                    "must": [
+                    "filter": [
                         {
                             "range": {
                                 "job.start_time": {
@@ -49,7 +49,7 @@ class Querier:
         return {
             "query": {
                 "bool": {
-                    "must": [
+                    "filter": [
                         {
                             "match": {
                                 "step.name": {
@@ -76,15 +76,21 @@ class Querier:
         return {
             "query": {
                 "bool": {
-                    "must": [
+                    "filter": [
                         {
                             "range": {
                                 "usage.start_date": {
-                                    "gte": from_date,
                                     "lte": to_date,
                                 }
                             }
-                        }
+                        },
+                        {
+                            "range": {
+                                "usage.end_date": {
+                                    "gte": from_date,
+                                }
+                            }
+                        },
                     ]
                 }
             }

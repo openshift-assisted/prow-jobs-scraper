@@ -57,6 +57,9 @@ class EquinixUsage(BaseModel):
     def to_identifier(self) -> EquinixUsageIdentifier:
         return EquinixUsageIdentifier(name=self.name, plan=self.plan)
 
+    def is_bandwidth_usage(self) -> bool:
+        return "Bandwidth" in self.plan
+
 
 class EquinixUsageEvent(BaseModel):
     class JobBuildID(BaseModel):
