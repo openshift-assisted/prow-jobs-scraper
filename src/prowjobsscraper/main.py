@@ -1,6 +1,6 @@
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dateutil.relativedelta import relativedelta
 from google.cloud import storage  # type: ignore
@@ -39,7 +39,7 @@ def main() -> None:
         client=gcloud_client
     )
 
-    usages_scrape_end_time = datetime.now()
+    usages_scrape_end_time = datetime.now(tz=timezone.utc)
     if (
         config.EQUINIX_USAGES_SCRAPE_INTERVAL
         == equinix_usages.EquinixUsagesScrapeInterval.HOUR
