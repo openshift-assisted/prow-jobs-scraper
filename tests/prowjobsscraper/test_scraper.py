@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pkg_resources
 import pytest
 from pytest_httpserver import HTTPServer
-
+from typing import Literal
 from prowjobsscraper import equinix_usages, prowjob, scraper, step
 
 
