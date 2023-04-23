@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+from typing import Literal
 from unittest.mock import MagicMock
 
 import pkg_resources
@@ -48,7 +50,16 @@ from prowjobsscraper import equinix_usages, prowjob, scraper, step
         ),
     ],
 )
-def test_job_filtering(job_name, job_state, job_description, is_valid_job):
+def test_job_filtering(
+    job_name: Literal[
+        "pull-ci-openshift-assisted-service-master-edge-sub…",
+        "openshift-origin-27159-nightly-4.11-e2e-metal-assi…",
+        "periodic-openshift-release-fast-forward-assisted-s…",
+    ],
+    job_state: Literal["success", "failure", "pending"],
+    job_description: Literal["", "Overridden by Batman"],
+    is_valid_job: bool,
+):
     jobs = prowjob.ProwJobs.create_from_string(
         pkg_resources.resource_string(__name__, f"scraper_assets/prowjob.json")
     )
@@ -109,59 +120,90 @@ def test_existing_jobs_in_event_store_are_filtered_out():
     event_store.index_prow_jobs.assert_called_once_with([])
 
 
-def test_existing_usages_in_event_store_are_filtered_out():
+def test_should_index_usage():
     usages = [
         {
             "description": None,
-            "end_date": "2023-03-31T23:59:59Z",
-            "facility": "dc13",
-            "metro": "dc",
-            "name": "ipi-ci-op-nnk50j82-5ed26-1634705984507088896",
-            "plan": "Outbound Bandwidth",
-            "plan_version": "Outbound Bandwidth",
-            "price": 0.05,
-            "quantity": 2,
-            "start_date": "2023-03-01T00:00:00Z",
-            "total": 0.1,
+            "facility": "da11",
+            "metro": "da",
+            "name": "ipi-ci-op-0wirr6qy-185f0-1638673073035022336",
+            "plan": "c3.medium.x86",
+            "plan_version": "c3.medium.x86 v1",
+            "price": 1.5,
+            "quantity": 1.0,
+            "total": 1.5,
             "type": "Instance",
-            "unit": "GB",
+            "unit": "hour",
+            "start_date": "2023-03-22T22:49:10Z",
+            "end_date": "2023-03-23T00:45:42Z",
         },
         {
             "description": None,
-            "end_date": "2023-03-31T23:59:59Z",
-            "facility": "am6",
-            "metro": "am",
-            "name": "ipi-ci-op-tb33cyhd-20a45-1638140834400440320",
-            "plan": "Outbound Bandwidth",
-            "plan_version": "Outbound Bandwidth",
-            "price": 0.05,
-            "quantity": 4,
-            "start_date": "2023-03-01T00:00:00Z",
-            "total": 0.2,
+            "facility": "da11",
+            "metro": "da",
+            "name": "ipi-ci-op-5dp48qkr-3ce1b-1638692274747478016",
+            "plan": "c3.medium.x86",
+            "plan_version": "c3.medium.x86 v2 (Dell EPYC 7402P)",
+            "price": 1.5,
+            "quantity": 2.0,
+            "total": 3.0,
             "type": "Instance",
-            "unit": "GB",
+            "unit": "hour",
+            "start_date": "2023-03-23T00:17:27Z",
+            "end_date": "2023-03-23T06:58:05Z",
         },
         {
             "description": None,
-            "facility": "dc13",
-            "metro": "dc",
-            "name": "ipi-ci-op-3i64pdkt-0f69d-1633695483341836288",
+            "facility": "da11",
+            "metro": "da",
+            "name": "ipi-ci-op-mkfiqn18-1850a-1638672820944769024",
+            "plan": "c3.medium.x86",
+            "plan_version": "c3.medium.x86 v2 (Dell EPYC 7402P)",
+            "price": 1.5,
+            "quantity": 1.0,
+            "total": 1.5,
+            "type": "Instance",
+            "unit": "hour",
+            "start_date": "2023-03-22T23:00:22Z",
+            "end_date": "2023-03-23T00:40:39Z",
+        },
+        {
+            "description": None,
+            "facility": "da11",
+            "metro": "da",
+            "name": "ipi-ci-op-5dp48qkr-3ce1b-1638692274747478016",
             "plan": "Outbound Bandwidth",
             "plan_version": "Outbound Bandwidth",
             "price": 0.05,
-            "quantity": 3,
-            "start_date": "2023-03-01T00:00:00Z",
-            "total": 0.15,
+            "quantity": 1,
+            "total": 0.05,
             "type": "Instance",
             "unit": "GB",
+            "start_date": "2023-03-23T00:00:00Z",
+            "end_date": "2023-04-23T00:00:00Z",
+        },
+        {
+            "description": None,
+            "facility": "da11",
+            "metro": "da",
+            "name": "ipi-ci-op-mkfiqn18-1850a-1638672820944769024",
+            "plan": "Outbound Bandwidth",
+            "plan_version": "Outbound Bandwidth",
+            "price": 0.05,
+            "quantity": 1,
+            "total": 0.05,
+            "type": "Instance",
+            "unit": "GB",
+            "start_date": "2023-03-23T00:00:00Z",
+            "end_date": "2023-04-23T00:00:00Z",
         },
     ]
 
     event_store = MagicMock()
     event_store.scan_usages_identifiers.return_value = {
         equinix_usages.EquinixUsageIdentifier(
-            name="ipi-ci-op-3i64pdkt-0f69d-1633695483341836288",
-            plan="Outbound Bandwidth",
+            name="ipi-ci-op-0wirr6qy-185f0-1638673073035022336",
+            plan="c3.medium.x86",
         )
     }
 
@@ -170,6 +212,12 @@ def test_existing_usages_in_event_store_are_filtered_out():
 
     equinix_metadata_extractor = MagicMock()
     equinix_usages_extractor = MagicMock()
+    equinix_usages_extractor._start_time = datetime(
+        year=2023, month=3, day=22, hour=22, minute=0, second=0, tzinfo=timezone.utc
+    )
+    equinix_usages_extractor._end_time = datetime(
+        year=2023, month=3, day=23, hour=5, minute=0, second=0, tzinfo=timezone.utc
+    )
     equinix_usages_extractor.get_project_usages.return_value = [
         equinix_usages.EquinixUsage.parse_obj(usage) for usage in usages
     ]
@@ -185,7 +233,7 @@ def test_existing_usages_in_event_store_are_filtered_out():
     prow_jobs.items = []
 
     scrape.execute(prow_jobs)
-    assert len(event_store.index_equinix_usages.call_args[0][0]) == 2
+    assert len(event_store.index_equinix_usages.call_args[0][0]) == 3
 
 
 def test_jobs_and_steps_are_indexed():
