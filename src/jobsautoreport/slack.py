@@ -2,7 +2,9 @@ import logging
 from typing import Any, Callable, Optional
 
 import plotly.graph_objects as graph_objects  # type: ignore
+from retry import retry
 from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 
 from jobsautoreport.report import (
     IdentifiedJobMetrics,
@@ -35,6 +37,7 @@ class SlackReporter:
 
         return response["ts"]
 
+    @retry(tries=3, delay=3, exceptions=SlackApiError, logger=logger)
     def _upload_file(
         self,
         file_title: str,
