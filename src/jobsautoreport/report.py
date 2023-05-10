@@ -234,51 +234,26 @@ class Reporter:
     def _get_job_type_metrics(
         cls, usages: list[EquinixUsageEvent], jobs: list[JobDetails]
     ) -> JobTypeMetrics:
+        job_types = {job.type for job in jobs}
         return JobTypeMetrics(
-            presubmit=sum(
-                [
-                    usage.usage.total
-                    for usage in cls._filter_usages_by_job_type(
-                        usages, jobs, JobType.PRESUBMIT
-                    )
-                ]
-            ),
-            periodic=sum(
-                [
-                    usage.usage.total
-                    for usage in cls._filter_usages_by_job_type(
-                        usages, jobs, JobType.PERIODIC
-                    )
-                ]
-            ),
-            postsubmit=sum(
-                [
-                    usage.usage.total
-                    for usage in cls._filter_usages_by_job_type(
-                        usages, jobs, JobType.POSTSUBMIT
-                    )
-                ]
-            ),
-            batch=sum(
-                [
-                    usage.usage.total
-                    for usage in cls._filter_usages_by_job_type(
-                        usages, jobs, JobType.BATCH
-                    )
-                ]
-            ),
+            metrics={
+                job_type: cls._count_cost_by_job_type(usages, jobs, job_type)
+                for job_type in job_types
+            }
         )
 
     @staticmethod
-    def _filter_usages_by_job_type(
-        usages: list[EquinixUsageEvent], jobs: list[JobDetails], job_type: JobType
-    ) -> list[EquinixUsageEvent]:
+    def _count_cost_by_job_type(
+        usages: list[EquinixUsageEvent], jobs: list[JobDetails], job_type: str
+    ) -> float:
         jobs_build_id_to_type = {job.build_id: job.type for job in jobs}
-        return [
-            usage
-            for usage in usages
-            if jobs_build_id_to_type.get(usage.job.build_id) == job_type.value
-        ]
+        return sum(
+            [
+                usage.usage.total
+                for usage in usages
+                if jobs_build_id_to_type.get(usage.job.build_id) == job_type
+            ]
+        )
 
     def _get_top_n_most_expensive_jobs(
         self, jobs: list[JobDetails], usages: list[EquinixUsageEvent], n: int

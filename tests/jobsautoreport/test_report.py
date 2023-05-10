@@ -541,7 +541,9 @@ expected_report = Report(
     cost_by_machine_type=MachineMetrics(
         metrics={"c3.medium.x86": 6, "m3.small.x86": 0.1}
     ),
-    cost_by_job_type=JobTypeMetrics(postsubmit=4, presubmit=2),
+    cost_by_job_type=JobTypeMetrics(
+        metrics={"periodic": 0, "postsubmit": 4, "presubmit": 2}
+    ),
     top_5_most_expensive_jobs=[
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(

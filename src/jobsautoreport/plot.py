@@ -182,6 +182,37 @@ class Plotter:
 
         return filename, file_path
 
+    def create_pie_chart(
+        self,
+        labels: list[str],
+        values: list[int],
+        colors: list[str],
+        title: str,
+    ) -> tuple[str, str]:
+        filename, file_path = self._file_name_proccesor(file_title=title)
+        fig = graph_objects.Figure(
+            data=[
+                graph_objects.Pie(
+                    labels=labels,
+                    values=values,
+                    marker=dict(
+                        colors=colors,
+                        line=dict(color="rgba(0, 0, 0, 0.5)", width=2),
+                    ),
+                )
+            ]
+        )
+
+        fig.update_layout(
+            title=title,
+            font=dict(size=20),
+        )
+
+        fig.write_image(file_path, scale=3)
+        logger.info("image created at %s successfully", file_path)
+
+        return filename, file_path
+
     @staticmethod
     def _file_name_proccesor(file_title: str) -> tuple[str, str]:
         filename = file_title.replace(" ", "_").lower()

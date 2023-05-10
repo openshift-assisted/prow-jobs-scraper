@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Callable, Optional
 
+from plotly import express  # type: ignore
 from retry import retry
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -138,6 +139,36 @@ class SlackReporter:
                 file_path=file_path,
                 thread_time_stamp=thread_time_stamp,
             )
+            labels, values = self._format_cost_by_machine_type_metrics(
+                report.cost_by_machine_type
+            )
+            filename, file_path = plotter.create_pie_chart(
+                labels=labels,
+                values=values,
+                colors=express.colors.sequential.Rainbow_r,
+                title="Cost by Machine Type",
+            )
+            self._upload_file(
+                file_title="Cost by Machine Type",
+                filename=filename,
+                file_path=file_path,
+                thread_time_stamp=thread_time_stamp,
+            )
+            labels, values = self._format_cost_by_job_type_metrics(
+                report.cost_by_job_type
+            )
+            filename, file_path = plotter.create_pie_chart(
+                labels=labels,
+                values=values,
+                colors=express.colors.sequential.Rainbow,
+                title="Cost by Job Type",
+            )
+            self._upload_file(
+                file_title="Cost by Job Type",
+                filename=filename,
+                file_path=file_path,
+                thread_time_stamp=thread_time_stamp,
+            )
 
     @staticmethod
     def _format_header_message(report: Report) -> list[dict[str, Any]]:
@@ -240,9 +271,9 @@ class SlackReporter:
             },
         ]
 
-    @classmethod
-    def _format_equinix_message(cls, report: Report) -> list[dict[str, Any]]:
-        equinix_message: list[dict[str, Any]] = [
+    @staticmethod
+    def _format_equinix_message(report: Report) -> list[dict[str, Any]]:
+        return [
             {"type": "divider"},
             {
                 "type": "section",
@@ -271,58 +302,44 @@ class SlackReporter:
             },
         ]
 
-        cls._create_cost_by_machine_type_section(
-            equinix_message, report.cost_by_machine_type
-        )
-        cls._create_cost_by_job_type_section(equinix_message, report.cost_by_job_type)
-
-        return equinix_message
-
     @staticmethod
-    def _create_cost_by_machine_type_section(
-        equinix_message: list[dict[str, Any]], machine_metrics: MachineMetrics
-    ):
-        if machine_metrics.is_zero():
-            return
-
-        new_section: dict[str, Any] = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": (f"•\t Cost by machine type:\n"),
-            },
-        }
-
+    def _format_cost_by_machine_type_metrics(
+        machine_metrics: MachineMetrics, threshold: float = 0.01
+    ) -> tuple[list[str], list[int]]:
+        types: list[str] = []
+        costs: list[int] = []
+        total = sum(machine_metrics.metrics.values())
         for machine_type, cost in machine_metrics.metrics.items():
-            if "Bandwidth" not in machine_type and int(cost) > 0:
-                formatted_machine_type = machine_type.replace(".", " ")
-                new_section["text"]["text"] = (
-                    new_section["text"]["text"]
-                    + f" \t\t *-* {formatted_machine_type}: *_{int(cost)}_ $*\n"
-                )
+            # we want to aggregate all the costs that are too small in 'others'
+            if int(cost) > 0 and "Bandwidth" not in machine_type:
+                if cost / total <= threshold:
+                    if "Others" not in types:
+                        types.insert(0, "Others")
+                        costs.insert(0, 0)
+                    costs[0] += int(cost)
+                else:
+                    types.append(machine_type.replace(".", " "))
+                    costs.append(int(cost))
 
-        equinix_message.append(new_section)
+        return types, costs
 
     @staticmethod
-    def _create_cost_by_job_type_section(
-        equinix_message: list[dict[str, Any]], job_type_metrics: JobTypeMetrics
-    ):
-        if job_type_metrics.is_zero():
-            return
-
-        new_section: dict[str, Any] = {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": (f"•\t Cost by job type:\n"),
-            },
-        }
-
-        for job_type, cost in job_type_metrics.dict().items():
+    def _format_cost_by_job_type_metrics(
+        job_type_metrics: JobTypeMetrics, threshold: float = 0.01
+    ) -> tuple[list[str], list[int]]:
+        types: list[str] = []
+        costs: list[int] = []
+        total = sum(job_type_metrics.metrics.values())
+        for job_type, cost in job_type_metrics.metrics.items():
+            # we want to aggregate all the costs that are too small in 'others'
             if int(cost) > 0:
-                new_section["text"]["text"] = (
-                    new_section["text"]["text"]
-                    + f" \t\t *-* {job_type}: *_{int(cost)}_ $*\n"
-                )
+                if cost / total <= threshold:
+                    if "Others" not in types:
+                        types.insert(0, "Others")
+                        costs.insert(0, 0)
+                    costs[0] += int(cost)
+                else:
+                    types.append(job_type)
+                    costs.append(int(cost))
 
-        equinix_message.append(new_section)
+        return types, costs

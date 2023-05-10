@@ -97,7 +97,7 @@ report_1 = Report(
     cost_by_machine_type=MachineMetrics(
         metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
     ),
-    cost_by_job_type=JobTypeMetrics(postsubmit=4),
+    cost_by_job_type=JobTypeMetrics(metrics={"postsubmit": 4}),
     top_5_most_expensive_jobs=[
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
@@ -177,7 +177,7 @@ report_2 = Report(
     cost_by_machine_type=MachineMetrics(
         metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
     ),
-    cost_by_job_type=JobTypeMetrics(postsubmit=4),
+    cost_by_job_type=JobTypeMetrics(metrics={"postsubmit": 4}),
     top_5_most_expensive_jobs=[
         IdentifiedJobMetrics(
             job_identifier=JobIdentifier(
@@ -316,27 +316,6 @@ def expected_blocks(report: Report) -> dict[str, list[dict[str, Any]]]:
                     "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  ",
                 },
             },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"•\t Cost by machine type:\n"
-                        f" \t\t *-* m3 large x86: *_{int(report.cost_by_machine_type.metrics['m3.large.x86'])}_ $*\n"
-                        f" \t\t *-* c3 medium x86: *_{int(report.cost_by_machine_type.metrics['c3.medium.x86'])}_ $*\n"
-                    ),
-                },
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"•\t Cost by job type:\n"
-                        f" \t\t *-* postsubmit: *_{int(report.cost_by_job_type.postsubmit)}_ $*\n"
-                    ),
-                },
-            },
         ]
 
     return res
@@ -465,6 +444,20 @@ def test_send_report_should_successfully_call_slack_api_with_filtering_none_succ
         initial_comment="Top 5 Most Expensive Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
+    web_client_mock.files_upload.assert_any_call(
+        channels=[test_channel],
+        file="/tmp/cost_by_machine_type.png",
+        filename="cost_by_machine_type",
+        initial_comment="Cost by Machine Type",
+        thread_ts=test_thread_time_stamp["ts"],
+    )
+    web_client_mock.files_upload.assert_any_call(
+        channels=[test_channel],
+        file="/tmp/cost_by_job_type.png",
+        filename="cost_by_job_type",
+        initial_comment="Cost by Job Type",
+        thread_ts=test_thread_time_stamp["ts"],
+    )
 
 
 def test_JobIdentifier_short_names_in_slack():
@@ -503,3 +496,39 @@ def test_JobIdentifier_short_names_in_slack():
         slack_names_presubmits
         == expected_top_10_failing_e2e_or_subsystem_presubmit_jobs_slack_names
     )
+
+
+def test_format_cost_by_machine_type_metrics():
+    machine_metrics = MachineMetrics(
+        metrics={
+            "c1.small.x86_64": 500,
+            "c2.large.x86_64": 300,
+            "m1.xlarge.x86_64": 100,
+            "e1.xlarge.x86_64": 4,
+            "e1.small.x86_64": 4,
+            "Outbound Bandwidth": 10,
+        }
+    )
+    slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
+    types, costs = slack_reporter._format_cost_by_machine_type_metrics(
+        machine_metrics, threshold=0.02
+    )
+    assert types == ["Others", "c1 small x86_64", "c2 large x86_64", "m1 xlarge x86_64"]
+    assert costs == [8, 500, 300, 100]
+
+
+def test_format_cost_by_job_type_metrics():
+    job_type_metrics = JobTypeMetrics(
+        metrics={
+            "batch": 1000,
+            "presubmit": 500,
+            "periodic": 5,
+            "postsubmit": 5,
+        }
+    )
+    slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
+    types, costs = slack_reporter._format_cost_by_machine_type_metrics(
+        job_type_metrics, threshold=0.02
+    )
+    assert types == ["Others", "batch", "presubmit"]
+    assert costs == [10, 1000, 500]

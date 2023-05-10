@@ -40,10 +40,10 @@ class MachineMetrics(Metric):
 
 
 class JobTypeMetrics(Metric):
-    presubmit: float = 0.0
-    periodic: float = 0.0
-    postsubmit: float = 0.0
-    batch: float = 0.0
+    metrics: dict[str, float]
+
+    def is_zero(self) -> bool:
+        return sum(self.metrics.values()) == 0
 
 
 class JobMetrics(Metric):
