@@ -37,7 +37,7 @@ class Plotter:
                 name="succeeded",
                 orientation="h",
                 marker=dict(
-                    color=list(reversed(express.colors.sequential.Greens)),
+                    color=["green"] * len(successes),
                 ),
                 text=successes,
                 textposition="auto",
@@ -52,7 +52,7 @@ class Plotter:
                 name="failed",
                 orientation="h",
                 marker=dict(
-                    color=express.colors.sequential.Reds,
+                    color=["red"] * len(failures),
                 ),
                 text=failures,
                 textposition="auto",
@@ -103,7 +103,7 @@ class Plotter:
                 name="Quantity",
                 orientation="h",
                 marker=dict(
-                    color=express.colors.sequential.Agsunset,
+                    color=express.colors.sequential.Viridis_r,
                     line=dict(color="rgba(0, 0, 0, 0.5)", width=1),
                 ),
                 text=quantities,
