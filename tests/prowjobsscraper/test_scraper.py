@@ -202,9 +202,17 @@ def test_should_index_usage():
     event_store = MagicMock()
     event_store.scan_usages_identifiers.return_value = {
         equinix_usages.EquinixUsageIdentifier(
+            name="ipi-ci-op-5dp48qkr-3ce1b-1638692274747478016",
+            plan="c3.medium.x86",
+        ),
+        equinix_usages.EquinixUsageIdentifier(
+            name="ipi-ci-op-5dp48qkr-3ce1b-1638692274747478016",
+            plan="Outbound Bandwidth",
+        ),
+        equinix_usages.EquinixUsageIdentifier(
             name="ipi-ci-op-0wirr6qy-185f0-1638673073035022336",
             plan="c3.medium.x86",
-        )
+        ),
     }
 
     step_extractor = MagicMock()
@@ -212,12 +220,6 @@ def test_should_index_usage():
 
     equinix_metadata_extractor = MagicMock()
     equinix_usages_extractor = MagicMock()
-    equinix_usages_extractor._start_time = datetime(
-        year=2023, month=3, day=22, hour=22, minute=0, second=0, tzinfo=timezone.utc
-    )
-    equinix_usages_extractor._end_time = datetime(
-        year=2023, month=3, day=23, hour=5, minute=0, second=0, tzinfo=timezone.utc
-    )
     equinix_usages_extractor.get_project_usages.return_value = [
         equinix_usages.EquinixUsage.parse_obj(usage) for usage in usages
     ]

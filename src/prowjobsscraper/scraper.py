@@ -43,9 +43,7 @@ class Scraper:
         usages = [
             usage
             for usage in unfiltered_usages
-            if self._should_index_usage(
-                usage, known_usages_identifiers, unfiltered_usages
-            )
+            if self._should_index_usage(usage, known_usages_identifiers)
         ]
 
         # Store jobs and steps into their respective indices
@@ -58,42 +56,12 @@ class Scraper:
         logger.info("%s equinix usages will be pushed to ES", len(usages))
         self._event_store.index_equinix_usages(usages)
 
-    def _is_usage_in_interval(self, usage: equinix_usages.EquinixUsage) -> bool:
-        return (
-            usage.end_date is not None
-            and usage.start_date >= self._equinix_usages_extractor._start_time
-            and usage.end_date <= self._equinix_usages_extractor._end_time
-        )
-
     def _should_index_usage(
         self,
         usage: equinix_usages.EquinixUsage,
         known_usages_identifiers: set[equinix_usages.EquinixUsageIdentifier],
-        usages: list[equinix_usages.EquinixUsage],
     ) -> bool:
-        """Determines wether a usage should be indexed according to:
-        - If the is a regular usage (not bandwidth), it should be in the collecting time interval
-        - If it is a bandwidth usage, it start_date and end_date doesn't mean anything so it should be indexed when its corresponding regular usage is in the time interval
-        """
-        return usage.to_identifier() not in known_usages_identifiers and (
-            (not usage.is_bandwidth_usage() and self._is_usage_in_interval(usage))
-            or (
-                usage.is_bandwidth_usage()
-                and self._is_usage_in_interval(
-                    self._find_non_bandwidth_usage(usage.name, usages)
-                )
-            )
-        )
-
-    @staticmethod
-    def _find_non_bandwidth_usage(
-        usage_name: str, usages: list[equinix_usages.EquinixUsage]
-    ) -> equinix_usages.EquinixUsage:
-        return next(
-            usage
-            for usage in usages
-            if usage.name == usage_name and not usage.is_bandwidth_usage()
-        )
+        return usage.to_identifier() not in known_usages_identifiers
 
     @staticmethod
     def _is_assisted_job(j: prowjob.ProwJob) -> bool:
