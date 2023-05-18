@@ -16,6 +16,7 @@
       "spec": {
         "job": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
         "type": "presubmit",
+        "hidden": null,
         "extra_refs": [
           {
             "org": "openshift",

@@ -64,6 +64,7 @@ class ProwJobRef(BaseModel):
 class ProwJobSpec(BaseModel):
     job: str
     type: str
+    hidden: Optional[bool]
     extra_refs: Optional[list[ProwJobRef]]
 
 
