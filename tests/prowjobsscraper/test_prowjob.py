@@ -32,6 +32,7 @@ def test_valid_json_from_prow_should_be_successfully_parsed(httpserver: HTTPServ
     )
     httpserver.expect_request("/jobs").respond_with_data(response)
     jobs = prowjob.ProwJobs.create_from_url(httpserver.url_for("/jobs"))
+
     assert jobs.json() == json.dumps(expected)
 
 
