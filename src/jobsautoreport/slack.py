@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Final, Optional, Union
 
 from plotly import express  # type: ignore
 from retry import retry
@@ -9,6 +9,7 @@ from slack_sdk.errors import SlackApiError
 from jobsautoreport.models import JobTypeMetrics, MachineMetrics
 from jobsautoreport.plot import Plotter
 from jobsautoreport.report import Report
+from jobsautoreport.trends import Trends
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,30 @@ class SlackReporter:
     def __init__(self, web_client: WebClient, channel_id: str) -> None:
         self._client = web_client
         self._channel_id = channel_id
+        self._trend_arrows: Final[dict[str, str]] = {
+            "up": "arrow_upper_right",
+            "down": "arrow_lower_right",
+            "flat": "arrow_right",
+        }
 
-    def _post_message(
+    def _post_message_with_trends(
+        self,
+        report: Report,
+        trends: Trends,
+        format_function: Callable[[Report, Trends], list[dict[str, Any]]],
+        thread_time_stamp: Optional[str],
+    ) -> str:
+        blocks = format_function(report, trends)
+        logger.debug("Message formatted successfully")
+        response = self._client.chat_postMessage(
+            channel=self._channel_id, blocks=blocks, thread_ts=thread_time_stamp
+        )
+        response.validate()
+        logger.info("Message sent successfully")
+
+        return response["ts"]
+
+    def _post_message_without_trends(
         self,
         report: Report,
         format_function: Callable[[Report], list[dict[str, Any]]],
@@ -54,17 +77,18 @@ class SlackReporter:
         response.validate()
         logger.info(f"{filename} was uploaded successfully")
 
-    def send_report(self, report: Report) -> None:
+    def send_report(self, report: Report, trends: Trends) -> None:
         plotter = Plotter()
-        thread_time_stamp = self._post_message(
+        thread_time_stamp = self._post_message_without_trends(
             report=report,
             format_function=self._format_header_message,
             thread_time_stamp=None,
         )
 
         if report.success_rate_for_e2e_or_subsystem_periodic_jobs is not None:
-            self._post_message(
+            self._post_message_with_trends(
                 report=report,
+                trends=trends,
                 format_function=self._format_periodic_comment,
                 thread_time_stamp=thread_time_stamp,
             )
@@ -80,8 +104,9 @@ class SlackReporter:
             )
 
         if report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None:
-            self._post_message(
+            self._post_message_with_trends(
                 report=report,
+                trends=trends,
                 format_function=self._format_presubmit_comment,
                 thread_time_stamp=thread_time_stamp,
             )
@@ -107,8 +132,9 @@ class SlackReporter:
             )
 
         if report.success_rate_for_postsubmit_jobs is not None:
-            self._post_message(
+            self._post_message_with_trends(
                 report=report,
+                trends=trends,
                 format_function=self._format_postsubmit_comment,
                 thread_time_stamp=thread_time_stamp,
             )
@@ -124,8 +150,9 @@ class SlackReporter:
             )
 
         if report.total_equinix_machines_cost > 0:
-            self._post_message(
+            self._post_message_with_trends(
                 report=report,
+                trends=trends,
                 format_function=self._format_equinix_message,
                 thread_time_stamp=thread_time_stamp,
             )
@@ -171,7 +198,9 @@ class SlackReporter:
             )
 
     @staticmethod
-    def _format_header_message(report: Report) -> list[dict[str, Any]]:
+    def _format_header_message(
+        report: Report,
+    ) -> list[dict[str, Any]]:
         return [
             {
                 "type": "header",
@@ -190,8 +219,23 @@ class SlackReporter:
             },
         ]
 
-    @staticmethod
-    def _format_periodic_comment(report: Report) -> list[dict[str, Any]]:
+    def _format_periodic_comment(
+        self, report: Report, trends: Trends
+    ) -> list[dict[str, Any]]:
+        text = (
+            f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total :{self._get_arrow_for_trend(trends.number_of_e2e_or_subsystem_periodic_jobs)}:  {trends.number_of_e2e_or_subsystem_periodic_jobs}\n"
+            f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
+            f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
+        )
+
+        if (
+            report.success_rate_for_e2e_or_subsystem_periodic_jobs is not None
+            and trends.success_rate_for_e2e_or_subsystem_periodic_jobs is not None
+        ):
+            text += f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate* :{self._get_arrow_for_trend(trends.success_rate_for_e2e_or_subsystem_periodic_jobs)}:  {trends.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%\n"
+        elif report.success_rate_for_e2e_or_subsystem_periodic_jobs is not None:
+            text += f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*\n"
+
         return [
             {
                 "type": "section",
@@ -202,20 +246,27 @@ class SlackReporter:
             },
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total\n"
-                        f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
-                        f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
-                        f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*\n"
-                    ),
-                },
+                "text": {"type": "mrkdwn", "text": text},
             },
         ]
 
-    @staticmethod
-    def _format_postsubmit_comment(report: Report) -> list[dict[str, Any]]:
+    def _format_postsubmit_comment(
+        self, report: Report, trends: Trends
+    ) -> list[dict[str, Any]]:
+        text = (
+            f"•\t _{report.number_of_postsubmit_jobs}_ in total :{self._get_arrow_for_trend(trends.number_of_postsubmit_jobs)}:  {trends.number_of_postsubmit_jobs}\n"
+            f" \t\t *-* :done-circle-check: {report.number_of_successful_postsubmit_jobs} succeeded\n"
+            f" \t\t *-* :x: {report.number_of_failing_postsubmit_jobs} failed\n"
+        )
+
+        if (
+            report.success_rate_for_postsubmit_jobs is not None
+            and trends.success_rate_for_postsubmit_jobs is not None
+        ):
+            text += f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate* :{self._get_arrow_for_trend(trends.success_rate_for_postsubmit_jobs)}:  {trends.success_rate_for_postsubmit_jobs:.2f}%\n"
+        elif report.success_rate_for_postsubmit_jobs is not None:
+            text += f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*\n"
+
         return [
             {"type": "divider"},
             {
@@ -227,20 +278,27 @@ class SlackReporter:
             },
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"•\t _{report.number_of_postsubmit_jobs}_ in total\n"
-                        f" \t\t *-* :done-circle-check: {report.number_of_successful_postsubmit_jobs} succeeded\n"
-                        f" \t\t *-* :x: {report.number_of_failing_postsubmit_jobs} failed\n"
-                        f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*\n"
-                    ),
-                },
+                "text": {"type": "mrkdwn", "text": text},
             },
         ]
 
-    @staticmethod
-    def _format_presubmit_comment(report: Report) -> list[dict[str, Any]]:
+    def _format_presubmit_comment(
+        self, report: Report, trends: Trends
+    ) -> list[dict[str, Any]]:
+        text = (
+            f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total :{self._get_arrow_for_trend(trends.number_of_e2e_or_subsystem_presubmit_jobs)}:  {trends.number_of_e2e_or_subsystem_presubmit_jobs}\n"
+            f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
+            f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
+        )
+
+        if (
+            report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None
+            and trends.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None
+        ):
+            f"\t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate* :{self._get_arrow_for_trend(trends.success_rate_for_e2e_or_subsystem_presubmit_jobs)}:  {trends.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%\n"
+        elif report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None:
+            text += f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*\n"
+
         return [
             {"type": "divider"},
             {
@@ -252,27 +310,20 @@ class SlackReporter:
             },
             {
                 "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total\n"
-                        f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
-                        f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
-                        f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*\n"
-                    ),
-                },
+                "text": {"type": "mrkdwn", "text": text},
             },
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered",
+                    "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered :{self._get_arrow_for_trend(trends.number_of_rehearsal_jobs)}:  {trends.number_of_rehearsal_jobs}",
                 },
             },
         ]
 
-    @staticmethod
-    def _format_equinix_message(report: Report) -> list[dict[str, Any]]:
+    def _format_equinix_message(
+        self, report: Report, trends: Trends
+    ) -> list[dict[str, Any]]:
         return [
             {"type": "divider"},
             {
@@ -287,9 +338,9 @@ class SlackReporter:
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts\n"
+                        f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts :{self._get_arrow_for_trend(trends.total_number_of_machine_leased)}:  {trends.total_number_of_machine_leased}\n"
                         f" \t\t *-* :done-circle-check: {report.number_of_successful_machine_leases} succeeded\n"
-                        f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed\n"
+                        f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed :{self._get_arrow_for_trend(trends.number_of_unsuccessful_machine_leases)}:  {trends.number_of_unsuccessful_machine_leases}\n"
                     ),
                 },
             },
@@ -297,7 +348,7 @@ class SlackReporter:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  ",
+                    "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $* :{self._get_arrow_for_trend(trends.total_equinix_machines_cost)}:  {int(trends.total_equinix_machines_cost)} $",
                 },
             },
         ]
@@ -343,3 +394,11 @@ class SlackReporter:
                     costs.append(int(cost))
 
         return types, costs
+
+    def _get_arrow_for_trend(self, trend: Union[float, int]) -> str:
+        if trend > 0:
+            return self._trend_arrows["up"]
+        if trend == 0:
+            return self._trend_arrows["flat"]
+
+        return self._trend_arrows["down"]

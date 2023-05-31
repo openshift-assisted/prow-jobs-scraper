@@ -11,6 +11,20 @@ from jobsautoreport.models import ReportInterval
 from jobsautoreport.query import Querier
 from jobsautoreport.report import Reporter
 from jobsautoreport.slack import SlackReporter
+from jobsautoreport.trends import TrendDetector
+
+
+def get_reports_start_date(
+    report_interval: ReportInterval, current_report_end_time: datetime
+) -> tuple[datetime, datetime]:
+    if report_interval == ReportInterval.WEEK:
+        current_report_start_date = current_report_end_time - relativedelta(weeks=1)
+        last_report_start_date = current_report_start_date - relativedelta(weeks=1)
+        return current_report_end_time, last_report_start_date
+
+    current_report_start_date = current_report_end_time - relativedelta(months=1)
+    last_report_start_date = current_report_start_date - relativedelta(months=1)
+    return current_report_end_time, last_report_start_date
 
 
 def main() -> None:
@@ -26,7 +40,7 @@ def main() -> None:
     if config.REPORT_INTERVAL == ReportInterval.WEEK:
         # Job execution takes 1-2 hours, and is timed out after 5. We want to have at least 6 hours for all the jobs in the report's interval to be indexed in elasticsearch
         six_hours_ago = now - relativedelta(hours=6)
-        report_end_time = datetime(
+        current_report_end_time = datetime(
             year=six_hours_ago.year,
             month=six_hours_ago.month,
             day=six_hours_ago.day,
@@ -36,10 +50,8 @@ def main() -> None:
             microsecond=0,
             tzinfo=timezone.utc,
         )
-        report_start_time = report_end_time - relativedelta(weeks=1)
-
     else:
-        report_end_time = datetime(
+        current_report_end_time = datetime(
             year=now.year,
             month=now.month,
             day=now.day,
@@ -49,7 +61,11 @@ def main() -> None:
             microsecond=0,
             tzinfo=timezone.utc,
         )
-        report_start_time = report_end_time - relativedelta(months=1)
+
+    current_report_start_time, last_report_start_time = get_reports_start_date(
+        config.REPORT_INTERVAL, current_report_end_time
+    )
+    last_report_end_time = current_report_start_time
 
     jobs_index = config.ES_JOB_INDEX + "-*"
     steps_index = config.ES_STEP_INDEX + "-*"
@@ -63,13 +79,23 @@ def main() -> None:
     )
     reporter = Reporter(querier=querier)
 
-    report = reporter.get_report(from_date=report_start_time, to_date=report_end_time)
+    current_report = reporter.get_report(
+        from_date=current_report_start_time, to_date=current_report_end_time
+    )
+    last_report = reporter.get_report(
+        from_date=last_report_start_time, to_date=last_report_end_time
+    )
+
+    trend_detecter = TrendDetector(
+        current_report=current_report, last_report=last_report
+    )
+    trends = trend_detecter.detect_trends()
 
     web_client = WebClient(token=config.SLACK_BOT_TOKEN)
     slack_reporter = SlackReporter(
         web_client=web_client, channel_id=config.SLACK_CHANNEL_ID
     )
-    slack_reporter.send_report(report=report)
+    slack_reporter.send_report(report=current_report, trends=trends)
 
 
 if __name__ == "__main__":
