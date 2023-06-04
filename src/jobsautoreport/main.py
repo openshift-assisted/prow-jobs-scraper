@@ -18,13 +18,13 @@ def get_reports_start_date(
     report_interval: ReportInterval, current_report_end_time: datetime
 ) -> tuple[datetime, datetime]:
     if report_interval == ReportInterval.WEEK:
-        current_report_start_date = current_report_end_time - relativedelta(weeks=1)
-        last_report_start_date = current_report_start_date - relativedelta(weeks=1)
-        return current_report_end_time, last_report_start_date
+        current_report_start_time = current_report_end_time - relativedelta(weeks=1)
+        last_report_start_time = current_report_start_time - relativedelta(weeks=1)
+        return current_report_start_time, last_report_start_time
 
-    current_report_start_date = current_report_end_time - relativedelta(months=1)
-    last_report_start_date = current_report_start_date - relativedelta(months=1)
-    return current_report_end_time, last_report_start_date
+    current_report_start_time = current_report_end_time - relativedelta(months=1)
+    last_report_start_time = current_report_start_time - relativedelta(months=1)
+    return current_report_start_time, last_report_start_time
 
 
 def main() -> None:
