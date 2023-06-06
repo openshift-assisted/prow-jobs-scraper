@@ -92,16 +92,18 @@ class SlackReporter:
                 format_function=self._format_periodic_comment,
                 thread_time_stamp=thread_time_stamp,
             )
-            filename, file_path = plotter.create_most_failing_jobs_graph(
-                jobs=report.top_10_failing_e2e_or_subsystem_periodic_jobs,
-                file_title="Top 10 Failed Periodic Jobs",
-            )
-            self._upload_file(
-                file_title="Top 10 Failed Periodic Jobs",
-                filename=filename,
-                file_path=file_path,
-                thread_time_stamp=thread_time_stamp,
-            )
+            # There should not be an empty graph when there are no failures
+            if report.number_of_failing_e2e_or_subsystem_periodic_jobs > 0:
+                filename, file_path = plotter.create_most_failing_jobs_graph(
+                    jobs=report.top_10_failing_e2e_or_subsystem_periodic_jobs,
+                    file_title="Top 10 Failed Periodic Jobs",
+                )
+                self._upload_file(
+                    file_title="Top 10 Failed Periodic Jobs",
+                    filename=filename,
+                    file_path=file_path,
+                    thread_time_stamp=thread_time_stamp,
+                )
 
         if report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None:
             self._post_message_with_trends(
@@ -110,16 +112,17 @@ class SlackReporter:
                 format_function=self._format_presubmit_comment,
                 thread_time_stamp=thread_time_stamp,
             )
-            filename, file_path = plotter.create_most_failing_jobs_graph(
-                jobs=report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
-                file_title="Top 10 Failed Presubmit Jobs",
-            )
-            self._upload_file(
-                file_title="Top 10 Failed Presubmit Jobs",
-                filename=filename,
-                file_path=file_path,
-                thread_time_stamp=thread_time_stamp,
-            )
+            if report.number_of_failing_e2e_or_subsystem_presubmit_jobs > 0:
+                filename, file_path = plotter.create_most_failing_jobs_graph(
+                    jobs=report.top_10_failing_e2e_or_subsystem_presubmit_jobs,
+                    file_title="Top 10 Failed Presubmit Jobs",
+                )
+                self._upload_file(
+                    file_title="Top 10 Failed Presubmit Jobs",
+                    filename=filename,
+                    file_path=file_path,
+                    thread_time_stamp=thread_time_stamp,
+                )
             filename, file_path = plotter.create_most_triggered_jobs_graph(
                 jobs=report.top_5_most_triggered_e2e_or_subsystem_jobs,
                 file_title="Top 5 Triggered Presubmit Jobs",
@@ -138,16 +141,17 @@ class SlackReporter:
                 format_function=self._format_postsubmit_comment,
                 thread_time_stamp=thread_time_stamp,
             )
-            filename, file_path = plotter.create_most_failing_jobs_graph(
-                jobs=report.top_10_failing_postsubmit_jobs,
-                file_title="Top 10 Failed Postsubmit Jobs",
-            )
-            self._upload_file(
-                file_title="Top 10 Failed Postsubmit Jobs",
-                filename=filename,
-                file_path=file_path,
-                thread_time_stamp=thread_time_stamp,
-            )
+            if report.number_of_failing_postsubmit_jobs > 0:
+                filename, file_path = plotter.create_most_failing_jobs_graph(
+                    jobs=report.top_10_failing_postsubmit_jobs,
+                    file_title="Top 10 Failed Postsubmit Jobs",
+                )
+                self._upload_file(
+                    file_title="Top 10 Failed Postsubmit Jobs",
+                    filename=filename,
+                    file_path=file_path,
+                    thread_time_stamp=thread_time_stamp,
+                )
 
         if report.total_equinix_machines_cost > 0:
             self._post_message_with_trends(
