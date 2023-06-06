@@ -39,6 +39,7 @@ def mock_current_report():
         cost_by_machine_type=MachineMetrics(metrics={}),
         cost_by_job_type=JobTypeMetrics(metrics={}),
         top_5_most_expensive_jobs=[],
+        flaky_jobs=[],
     )
 
 
@@ -71,6 +72,7 @@ def mock_last_report():
         cost_by_machine_type=MachineMetrics(metrics={}),
         cost_by_job_type=JobTypeMetrics(metrics={}),
         top_5_most_expensive_jobs=[],
+        flaky_jobs=[],
     )
 
 

@@ -50,6 +50,8 @@ class JobMetrics(Metric):
     successes: int
     failures: int
     cost: float
+    flakiness: Optional[float]
+    flakiness_threshold: float = 0.5
 
     @property
     def total(self) -> int:
@@ -62,3 +64,10 @@ class JobMetrics(Metric):
     @property
     def success_rate(self) -> Optional[float]:
         return None if self.failure_rate is None else 100 - self.failure_rate
+
+    def is_flaky(self) -> Optional[bool]:
+        return (
+            self.flakiness > self.flakiness_threshold and self.total >= 5
+            if self.flakiness is not None
+            else None
+        )

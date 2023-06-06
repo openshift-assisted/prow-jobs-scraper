@@ -1,7 +1,8 @@
 import logging
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
+import numpy as np
 from pydantic import BaseModel
 
 from jobsautoreport.models import (
@@ -89,6 +90,7 @@ class Report(BaseModel):
     cost_by_machine_type: MachineMetrics
     cost_by_job_type: JobTypeMetrics
     top_5_most_expensive_jobs: list[IdentifiedJobMetrics]
+    flaky_jobs: list[IdentifiedJobMetrics]
 
 
 class Reporter:
@@ -124,7 +126,7 @@ class Reporter:
     ) -> JobMetrics:
         total_jobs_number = len(jobs)
         if total_jobs_number == 0:
-            return JobMetrics(successes=0, failures=0, cost=0)
+            return JobMetrics(successes=0, failures=0, cost=0, flakiness=None)
 
         successful_jobs_number = self._get_number_of_jobs_by_state(
             jobs=jobs, job_state=JobState.SUCCESS
@@ -136,11 +138,43 @@ class Reporter:
                 if job.build_id is not None
             ]
         )
+        flakiness = self._compute_flakiness(jobs)
+
         return JobMetrics(
             successes=successful_jobs_number,
             failures=total_jobs_number - successful_jobs_number,
             cost=total_cost,
+            flakiness=flakiness,
         )
+
+    @staticmethod
+    def _compute_flakiness(jobs: list[JobDetails]) -> Optional[float]:
+        filtered_jobs = [job for job in jobs if job.start_time is not None]
+        jobs_by_start_time = sorted(filtered_jobs, key=lambda job: job.start_time)  # type: ignore
+        jobs_states_by_start_time = [
+            job.state for job in jobs_by_start_time if job.state is not None
+        ]
+        numeral_jobs_states_by_start_time = list(
+            map(lambda state: 1 if state == "success" else 0, jobs_states_by_start_time)
+        )
+        if len(jobs_states_by_start_time) == 0:
+            return None
+
+        elif len(jobs_states_by_start_time) == 1:
+            return 0
+
+        # Flakiness is defined as the weighted average of adjacent absolute differences between job executions (weight is increasing)
+        # that way recent flakiness counts more than old flakiness
+        states_array = np.array(numeral_jobs_states_by_start_time)
+        diffs = np.diff(states_array)
+        absolute_diffs = np.abs(diffs)
+        # weights sum up to 1
+        weights = np.linspace(0.1, 1, len(absolute_diffs)) / sum(
+            np.linspace(0.1, 1, len(absolute_diffs))
+        )
+        weighted_average_diffs = np.average(absolute_diffs, weights=weights)
+
+        return weighted_average_diffs
 
     @staticmethod
     def _compute_job_cost(usages: list[EquinixUsageEvent], build_id: str) -> float:
@@ -273,6 +307,28 @@ class Reporter:
             if identified_job.metrics.cost > 0
         ]
 
+    def _get_flaky_jobs(
+        self, jobs: list[JobDetails], usages: list[EquinixUsageEvent]
+    ) -> list[IdentifiedJobMetrics]:
+        distinct_jobs = {JobIdentifier.create_from_job_details(job) for job in jobs}
+        flaky_jobs: list[IdentifiedJobMetrics] = []
+        for job_identifier in distinct_jobs:
+            jobs_by_name = [job for job in jobs if job_identifier.name == job.name]
+            job_metrics: JobMetrics = self._compute_job_metrics(
+                jobs=jobs_by_name, usages=usages
+            )
+            if job_metrics.is_flaky():
+                flaky_jobs.append(
+                    IdentifiedJobMetrics(
+                        job_identifier=job_identifier, metrics=job_metrics
+                    )
+                )
+
+        sorted_flaky_jobs = sorted(flaky_jobs, key=lambda job_identifier: job_identifier.metrics.flakiness, reverse=True)  # type: ignore
+        flaky_jobs = flaky_jobs[0 : min(len(flaky_jobs), 10)]
+
+        return sorted_flaky_jobs
+
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
         logger.debug("%d jobs queried from elasticsearch", len(jobs))
@@ -381,5 +437,8 @@ class Reporter:
             ),
             top_5_most_expensive_jobs=self._get_top_n_most_expensive_jobs(
                 jobs=assisted_components_jobs, usages=usages, n=5
+            ),
+            flaky_jobs=self._get_flaky_jobs(
+                jobs=assisted_components_jobs, usages=usages
             ),
         )

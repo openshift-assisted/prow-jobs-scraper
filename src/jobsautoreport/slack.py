@@ -149,6 +149,18 @@ class SlackReporter:
                     thread_time_stamp=thread_time_stamp,
                 )
 
+        if len(report.flaky_jobs) > 0:
+            filename, file_path = plotter.create_flaky_jobs_graph(
+                jobs=report.flaky_jobs,
+                file_title="Flaky Jobs",
+            )
+            self._upload_file(
+                file_title="Flaky Jobs",
+                filename=filename,
+                file_path=file_path,
+                thread_time_stamp=thread_time_stamp,
+            )
+
         if report.total_equinix_machines_cost > 0:
             self._post_message_with_trends(
                 report=report,

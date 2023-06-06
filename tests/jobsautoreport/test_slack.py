@@ -63,7 +63,7 @@ def report_1() -> Report:
                     variant="variant",
                     context="context-1",
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=0),
+                metrics=JobMetrics(successes=3, failures=1, cost=0, flakiness=0.25),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
@@ -73,7 +73,7 @@ def report_1() -> Report:
                     variant="variant",
                     context="context-2",
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=0),
+                metrics=JobMetrics(successes=3, failures=1, cost=0, flakiness=0.25),
             ),
         ],
         number_of_e2e_or_subsystem_presubmit_jobs=24,
@@ -91,7 +91,7 @@ def report_1() -> Report:
                     variant="variant-1",
                     context="context-3",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=1),
+                metrics=JobMetrics(successes=1, failures=2, cost=1, flakiness=0.25),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
@@ -101,7 +101,7 @@ def report_1() -> Report:
                     variant="variant-2",
                     context="context-4",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=1),
+                metrics=JobMetrics(successes=1, failures=2, cost=1, flakiness=0.25),
             ),
         ],
         top_5_most_triggered_e2e_or_subsystem_jobs=[
@@ -109,13 +109,13 @@ def report_1() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-2", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=1),
+                metrics=JobMetrics(successes=1, failures=2, cost=1, flakiness=0.25),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
                     name="fake-job-1", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1),
+                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=0.25),
             ),
         ],
         number_of_postsubmit_jobs=12,
@@ -127,7 +127,7 @@ def report_1() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-3", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1),
+                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=0.25),
             )
         ],
         number_of_successful_machine_leases=1,
@@ -143,7 +143,15 @@ def report_1() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-3", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1),
+                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
+            )
+        ],
+        flaky_jobs=[
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-3", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
             )
         ],
     )
@@ -174,7 +182,7 @@ def report_2() -> Report:
                     variant="variant-1",
                     context="context-3",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=3),
+                metrics=JobMetrics(successes=1, failures=2, cost=3, flakiness=0.25),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
@@ -184,7 +192,7 @@ def report_2() -> Report:
                     variant="variant-2",
                     context="context-4",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=3),
+                metrics=JobMetrics(successes=1, failures=2, cost=3, flakiness=0.25),
             ),
         ],
         top_5_most_triggered_e2e_or_subsystem_jobs=[
@@ -192,13 +200,13 @@ def report_2() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-2", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=3),
+                metrics=JobMetrics(successes=1, failures=2, cost=3, flakiness=0.25),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
                     name="fake-job-1", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=4),
+                metrics=JobMetrics(successes=3, failures=1, cost=4, flakiness=0.25),
             ),
         ],
         number_of_postsubmit_jobs=0,
@@ -210,7 +218,7 @@ def report_2() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-3", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=4),
+                metrics=JobMetrics(successes=3, failures=1, cost=4, flakiness=0.25),
             )
         ],
         number_of_successful_machine_leases=1,
@@ -226,7 +234,15 @@ def report_2() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-3", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1),
+                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
+            )
+        ],
+        flaky_jobs=[
+            IdentifiedJobMetrics(
+                job_identifier=JobIdentifier(
+                    name="fake-job-3", repository="test", base_ref="test"
+                ),
+                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
             )
         ],
     )
@@ -438,6 +454,13 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         initial_comment="Top 5 Most Expensive Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
+    slack_reporter._client.files_upload.assert_any_call(
+        channels=[slack_reporter._channel_id],
+        file="/tmp/flaky_jobs.png",
+        filename="flaky_jobs",
+        initial_comment="Flaky Jobs",
+        thread_ts=test_thread_time_stamp["ts"],
+    )
 
 
 def test_send_report_should_successfully_call_slack_api_with_filtering_none_success_rates(
@@ -498,6 +521,13 @@ def test_send_report_should_successfully_call_slack_api_with_filtering_none_succ
         file="/tmp/cost_by_job_type.png",
         filename="cost_by_job_type",
         initial_comment="Cost by Job Type",
+        thread_ts=test_thread_time_stamp["ts"],
+    )
+    slack_reporter._client.files_upload.assert_any_call(
+        channels=[slack_reporter._channel_id],
+        file="/tmp/flaky_jobs.png",
+        filename="flaky_jobs",
+        initial_comment="Flaky Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
 
