@@ -6,6 +6,7 @@ from retry import retry
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+from jobsautoreport.consts import PIE_CHART_COLORS
 from jobsautoreport.models import JobTypeMetrics, MachineMetrics
 from jobsautoreport.plot import Plotter
 from jobsautoreport.report import Report
@@ -191,7 +192,7 @@ class SlackReporter:
             filename, file_path = plotter.create_pie_chart(
                 labels=labels,
                 values=values,
-                colors=express.colors.sequential.Rainbow,
+                colors=PIE_CHART_COLORS,
                 title="Cost by Job Type",
             )
             self._upload_file(
