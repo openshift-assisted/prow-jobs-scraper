@@ -269,10 +269,10 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total :arrow_upper_right:  {trends.number_of_e2e_or_subsystem_periodic_jobs}\n"
+                            f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total  (+{trends.number_of_e2e_or_subsystem_periodic_jobs})\n"
                             f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
                             f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
-                            f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate* :arrow_upper_right:  {trends.success_rate_for_e2e_or_subsystem_periodic_jobs}%\n"
+                            f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*  (+{trends.success_rate_for_e2e_or_subsystem_periodic_jobs}%)\n"
                         ),
                     },
                 },
@@ -293,7 +293,7 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total :arrow_upper_right:  {trends.number_of_e2e_or_subsystem_presubmit_jobs}\n"
+                            f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total  (+{trends.number_of_e2e_or_subsystem_presubmit_jobs})\n"
                             f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
                             f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
                             f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*\n"
@@ -304,7 +304,7 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered :arrow_right:  {trends.number_of_rehearsal_jobs}",
+                        "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered  ({trends.number_of_rehearsal_jobs})",
                     },
                 },
             ]
@@ -324,10 +324,10 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"•\t _{report.number_of_postsubmit_jobs}_ in total :arrow_upper_right:  {trends.number_of_postsubmit_jobs}\n"
+                            f"•\t _{report.number_of_postsubmit_jobs}_ in total  (+{trends.number_of_postsubmit_jobs})\n"
                             f" \t\t *-* :done-circle-check: {report.number_of_successful_postsubmit_jobs} succeeded\n"
                             f" \t\t *-* :x: {report.number_of_failing_postsubmit_jobs} failed\n"
-                            f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate* :arrow_lower_right:  {trends.success_rate_for_postsubmit_jobs}%\n"
+                            f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*  (-{trends.success_rate_for_postsubmit_jobs}%)\n"
                         ),
                     },
                 },
@@ -348,9 +348,9 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts :arrow_upper_right:  {trends.total_number_of_machine_leased}\n"
+                            f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts  (+{trends.total_number_of_machine_leased})\n"
                             f" \t\t *-* :done-circle-check: {report.number_of_successful_machine_leases} succeeded\n"
-                            f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed :arrow_lower_right:  {trends.number_of_unsuccessful_machine_leases}\n"
+                            f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed  (-{trends.number_of_unsuccessful_machine_leases})\n"
                         ),
                     },
                 },
@@ -358,7 +358,7 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $* :arrow_upper_right:  {int(trends.total_equinix_machines_cost)} $",
+                        "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  (+{int(trends.total_equinix_machines_cost)} $)",
                     },
                 },
             ]
@@ -576,8 +576,8 @@ def test_format_cost_by_job_type_metrics():
     assert costs == [10, 1000, 500]
 
 
-def test_get_arrow_for_trend():
+def test_get_sign_for_trend():
     slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
-    assert slack_reporter._get_arrow_for_trend(trend=1) == "arrow_upper_right"
-    assert slack_reporter._get_arrow_for_trend(trend=0) == "arrow_right"
-    assert slack_reporter._get_arrow_for_trend(trend=-1) == "arrow_lower_right"
+    assert slack_reporter._get_sign_for_trend(trend=1) == "+"
+    assert slack_reporter._get_sign_for_trend(trend=0) == ""
+    assert slack_reporter._get_sign_for_trend(trend=-1) == "-"

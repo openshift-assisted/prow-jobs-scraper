@@ -21,11 +21,6 @@ class SlackReporter:
     def __init__(self, web_client: WebClient, channel_id: str) -> None:
         self._client = web_client
         self._channel_id = channel_id
-        self._trend_arrows: Final[dict[str, str]] = {
-            "up": "arrow_upper_right",
-            "down": "arrow_lower_right",
-            "flat": "arrow_right",
-        }
 
     def _post_message_with_trends(
         self,
@@ -228,7 +223,7 @@ class SlackReporter:
         self, report: Report, trends: Trends
     ) -> list[dict[str, Any]]:
         text = (
-            f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total :{self._get_arrow_for_trend(trends.number_of_e2e_or_subsystem_periodic_jobs)}:  {trends.number_of_e2e_or_subsystem_periodic_jobs}\n"
+            f"•\t _{report.number_of_e2e_or_subsystem_periodic_jobs}_ in total  ({self._get_sign_for_trend(trends.number_of_e2e_or_subsystem_periodic_jobs)}{trends.number_of_e2e_or_subsystem_periodic_jobs})\n"
             f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_periodic_jobs} succeeded\n"
             f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_periodic_jobs} failed\n"
         )
@@ -237,7 +232,7 @@ class SlackReporter:
             report.success_rate_for_e2e_or_subsystem_periodic_jobs is not None
             and trends.success_rate_for_e2e_or_subsystem_periodic_jobs is not None
         ):
-            text += f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate* :{self._get_arrow_for_trend(trends.success_rate_for_e2e_or_subsystem_periodic_jobs)}:  {trends.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%\n"
+            text += f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*  ({self._get_sign_for_trend(trends.success_rate_for_e2e_or_subsystem_periodic_jobs)}{trends.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%)\n"
         elif report.success_rate_for_e2e_or_subsystem_periodic_jobs is not None:
             text += f" \t  _{report.success_rate_for_e2e_or_subsystem_periodic_jobs:.2f}%_ *success rate*\n"
 
@@ -259,7 +254,7 @@ class SlackReporter:
         self, report: Report, trends: Trends
     ) -> list[dict[str, Any]]:
         text = (
-            f"•\t _{report.number_of_postsubmit_jobs}_ in total :{self._get_arrow_for_trend(trends.number_of_postsubmit_jobs)}:  {trends.number_of_postsubmit_jobs}\n"
+            f"•\t _{report.number_of_postsubmit_jobs}_ in total  ({self._get_sign_for_trend(trends.number_of_postsubmit_jobs)}{trends.number_of_postsubmit_jobs})\n"
             f" \t\t *-* :done-circle-check: {report.number_of_successful_postsubmit_jobs} succeeded\n"
             f" \t\t *-* :x: {report.number_of_failing_postsubmit_jobs} failed\n"
         )
@@ -268,7 +263,7 @@ class SlackReporter:
             report.success_rate_for_postsubmit_jobs is not None
             and trends.success_rate_for_postsubmit_jobs is not None
         ):
-            text += f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate* :{self._get_arrow_for_trend(trends.success_rate_for_postsubmit_jobs)}:  {trends.success_rate_for_postsubmit_jobs:.2f}%\n"
+            text += f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*  ({self._get_sign_for_trend(trends.success_rate_for_postsubmit_jobs)}{trends.success_rate_for_postsubmit_jobs:.2f}%)\n"
         elif report.success_rate_for_postsubmit_jobs is not None:
             text += f" \t  _{report.success_rate_for_postsubmit_jobs:.2f}%_ *success rate*\n"
 
@@ -291,7 +286,7 @@ class SlackReporter:
         self, report: Report, trends: Trends
     ) -> list[dict[str, Any]]:
         text = (
-            f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total :{self._get_arrow_for_trend(trends.number_of_e2e_or_subsystem_presubmit_jobs)}:  {trends.number_of_e2e_or_subsystem_presubmit_jobs}\n"
+            f"•\t _{report.number_of_e2e_or_subsystem_presubmit_jobs}_ in total  ({self._get_sign_for_trend(trends.number_of_e2e_or_subsystem_presubmit_jobs)}{trends.number_of_e2e_or_subsystem_presubmit_jobs})\n"
             f" \t\t *-* :done-circle-check: {report.number_of_successful_e2e_or_subsystem_presubmit_jobs} succeeded\n"
             f" \t\t *-* :x: {report.number_of_failing_e2e_or_subsystem_presubmit_jobs} failed\n"
         )
@@ -300,7 +295,7 @@ class SlackReporter:
             report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None
             and trends.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None
         ):
-            f"\t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate* :{self._get_arrow_for_trend(trends.success_rate_for_e2e_or_subsystem_presubmit_jobs)}:  {trends.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%\n"
+            f"\t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*  ({self._get_sign_for_trend(trends.success_rate_for_e2e_or_subsystem_presubmit_jobs)}{trends.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%)\n"
         elif report.success_rate_for_e2e_or_subsystem_presubmit_jobs is not None:
             text += f" \t  _{report.success_rate_for_e2e_or_subsystem_presubmit_jobs:.2f}%_ *success rate*\n"
 
@@ -321,7 +316,7 @@ class SlackReporter:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered :{self._get_arrow_for_trend(trends.number_of_rehearsal_jobs)}:  {trends.number_of_rehearsal_jobs}",
+                    "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered  ({self._get_sign_for_trend(trends.number_of_rehearsal_jobs)}{trends.number_of_rehearsal_jobs})",
                 },
             },
         ]
@@ -343,9 +338,9 @@ class SlackReporter:
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts :{self._get_arrow_for_trend(trends.total_number_of_machine_leased)}:  {trends.total_number_of_machine_leased}\n"
+                        f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts  ({self._get_sign_for_trend(trends.total_number_of_machine_leased)}{trends.total_number_of_machine_leased})\n"
                         f" \t\t *-* :done-circle-check: {report.number_of_successful_machine_leases} succeeded\n"
-                        f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed :{self._get_arrow_for_trend(trends.number_of_unsuccessful_machine_leases)}:  {trends.number_of_unsuccessful_machine_leases}\n"
+                        f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed  ({self._get_sign_for_trend(trends.number_of_unsuccessful_machine_leases)}{trends.number_of_unsuccessful_machine_leases})\n"
                     ),
                 },
             },
@@ -353,7 +348,7 @@ class SlackReporter:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $* :{self._get_arrow_for_trend(trends.total_equinix_machines_cost)}:  {int(trends.total_equinix_machines_cost)} $",
+                    "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  ({self._get_sign_for_trend(trends.total_equinix_machines_cost)}{int(trends.total_equinix_machines_cost)} $)",
                 },
             },
         ]
@@ -400,10 +395,9 @@ class SlackReporter:
 
         return types, costs
 
-    def _get_arrow_for_trend(self, trend: Union[float, int]) -> str:
+    def _get_sign_for_trend(self, trend: Union[float, int]) -> str:
         if trend > 0:
-            return self._trend_arrows["up"]
+            return "+"
         if trend == 0:
-            return self._trend_arrows["flat"]
-
-        return self._trend_arrows["down"]
+            return ""
+        return "-"
