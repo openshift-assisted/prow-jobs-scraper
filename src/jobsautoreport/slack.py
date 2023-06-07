@@ -398,6 +398,4 @@ class SlackReporter:
     def _get_sign_for_trend(self, trend: Union[float, int]) -> str:
         if trend > 0:
             return "+"
-        if trend == 0:
-            return ""
-        return "-"
+        return ""
