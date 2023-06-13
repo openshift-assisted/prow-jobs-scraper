@@ -325,7 +325,8 @@ class Reporter:
                 )
 
         sorted_flaky_jobs = sorted(flaky_jobs, key=lambda job_identifier: job_identifier.metrics.flakiness, reverse=True)  # type: ignore
-        flaky_jobs = flaky_jobs[0 : min(len(flaky_jobs), 10)]
+        flaky_jobs = flaky_jobs[0 : min(len(sorted_flaky_jobs), 10)]
+        flaky_jobs.reverse()
 
         return sorted_flaky_jobs
 
