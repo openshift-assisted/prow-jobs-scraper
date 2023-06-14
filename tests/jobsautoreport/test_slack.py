@@ -456,9 +456,9 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
     )
     slack_reporter._client.files_upload.assert_any_call(
         channels=[slack_reporter._channel_id],
-        file="/tmp/flaky_jobs.png",
-        filename="flaky_jobs",
-        initial_comment="Flaky Jobs",
+        file="/tmp/periodic_flaky_jobs.png",
+        filename="periodic_flaky_jobs",
+        initial_comment="Periodic Flaky Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
 
@@ -521,13 +521,6 @@ def test_send_report_should_successfully_call_slack_api_with_filtering_none_succ
         file="/tmp/cost_by_job_type.png",
         filename="cost_by_job_type",
         initial_comment="Cost by Job Type",
-        thread_ts=test_thread_time_stamp["ts"],
-    )
-    slack_reporter._client.files_upload.assert_any_call(
-        channels=[slack_reporter._channel_id],
-        file="/tmp/flaky_jobs.png",
-        filename="flaky_jobs",
-        initial_comment="Flaky Jobs",
         thread_ts=test_thread_time_stamp["ts"],
     )
 

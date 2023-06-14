@@ -440,6 +440,6 @@ class Reporter:
                 jobs=assisted_components_jobs, usages=usages, n=5
             ),
             flaky_jobs=self._get_flaky_jobs(
-                jobs=assisted_components_jobs, usages=usages
+                jobs=periodic_subsystem_and_e2e_jobs, usages=usages
             ),
         )
