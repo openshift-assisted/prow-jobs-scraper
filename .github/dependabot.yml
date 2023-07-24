@@ -5,10 +5,31 @@
 
 version: 2
 updates:
-  - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     labels:
-      - "approved"
-      - "lgtm"
+      - "dependabot"
+      - "pyhton"
+    commit-message:
+      prefix: "NO-ISSUE"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependabot"
+      - "docker"
+    commit-message:
+      prefix: "NO-ISSUE"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
+
