@@ -11,7 +11,9 @@ updates:
       interval: "weekly"
     labels:
       - "dependabot"
-      - "pyhton"
+      - "python"
+      - "approved"
+      - "lgtm"
     commit-message:
       prefix: "NO-ISSUE"
     groups:
