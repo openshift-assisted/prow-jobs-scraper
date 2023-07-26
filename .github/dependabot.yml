@@ -14,9 +14,6 @@ updates:
       - "python"
       - "approved"
       - "lgtm"
-    ignore:
-      - name: pydantic
-        versions: ["2.x"]
     commit-message:
       prefix: "NO-ISSUE"
     groups:
