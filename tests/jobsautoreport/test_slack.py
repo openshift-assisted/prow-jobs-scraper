@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from jobsautoreport.models import JobMetrics, JobTypeMetrics, MachineMetrics
+from jobsautoreport.models import JobMetrics
 from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier, Report
 from jobsautoreport.slack import SlackReporter
 from jobsautoreport.trends import Trends
@@ -40,7 +40,6 @@ def trends() -> Trends:
         success_rate_for_postsubmit_jobs=-0.02,
         total_number_of_machine_leased=50,
         number_of_unsuccessful_machine_leases=-3,
-        total_equinix_machines_cost=1000,
     )
 
 
@@ -63,7 +62,7 @@ def report_1() -> Report:
                     variant="variant",
                     context="context-1",
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=0, flakiness=0.25),
+                metrics=JobMetrics(successes=3, failures=1),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
@@ -73,7 +72,7 @@ def report_1() -> Report:
                     variant="variant",
                     context="context-2",
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=0, flakiness=0.25),
+                metrics=JobMetrics(successes=3, failures=1),
             ),
         ],
         number_of_e2e_or_subsystem_presubmit_jobs=24,
@@ -91,7 +90,7 @@ def report_1() -> Report:
                     variant="variant-1",
                     context="context-3",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=1, flakiness=0.25),
+                metrics=JobMetrics(successes=1, failures=2),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
@@ -101,7 +100,7 @@ def report_1() -> Report:
                     variant="variant-2",
                     context="context-4",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=1, flakiness=0.25),
+                metrics=JobMetrics(successes=1, failures=2),
             ),
         ],
         top_5_most_triggered_e2e_or_subsystem_jobs=[
@@ -109,13 +108,13 @@ def report_1() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-2", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=1, flakiness=0.25),
+                metrics=JobMetrics(successes=1, failures=2),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
                     name="fake-job-1", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=0.25),
+                metrics=JobMetrics(successes=3, failures=1),
             ),
         ],
         number_of_postsubmit_jobs=12,
@@ -127,33 +126,12 @@ def report_1() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-3", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=0.25),
+                metrics=JobMetrics(successes=3, failures=1),
             )
         ],
         number_of_successful_machine_leases=1,
         number_of_unsuccessful_machine_leases=2,
         total_number_of_machine_leased=3,
-        total_equinix_machines_cost=10,
-        cost_by_machine_type=MachineMetrics(
-            metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
-        ),
-        cost_by_job_type=JobTypeMetrics(metrics={"postsubmit": 4}),
-        top_5_most_expensive_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-3", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
-            )
-        ],
-        flaky_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-3", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
-            )
-        ],
     )
 
 
@@ -182,7 +160,7 @@ def report_2() -> Report:
                     variant="variant-1",
                     context="context-3",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=3, flakiness=0.25),
+                metrics=JobMetrics(successes=1, failures=2),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
@@ -192,7 +170,7 @@ def report_2() -> Report:
                     variant="variant-2",
                     context="context-4",
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=3, flakiness=0.25),
+                metrics=JobMetrics(successes=1, failures=2),
             ),
         ],
         top_5_most_triggered_e2e_or_subsystem_jobs=[
@@ -200,13 +178,13 @@ def report_2() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-2", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=1, failures=2, cost=3, flakiness=0.25),
+                metrics=JobMetrics(successes=1, failures=2),
             ),
             IdentifiedJobMetrics(
                 job_identifier=JobIdentifier(
                     name="fake-job-1", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=4, flakiness=0.25),
+                metrics=JobMetrics(successes=3, failures=1),
             ),
         ],
         number_of_postsubmit_jobs=0,
@@ -218,33 +196,12 @@ def report_2() -> Report:
                 job_identifier=JobIdentifier(
                     name="fake-job-3", repository="test", base_ref="test"
                 ),
-                metrics=JobMetrics(successes=3, failures=1, cost=4, flakiness=0.25),
+                metrics=JobMetrics(successes=3, failures=1),
             )
         ],
         number_of_successful_machine_leases=1,
         number_of_unsuccessful_machine_leases=2,
         total_number_of_machine_leased=3,
-        total_equinix_machines_cost=10,
-        cost_by_machine_type=MachineMetrics(
-            metrics={"m3.large.x86": 10, "c3.medium.x86": 5}
-        ),
-        cost_by_job_type=JobTypeMetrics(metrics={"postsubmit": 4}),
-        top_5_most_expensive_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-3", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
-            )
-        ],
-        flaky_jobs=[
-            IdentifiedJobMetrics(
-                job_identifier=JobIdentifier(
-                    name="fake-job-3", repository="test", base_ref="test"
-                ),
-                metrics=JobMetrics(successes=3, failures=1, cost=1, flakiness=1),
-            )
-        ],
     )
 
 
@@ -320,7 +277,7 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered  ({trends.number_of_rehearsal_jobs})",
+                        "text": f"•\t _{report.number_of_rehearsal_jobs}_ rehearsal jobs triggered  ",
                     },
                 },
             ]
@@ -349,35 +306,27 @@ def expected_blocks() -> Callable[[Report, Trends], dict[str, list[dict[str, Any
                 },
             ]
 
-        if report.total_equinix_machines_cost > 0:
-            res["expected_blocks_equinix"] = [
-                {"type": "divider"},
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Equinix*",
-                    },
+        res["expected_blocks_equinix"] = [
+            {"type": "divider"},
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Equinix*",
                 },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": (
-                            f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts  (+{trends.total_number_of_machine_leased})\n"
-                            f" \t\t *-* :done-circle-check: {report.number_of_successful_machine_leases} succeeded\n"
-                            f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed  ({trends.number_of_unsuccessful_machine_leases})\n"
-                        ),
-                    },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"•\t _{report.total_number_of_machine_leased}_ machine lease attempts  (+{trends.total_number_of_machine_leased})\n"
+                        f" \t\t *-* :done-circle-check: {report.number_of_successful_machine_leases} succeeded\n"
+                        f" \t\t *-* :x: {report.number_of_unsuccessful_machine_leases} failed  ({trends.number_of_unsuccessful_machine_leases})\n"
+                    ),
                 },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"•\t Total cost: *_{int(report.total_equinix_machines_cost)}_ $*  (+{int(trends.total_equinix_machines_cost)} $)",
-                    },
-                },
-            ]
+            },
+        ]
 
         return res
 
@@ -447,20 +396,6 @@ def test_send_report_should_successfully_call_slack_api_with_expected_message_fo
         blocks=blocks["expected_blocks_equinix"],
         thread_ts=test_thread_time_stamp["ts"],
     )
-    slack_reporter._client.files_upload.assert_any_call(
-        channels=[slack_reporter._channel_id],
-        file="/tmp/top_5_most_expensive_jobs.png",
-        filename="top_5_most_expensive_jobs",
-        initial_comment="Top 5 Most Expensive Jobs",
-        thread_ts=test_thread_time_stamp["ts"],
-    )
-    slack_reporter._client.files_upload.assert_any_call(
-        channels=[slack_reporter._channel_id],
-        file="/tmp/periodic_flaky_jobs.png",
-        filename="periodic_flaky_jobs",
-        initial_comment="Periodic Flaky Jobs",
-        thread_ts=test_thread_time_stamp["ts"],
-    )
 
 
 def test_send_report_should_successfully_call_slack_api_with_filtering_none_success_rates(
@@ -500,27 +435,6 @@ def test_send_report_should_successfully_call_slack_api_with_filtering_none_succ
     slack_reporter._client.chat_postMessage.assert_any_call(
         channel=slack_reporter._channel_id,
         blocks=blocks["expected_blocks_equinix"],
-        thread_ts=test_thread_time_stamp["ts"],
-    )
-    slack_reporter._client.files_upload.assert_any_call(
-        channels=[slack_reporter._channel_id],
-        file="/tmp/top_5_most_expensive_jobs.png",
-        filename="top_5_most_expensive_jobs",
-        initial_comment="Top 5 Most Expensive Jobs",
-        thread_ts=test_thread_time_stamp["ts"],
-    )
-    slack_reporter._client.files_upload.assert_any_call(
-        channels=[slack_reporter._channel_id],
-        file="/tmp/cost_by_machine_type.png",
-        filename="cost_by_machine_type",
-        initial_comment="Cost by Machine Type",
-        thread_ts=test_thread_time_stamp["ts"],
-    )
-    slack_reporter._client.files_upload.assert_any_call(
-        channels=[slack_reporter._channel_id],
-        file="/tmp/cost_by_job_type.png",
-        filename="cost_by_job_type",
-        initial_comment="Cost by Job Type",
         thread_ts=test_thread_time_stamp["ts"],
     )
 
@@ -563,44 +477,8 @@ def test_JobIdentifier_short_names_in_slack(report_1):
     )
 
 
-def test_format_cost_by_machine_type_metrics():
-    machine_metrics = MachineMetrics(
-        metrics={
-            "c1.small.x86_64": 500,
-            "c2.large.x86_64": 300,
-            "m1.xlarge.x86_64": 100,
-            "e1.xlarge.x86_64": 4,
-            "e1.small.x86_64": 4,
-            "Outbound Bandwidth": 10,
-        }
-    )
+def test_get_trend_phrase():
     slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
-    types, costs = slack_reporter._format_cost_by_machine_type_metrics(
-        machine_metrics, threshold=0.02
-    )
-    assert types == ["Others", "c1 small x86_64", "c2 large x86_64", "m1 xlarge x86_64"]
-    assert costs == [8, 500, 300, 100]
-
-
-def test_format_cost_by_job_type_metrics():
-    job_type_metrics = JobTypeMetrics(
-        metrics={
-            "batch": 1000,
-            "presubmit": 500,
-            "periodic": 5,
-            "postsubmit": 5,
-        }
-    )
-    slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
-    types, costs = slack_reporter._format_cost_by_machine_type_metrics(
-        job_type_metrics, threshold=0.02
-    )
-    assert types == ["Others", "batch", "presubmit"]
-    assert costs == [10, 1000, 500]
-
-
-def test_get_sign_for_trend():
-    slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
-    assert slack_reporter._get_sign_for_trend(trend=1) == "+"
-    assert slack_reporter._get_sign_for_trend(trend=0) == ""
-    assert slack_reporter._get_sign_for_trend(trend=-1) == ""
+    assert slack_reporter._get_trend_phrase(trend=1) == "(+1)"
+    assert slack_reporter._get_trend_phrase(trend=0) == ""
+    assert slack_reporter._get_trend_phrase(trend=-1) == "(-1)"

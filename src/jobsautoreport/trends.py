@@ -14,7 +14,6 @@ COMPARED_FIELDS: Final[list[str]] = [
     "success_rate_for_postsubmit_jobs",
     "total_number_of_machine_leased",
     "number_of_unsuccessful_machine_leases",
-    "total_equinix_machines_cost",
 ]
 
 
@@ -28,7 +27,6 @@ class Trends(BaseModel):
     success_rate_for_postsubmit_jobs: Optional[float]
     total_number_of_machine_leased: int
     number_of_unsuccessful_machine_leases: int
-    total_equinix_machines_cost: float
 
 
 class TrendDetector(BaseModel):

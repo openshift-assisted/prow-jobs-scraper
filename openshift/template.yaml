@@ -6,7 +6,7 @@ objects:
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
-    name: prow-jobs-scraper-assisted-project-usages
+    name: prow-jobs-scraper
   spec:
     schedule: ${PROW_JOBS_SCRAPER_SCHEDULE}
     suspend: ${{PROW_JOBS_SCRAPER_SUSPEND}}
@@ -47,8 +47,6 @@ objects:
                 value: "${ES_USAGE_INDEX}"
               - name: JOB_LIST_URL
                 value: "${JOB_LIST_URL}"
-              - name: EQUINIX_USAGES_SCRAPE_INTERVAL
-                value: "${EQUINIX_USAGES_SCRAPE_INTERVAL}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -59,83 +57,6 @@ objects:
                   secretKeyRef:
                     key: master_user_password
                     name: elastic-master-credentials
-              - name: EQUINIX_PROJECT_ID
-                valueFrom:
-                  secretKeyRef:
-                    key: ${PROW_JOBS_SCRAPER_EQUINIX_ASSISTED_PROJECT_ID_KEY}
-                    name: ${PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME}
-              - name: EQUINIX_PROJECT_TOKEN
-                valueFrom:
-                  secretKeyRef:
-                    key: ${PROW_JOBS_SCRAPER_EQUINIX_PROJECT_TOKEN_KEY}
-                    name: ${PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME}
-
-- apiVersion: batch/v1
-  kind: CronJob
-  metadata:
-    name: prow-jobs-scraper-single-node-usages
-  spec:
-    schedule: ${PROW_JOBS_SCRAPER_SCHEDULE}
-    suspend: ${{PROW_JOBS_SCRAPER_SUSPEND}}
-    jobTemplate:
-      spec:
-        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
-        backoffLimit: 3
-        template:
-          spec:
-            restartPolicy: OnFailure
-            serviceAccountName: assisted-service
-            containers:
-            - name: prow-jobs-scraper
-              image: ${IMAGE_NAME}:${IMAGE_TAG}
-              imagePullPolicy: ${IMAGE_PULL_POLICY}
-              command: 
-              - prow-jobs-scraper
-              resources:
-                limits:
-                  cpu: 500m
-                  memory: 2000Mi
-                requests:
-                  cpu: 300m
-                  memory: 400Mi
-              env:
-              - name: LOG_LEVEL
-                value: "${PROW_JOBS_SCRAPER_LOG_LEVEL}"
-              - name: ES_URL
-                valueFrom:
-                  secretKeyRef:
-                    key: endpoint
-                    name: assisted-installer-elasticsearch
-              - name: ES_STEP_INDEX
-                value: "${ES_STEP_INDEX}"
-              - name: ES_JOB_INDEX
-                value: "${ES_JOB_INDEX}"
-              - name: ES_USAGE_INDEX
-                value: "${ES_USAGE_INDEX}"
-              - name: JOB_LIST_URL
-                value: "${JOB_LIST_URL}"
-              - name: EQUINIX_USAGES_SCRAPE_INTERVAL
-                value: "${EQUINIX_USAGES_SCRAPE_INTERVAL}"
-              - name: ES_USER
-                valueFrom:
-                  secretKeyRef:
-                    key: master_user_name
-                    name: elastic-master-credentials
-              - name: ES_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    key: master_user_password
-                    name: elastic-master-credentials
-              - name: EQUINIX_PROJECT_ID
-                valueFrom:
-                  secretKeyRef:
-                    key: ${PROW_JOBS_SCRAPER_EQUINIX_SINGLE_NODE_PROJECT_ID_KEY}
-                    name: ${PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME}
-              - name: EQUINIX_PROJECT_TOKEN
-                valueFrom:
-                  secretKeyRef:
-                    key: ${PROW_JOBS_SCRAPER_EQUINIX_PROJECT_TOKEN_KEY}
-                    name: ${PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME}
 
 - apiVersion: batch/v1
   kind: CronJob
@@ -201,6 +122,7 @@ objects:
                   secretKeyRef:
                     key: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY}
                     name: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_NAME}
+                    
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
@@ -275,8 +197,6 @@ parameters:
   value: "steps"
 - name: ES_JOB_INDEX
   value: "jobs"
-- name: "ES_USAGE_INDEX"
-  value: "usages"
 - name: JOB_LIST_URL
   value: "https://prow.ci.openshift.org/prowjobs.js?omit=annotations,decoration_config,pod_spec"
 - name: PROW_JOBS_SCRAPER_LOG_LEVEL
@@ -287,16 +207,6 @@ parameters:
   value: "false"
 - name: PROW_JOBS_SCRAPER_SCHEDULE
   value: "@hourly"
-- name: EQUINIX_USAGES_SCRAPE_INTERVAL
-  value: "day"
-- name: PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME
-  value: prow-jobs-scraper-equinix-secret
-- name: PROW_JOBS_SCRAPER_EQUINIX_ASSISTED_PROJECT_ID_KEY
-  value: prow-jobs-scraper-equinix-assisted-project-id-key
-- name: PROW_JOBS_SCRAPER_EQUINIX_SINGLE_NODE_PROJECT_ID_KEY
-  value: prow-jobs-scraper-equinix-single-node-project-id-key
-- name: PROW_JOBS_SCRAPER_EQUINIX_PROJECT_TOKEN_KEY
-  value: prow-jobs-scraper-equinix-project-token-key
 - name: JOBS_AUTO_WEEKLY_REPORT_LOG_LEVEL
   value: "INFO"
 - name: JOBS_AUTO_MONTHLY_REPORT_LOG_LEVEL

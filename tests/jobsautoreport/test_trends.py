@@ -35,11 +35,6 @@ def mock_current_report():
         number_of_successful_machine_leases=16,
         number_of_unsuccessful_machine_leases=0,
         total_number_of_machine_leased=16,
-        total_equinix_machines_cost=1000.0,
-        cost_by_machine_type=MachineMetrics(metrics={}),
-        cost_by_job_type=JobTypeMetrics(metrics={}),
-        top_5_most_expensive_jobs=[],
-        flaky_jobs=[],
     )
 
 
@@ -68,11 +63,6 @@ def mock_last_report():
         number_of_successful_machine_leases=16,
         number_of_unsuccessful_machine_leases=0,
         total_number_of_machine_leased=16,
-        total_equinix_machines_cost=1000.0,
-        cost_by_machine_type=MachineMetrics(metrics={}),
-        cost_by_job_type=JobTypeMetrics(metrics={}),
-        top_5_most_expensive_jobs=[],
-        flaky_jobs=[],
     )
 
 
