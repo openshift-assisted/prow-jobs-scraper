@@ -25,7 +25,7 @@ dependencies = [
     "kaleido==0.2.1",
     "python-dateutil==2.8.2",
     "retry==0.9.2",
-    "pandas==2.0.3",
+    "pandas==2.1.0",
     "numpy==1.25.2",
 ]
 dynamic = ["version"]
@@ -36,11 +36,11 @@ jobs-auto-report = "jobsautoreport.main:main"
 
 [project.optional-dependencies]
 test-runner = [
-    "tox==4.10.0",
+    "tox==4.11.1",
 ]
 unit-tests = [
     "freezegun==1.2.2",
-    "pytest==7.4.0",
+    "pytest==7.4.1",
     "pytest-cov==4.1.0",
     "pytest-httpserver==1.0.8",
 ]
