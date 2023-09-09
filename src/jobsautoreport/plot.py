@@ -3,7 +3,7 @@ import logging
 import plotly.graph_objects as graph_objects  # type: ignore
 from plotly import express
 
-from jobsautoreport.report import IdentifiedJobMetrics, JobIdentifier
+from jobsautoreport.models import IdentifiedJobMetrics, JobIdentifier
 
 logger = logging.getLogger(__name__)
 

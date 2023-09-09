@@ -1,96 +1,38 @@
 import logging
 from datetime import datetime
-from typing import Any, Callable, Optional, Union
+from typing import Callable, Optional
 
 import numpy as np
-from pydantic import BaseModel
 
+from jobsautoreport.consts import (
+    ASSISTED_REPOSITORIES,
+    E2E,
+    OPENSHIFT,
+    REHEARSE,
+    RELEASE,
+    SUBSYSTEM,
+)
 from jobsautoreport.models import (
+    EquinixCostReport,
+    EquinixUsageReport,
+    IdentifiedJobMetrics,
+    JobIdentifier,
     JobMetrics,
     JobState,
     JobType,
     JobTypeMetrics,
     MachineMetrics,
+    PeriodicJobsReport,
+    PostSubmitJobsReport,
+    PresubmitJobsReport,
+    Report,
     StepState,
 )
 from jobsautoreport.query import Querier
 from prowjobsscraper.equinix_usages import EquinixUsageEvent
-from prowjobsscraper.event import JobDetails
+from prowjobsscraper.event import JobDetails, StepEvent
 
 logger = logging.getLogger(__name__)
-
-
-class JobIdentifier(BaseModel):
-    name: str
-    repository: Optional[str]
-    base_ref: Optional[str]
-    context: Optional[str]
-    variant: Optional[str]
-
-    def __hash__(self) -> int:
-        return hash(self.name)
-
-    def __eq__(self, other: Any) -> bool:
-        return isinstance(other, self.__class__) and self.name == other.name
-
-    def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
-
-    def get_slack_name(self, display_variant: bool) -> str:
-        if self.context is None:
-            return self.name
-        if self.variant is None or not display_variant:
-            return f"{self.repository}/{self.base_ref}<br>{self.context}"
-        return f"{self.repository}/{self.base_ref}<br>{self.variant}-{self.context}"
-
-    @staticmethod
-    def is_variant_unique(job_identifiers: list["JobIdentifier"]) -> bool:
-        return len({job_identifier.variant for job_identifier in job_identifiers}) != 1
-
-    @classmethod
-    def create_from_job_details(cls, job_details: JobDetails) -> "JobIdentifier":
-        return cls(
-            name=job_details.name,
-            repository=job_details.refs.repo,
-            base_ref=job_details.refs.base_ref,
-            context=job_details.context,
-            variant=job_details.variant,
-        )
-
-
-class IdentifiedJobMetrics(BaseModel):
-    job_identifier: JobIdentifier
-    metrics: JobMetrics
-
-
-class Report(BaseModel):
-    from_date: datetime
-    to_date: datetime
-    number_of_e2e_or_subsystem_periodic_jobs: int
-    number_of_successful_e2e_or_subsystem_periodic_jobs: int
-    number_of_failing_e2e_or_subsystem_periodic_jobs: int
-    success_rate_for_e2e_or_subsystem_periodic_jobs: Optional[float]
-    top_10_failing_e2e_or_subsystem_periodic_jobs: list[IdentifiedJobMetrics]
-    number_of_e2e_or_subsystem_presubmit_jobs: int
-    number_of_successful_e2e_or_subsystem_presubmit_jobs: int
-    number_of_failing_e2e_or_subsystem_presubmit_jobs: int
-    number_of_rehearsal_jobs: int
-    success_rate_for_e2e_or_subsystem_presubmit_jobs: Optional[float]
-    top_10_failing_e2e_or_subsystem_presubmit_jobs: list[IdentifiedJobMetrics]
-    top_5_most_triggered_e2e_or_subsystem_jobs: list[IdentifiedJobMetrics]
-    number_of_postsubmit_jobs: int
-    number_of_successful_postsubmit_jobs: int
-    number_of_failing_postsubmit_jobs: int
-    success_rate_for_postsubmit_jobs: Optional[float]
-    top_10_failing_postsubmit_jobs: list[IdentifiedJobMetrics]
-    number_of_successful_machine_leases: int
-    number_of_unsuccessful_machine_leases: int
-    total_number_of_machine_leased: int
-    total_equinix_machines_cost: float
-    cost_by_machine_type: MachineMetrics
-    cost_by_job_type: JobTypeMetrics
-    top_5_most_expensive_jobs: list[IdentifiedJobMetrics]
-    flaky_jobs: list[IdentifiedJobMetrics]
 
 
 class Reporter:
@@ -155,7 +97,10 @@ class Reporter:
             job.state for job in jobs_by_start_time if job.state is not None
         ]
         numeral_jobs_states_by_start_time = list(
-            map(lambda state: 1 if state == "success" else 0, jobs_states_by_start_time)
+            map(
+                lambda state: 1 if state == JobState.SUCCESS.value else 0,
+                jobs_states_by_start_time,
+            )
         )
         if len(jobs_states_by_start_time) == 0:
             return None
@@ -221,30 +166,19 @@ class Reporter:
     @staticmethod
     def _is_rehearsal(job: JobDetails) -> bool:
         return (
-            "rehearse" in job.name
-            and job.type == "presubmit"
-            and job.refs.repo == "release"
-            and job.refs.org == "openshift"
+            REHEARSE in job.name
+            and job.type == JobType.PRESUBMIT
+            and job.refs.repo == RELEASE
+            and job.refs.org == OPENSHIFT
         )
 
     @staticmethod
     def _is_assisted_repository(job: JobDetails) -> bool:
-        return (
-            job.refs.repo
-            in [
-                "assisted-service",
-                "assisted-installer",
-                "assisted-installer-agent",
-                "assisted-image-service",
-                "assisted-test-infra",
-                "cluster-api-provider-agent",
-            ]
-            and job.refs.org == "openshift"
-        )
+        return job.refs.repo in ASSISTED_REPOSITORIES and job.refs.org == OPENSHIFT
 
     @staticmethod
     def _is_e2e_or_subsystem_class(job: JobDetails) -> bool:
-        return "e2e" in job.name or "subsystem" in job.name
+        return E2E in job.name or SUBSYSTEM in job.name
 
     @classmethod
     def _get_machine_metrics(cls, usages: list[EquinixUsageEvent]) -> MachineMetrics:
@@ -330,6 +264,108 @@ class Reporter:
 
         return sorted_flaky_jobs
 
+    def _get_periodics_report(
+        self,
+        periodic_subsystem_and_e2e_jobs: list[JobDetails],
+        usages: list[EquinixUsageEvent],
+    ) -> PeriodicJobsReport:
+        return PeriodicJobsReport(
+            type=JobType.PERIODIC,
+            total=len(periodic_subsystem_and_e2e_jobs),
+            successes=self._get_number_of_jobs_by_state(
+                jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.SUCCESS
+            ),
+            failures=self._get_number_of_jobs_by_state(
+                jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
+            ),
+            success_rate=self._compute_job_metrics(
+                jobs=periodic_subsystem_and_e2e_jobs, usages=usages
+            ).success_rate,
+            top_10_failing=self._get_top_n_failed_jobs(
+                jobs=periodic_subsystem_and_e2e_jobs, n=10, usages=usages
+            ),
+        )
+
+    def _get_presubmits_report(
+        self,
+        presubmit_subsystem_and_e2e_jobs: list[JobDetails],
+        usages: list[EquinixUsageEvent],
+        rehearsal_jobs: list[JobDetails],
+    ) -> PresubmitJobsReport:
+        return PresubmitJobsReport(
+            type=JobType.PRESUBMIT,
+            total=len(presubmit_subsystem_and_e2e_jobs),
+            successes=self._get_number_of_jobs_by_state(
+                jobs=presubmit_subsystem_and_e2e_jobs, job_state=JobState.SUCCESS
+            ),
+            failures=self._get_number_of_jobs_by_state(
+                jobs=presubmit_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
+            ),
+            success_rate=self._compute_job_metrics(
+                jobs=presubmit_subsystem_and_e2e_jobs, usages=usages
+            ).success_rate,
+            top_10_failing=self._get_top_n_failed_jobs(
+                jobs=presubmit_subsystem_and_e2e_jobs, n=10, usages=usages
+            ),
+            rehearsals=len(rehearsal_jobs),
+        )
+
+    def _get_postsubmits_report(
+        self, postsubmit_jobs: list[JobDetails], usages: list[EquinixUsageEvent]
+    ) -> PostSubmitJobsReport:
+        return PostSubmitJobsReport(
+            type=JobType.POSTSUBMIT,
+            total=len(postsubmit_jobs),
+            successes=self._get_number_of_jobs_by_state(
+                jobs=postsubmit_jobs, job_state=JobState.SUCCESS
+            ),
+            failures=self._get_number_of_jobs_by_state(
+                jobs=postsubmit_jobs, job_state=JobState.FAILURE
+            ),
+            success_rate=self._compute_job_metrics(
+                jobs=postsubmit_jobs, usages=usages
+            ).success_rate,
+            top_10_failing=self._get_top_n_failed_jobs(
+                jobs=postsubmit_jobs, n=10, usages=usages
+            ),
+        )
+
+    @staticmethod
+    def _get_equinix_usage_report(step_events: list[StepEvent]) -> EquinixUsageReport:
+        return EquinixUsageReport(
+            successful_machine_leases=len(
+                [
+                    step_event
+                    for step_event in step_events
+                    if step_event.step.state == StepState.SUCCESS.value
+                ]
+            ),
+            unsuccessful_machine_leases=len(
+                [
+                    step_event
+                    for step_event in step_events
+                    if step_event.step.state == StepState.FAILURE.value
+                ]
+            ),
+            total_machines_leased=len(step_events),
+        )
+
+    def _get_equinix_cost(
+        self,
+        assisted_components_jobs: list[JobDetails],
+        usages: list[EquinixUsageEvent],
+    ) -> EquinixCostReport:
+        return EquinixCostReport(
+            total_equinix_machines_cost=sum(usage.usage.total for usage in usages),
+            cost_by_machine_type=self._get_machine_metrics(usages),
+            cost_by_job_type=self._get_job_type_metrics(
+                usages, assisted_components_jobs
+            ),
+            top_5_most_expensive_jobs=self._get_top_n_most_expensive_jobs(
+                jobs=assisted_components_jobs, usages=usages, n=5
+            ),
+        )
+
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
         logger.debug("%d jobs queried from elasticsearch", len(jobs))
@@ -357,42 +393,22 @@ class Reporter:
             for job in assisted_components_jobs
             if job.type == JobType.POSTSUBMIT.value
         ]
-
         usages = self._querier.query_usage_events(from_date=from_date, to_date=to_date)
 
-        return Report(
+        report = Report(
             from_date=from_date,
             to_date=to_date,
-            number_of_e2e_or_subsystem_periodic_jobs=len(
-                periodic_subsystem_and_e2e_jobs
+            periodics_report=self._get_periodics_report(
+                periodic_subsystem_and_e2e_jobs=periodic_subsystem_and_e2e_jobs,
+                usages=usages,
             ),
-            number_of_successful_e2e_or_subsystem_periodic_jobs=self._get_number_of_jobs_by_state(
-                jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.SUCCESS
+            presubmits_report=self._get_presubmits_report(
+                presubmit_subsystem_and_e2e_jobs=presubmit_subsystem_and_e2e_jobs,
+                usages=usages,
+                rehearsal_jobs=rehearsal_jobs,
             ),
-            number_of_failing_e2e_or_subsystem_periodic_jobs=self._get_number_of_jobs_by_state(
-                jobs=periodic_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
-            ),
-            success_rate_for_e2e_or_subsystem_periodic_jobs=self._compute_job_metrics(
-                jobs=periodic_subsystem_and_e2e_jobs, usages=usages
-            ).success_rate,
-            top_10_failing_e2e_or_subsystem_periodic_jobs=self._get_top_n_failed_jobs(
-                jobs=periodic_subsystem_and_e2e_jobs, n=10, usages=usages
-            ),
-            number_of_e2e_or_subsystem_presubmit_jobs=len(
-                presubmit_subsystem_and_e2e_jobs
-            ),
-            number_of_successful_e2e_or_subsystem_presubmit_jobs=self._get_number_of_jobs_by_state(
-                jobs=presubmit_subsystem_and_e2e_jobs, job_state=JobState.SUCCESS
-            ),
-            number_of_failing_e2e_or_subsystem_presubmit_jobs=self._get_number_of_jobs_by_state(
-                jobs=presubmit_subsystem_and_e2e_jobs, job_state=JobState.FAILURE
-            ),
-            number_of_rehearsal_jobs=len(rehearsal_jobs),
-            success_rate_for_e2e_or_subsystem_presubmit_jobs=self._compute_job_metrics(
-                jobs=presubmit_subsystem_and_e2e_jobs, usages=usages
-            ).success_rate,
-            top_10_failing_e2e_or_subsystem_presubmit_jobs=self._get_top_n_failed_jobs(
-                jobs=presubmit_subsystem_and_e2e_jobs, n=10, usages=usages
+            postsubmits_report=self._get_postsubmits_report(
+                postsubmit_jobs=postsubmit_jobs, usages=usages
             ),
             top_5_most_triggered_e2e_or_subsystem_jobs=self._get_top_n_jobs(
                 jobs=presubmit_subsystem_and_e2e_jobs,
@@ -403,43 +419,15 @@ class Reporter:
                 ),
                 usages=usages,
             ),
-            number_of_postsubmit_jobs=len(postsubmit_jobs),
-            number_of_successful_postsubmit_jobs=self._get_number_of_jobs_by_state(
-                jobs=postsubmit_jobs, job_state=JobState.SUCCESS
+            equinix_usage_report=self._get_equinix_usage_report(
+                step_events=step_events
             ),
-            number_of_failing_postsubmit_jobs=self._get_number_of_jobs_by_state(
-                jobs=postsubmit_jobs, job_state=JobState.FAILURE
-            ),
-            success_rate_for_postsubmit_jobs=self._compute_job_metrics(
-                jobs=postsubmit_jobs, usages=usages
-            ).success_rate,
-            top_10_failing_postsubmit_jobs=self._get_top_n_failed_jobs(
-                jobs=postsubmit_jobs, n=10, usages=usages
-            ),
-            number_of_successful_machine_leases=len(
-                [
-                    step_event
-                    for step_event in step_events
-                    if step_event.step.state == StepState.SUCCESS.value
-                ]
-            ),
-            number_of_unsuccessful_machine_leases=len(
-                [
-                    step_event
-                    for step_event in step_events
-                    if step_event.step.state == StepState.FAILURE.value
-                ]
-            ),
-            total_number_of_machine_leased=len(step_events),
-            total_equinix_machines_cost=sum(usage.usage.total for usage in usages),
-            cost_by_machine_type=self._get_machine_metrics(usages),
-            cost_by_job_type=self._get_job_type_metrics(
-                usages, assisted_components_jobs
-            ),
-            top_5_most_expensive_jobs=self._get_top_n_most_expensive_jobs(
-                jobs=assisted_components_jobs, usages=usages, n=5
+            equinix_cost_report=self._get_equinix_cost(
+                assisted_components_jobs=assisted_components_jobs, usages=usages
             ),
             flaky_jobs=self._get_flaky_jobs(
                 jobs=periodic_subsystem_and_e2e_jobs, usages=usages
             ),
         )
+
+        return report

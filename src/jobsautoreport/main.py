@@ -7,10 +7,10 @@ from opensearchpy import OpenSearch
 from slack_sdk import WebClient
 
 from jobsautoreport import config
-from jobsautoreport.models import ReportInterval
+from jobsautoreport.models import FeatureFlags, ReportInterval
 from jobsautoreport.query import Querier
 from jobsautoreport.report import Reporter
-from jobsautoreport.slack import SlackReporter
+from jobsautoreport.slack.slack_report import SlackReporter
 from jobsautoreport.trends import TrendDetector
 
 
@@ -71,31 +71,46 @@ def main() -> None:
     steps_index = config.ES_STEP_INDEX + "-*"
     usages_index = config.ES_USAGE_INDEX + "-*"
 
+    feature_flags = FeatureFlags(
+        success_rates=config.FEATURE_SUCCESS_RATES,  # type: ignore
+        equinix_usage=config.FEATURE_EQUINIX_USAGE,  # type: ignore
+        equinix_cost=config.FEATURE_EQUINIX_COST,  # type: ignore
+        trends=config.FEATURE_TRENDS,  # type: ignore
+        flakiness_rates=config.FEATURE_FLAKINESS_RATES,  # type: ignore
+    )
+
     querier = Querier(
         opensearch_client=client,
         jobs_index=jobs_index,
         steps_index=steps_index,
         usages_index=usages_index,
     )
+
     reporter = Reporter(querier=querier)
 
     current_report = reporter.get_report(
-        from_date=current_report_start_time, to_date=current_report_end_time
+        from_date=current_report_start_time,
+        to_date=current_report_end_time,
     )
     last_report = reporter.get_report(
-        from_date=last_report_start_time, to_date=last_report_end_time
+        from_date=last_report_start_time,
+        to_date=last_report_end_time,
     )
 
-    trend_detecter = TrendDetector(
-        current_report=current_report, last_report=last_report
-    )
-    trends = trend_detecter.detect_trends()
+    trends = None
+    if feature_flags.trends:
+        trend_detecter = TrendDetector()
+        trends = trend_detecter.detect_trends(
+            last_report=last_report, current_report=current_report
+        )
 
     web_client = WebClient(token=config.SLACK_BOT_TOKEN)
     slack_reporter = SlackReporter(
         web_client=web_client, channel_id=config.SLACK_CHANNEL_ID
     )
-    slack_reporter.send_report(report=current_report, trends=trends)
+    slack_reporter.send_report(
+        report=current_report, trends=trends, feature_flags=feature_flags
+    )
 
 
 if __name__ == "__main__":

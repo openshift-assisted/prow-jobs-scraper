@@ -181,6 +181,16 @@ objects:
                 value: "${ES_STEP_INDEX}"
               - name: ES_USAGE_INDEX
                 value: "${ES_USAGE_INDEX}"
+              - name: FEATURE_SUCCESS_RATES
+                value: "${FEATURE_SUCCESS_RATES}"
+              - name: FEATURE_EQUINIX_USAGE
+                value: "${FEATURE_EQUINIX_USAGE}"
+              - name: FEATURE_EQUINIX_COST
+                value: "${FEATURE_EQUINIX_COST}"
+              - name: FEATURE_TRENDS
+                value: "${FEATURE_TRENDS}"
+              - name: FEATURE_FLAKINESS_RATES
+                value: "${FEATURE_FLAKINESS_RATES}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -245,6 +255,16 @@ objects:
                 value: "${ES_STEP_INDEX}"
               - name: ES_USAGE_INDEX
                 value: "${ES_USAGE_INDEX}"
+              - name: FEATURE_SUCCESS_RATES
+                value: "${FEATURE_SUCCESS_RATES}"
+              - name: FEATURE_EQUINIX_USAGE
+                value: "${FEATURE_EQUINIX_USAGE}"
+              - name: FEATURE_EQUINIX_COST
+                value: "${FEATURE_EQUINIX_COST}"
+              - name: FEATURE_TRENDS
+                value: "${FEATURE_TRENDS}"
+              - name: FEATURE_FLAKINESS_RATES
+                value: "${FEATURE_FLAKINESS_RATES}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -321,3 +341,13 @@ parameters:
   value: jobs-auto-report-slack-channel-id
 - name: JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY
   value: slack-channel-id
+- name: FEATURE_SUCCESS_RATES
+  value: true
+- name: FEATURE_EQUINIX_USAGE
+  value: true
+- name: FEATURE_EQUINIX_COST
+  value: true
+- name: FEATURE_TRENDS
+  value: true
+- name: FEATURE_FLAKINESS_RATES
+  value: true
