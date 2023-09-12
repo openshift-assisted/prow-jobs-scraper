@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 from typing import Callable, Optional
@@ -366,6 +367,13 @@ class Reporter:
             ),
         )
 
+    @staticmethod
+    def log_report(report: Report):
+        logger.debug("The Report:")
+        logger.debug(
+            json.dumps(json.loads(report.json()), indent=4)
+        )  # for logging with identation
+
     def get_report(self, from_date: datetime, to_date: datetime) -> Report:
         jobs = self._querier.query_jobs(from_date=from_date, to_date=to_date)
         logger.debug("%d jobs queried from elasticsearch", len(jobs))
@@ -429,5 +437,7 @@ class Reporter:
                 jobs=periodic_subsystem_and_e2e_jobs, usages=usages
             ),
         )
+
+        self.log_report(report)
 
         return report
