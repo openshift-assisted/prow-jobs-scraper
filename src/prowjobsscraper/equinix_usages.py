@@ -9,13 +9,6 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 
-class EquinixUsagesScrapeInterval(Enum):
-    HOUR = "hour"
-    DAY = "day"
-    WEEK = "week"
-    MONTH = "month"
-
-
 class EquinixUsageIdentifier(BaseModel):
     name: str
     plan: str

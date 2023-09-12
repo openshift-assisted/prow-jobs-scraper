@@ -40,23 +40,7 @@ def main() -> None:
     )
 
     usages_scrape_end_time = datetime.now(tz=timezone.utc)
-    if (
-        config.EQUINIX_USAGES_SCRAPE_INTERVAL
-        == equinix_usages.EquinixUsagesScrapeInterval.HOUR
-    ):
-        usages_scrape_start_time = usages_scrape_end_time - relativedelta(hours=1)
-    elif (
-        config.EQUINIX_USAGES_SCRAPE_INTERVAL
-        == equinix_usages.EquinixUsagesScrapeInterval.DAY
-    ):
-        usages_scrape_start_time = usages_scrape_end_time - relativedelta(days=1)
-    elif (
-        config.EQUINIX_USAGES_SCRAPE_INTERVAL
-        == equinix_usages.EquinixUsagesScrapeInterval.WEEK
-    ):
-        usages_scrape_start_time = usages_scrape_end_time - relativedelta(weeks=1)
-    else:
-        usages_scrape_start_time = usages_scrape_end_time - relativedelta(months=1)
+    usages_scrape_start_time = usages_scrape_end_time - relativedelta(weeks=1)
 
     equinix_usages_extractor = equinix_usages.EquinixUsagesExtractor(
         project_id=config.EQUINIX_PROJECT_ID,

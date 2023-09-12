@@ -47,8 +47,6 @@ objects:
                 value: "${ES_USAGE_INDEX}"
               - name: JOB_LIST_URL
                 value: "${JOB_LIST_URL}"
-              - name: EQUINIX_USAGES_SCRAPE_INTERVAL
-                value: "${EQUINIX_USAGES_SCRAPE_INTERVAL}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -114,8 +112,6 @@ objects:
                 value: "${ES_USAGE_INDEX}"
               - name: JOB_LIST_URL
                 value: "${JOB_LIST_URL}"
-              - name: EQUINIX_USAGES_SCRAPE_INTERVAL
-                value: "${EQUINIX_USAGES_SCRAPE_INTERVAL}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -307,8 +303,6 @@ parameters:
   value: "false"
 - name: PROW_JOBS_SCRAPER_SCHEDULE
   value: "@hourly"
-- name: EQUINIX_USAGES_SCRAPE_INTERVAL
-  value: "day"
 - name: PROW_JOBS_SCRAPER_EQUINIX_SECRET_NAME
   value: prow-jobs-scraper-equinix-secret
 - name: PROW_JOBS_SCRAPER_EQUINIX_ASSISTED_PROJECT_ID_KEY
