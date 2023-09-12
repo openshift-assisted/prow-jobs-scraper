@@ -167,7 +167,7 @@ class Reporter:
     def _is_rehearsal(job: JobDetails) -> bool:
         return (
             REHEARSE in job.name
-            and job.type == JobType.PRESUBMIT
+            and job.type == JobType.PRESUBMIT.value
             and job.refs.repo == RELEASE
             and job.refs.org == OPENSHIFT
         )
