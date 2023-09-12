@@ -342,12 +342,12 @@ parameters:
 - name: JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY
   value: slack-channel-id
 - name: FEATURE_SUCCESS_RATES
-  value: true
+  value: "true"
 - name: FEATURE_EQUINIX_USAGE
-  value: true
+  value: "true"
 - name: FEATURE_EQUINIX_COST
-  value: true
+  value: "true"
 - name: FEATURE_TRENDS
-  value: true
+  value: "true"
 - name: FEATURE_FLAKINESS_RATES
-  value: true
+  value: "true"
