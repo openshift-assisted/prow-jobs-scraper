@@ -229,21 +229,6 @@ class SlackReporter:
                     file_path=file_path,
                     thread_time_stamp=thread_time_stamp,
                 )
-                labels, values = self._create_cost_by_job_type_metrics(
-                    report.equinix_cost_report.cost_by_job_type
-                )
-                filename, file_path = plotter.create_pie_chart(
-                    labels=labels,
-                    values=values,
-                    colors=PIE_CHART_COLORS,
-                    title=COST_BY_JOB_TYPE_TITLE,
-                )
-                self._upload_file(
-                    file_title=COST_BY_JOB_TYPE_TITLE,
-                    filename=filename,
-                    file_path=file_path,
-                    thread_time_stamp=thread_time_stamp,
-                )
 
     def send_report(
         self, report: Report, trends: Optional[Trends], feature_flags: FeatureFlags
