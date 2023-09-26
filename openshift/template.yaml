@@ -74,6 +74,7 @@ objects:
   metadata:
     name: prow-jobs-scraper-single-node-usages
   spec:
+    concurrencyPolicy: ${PROW_JOBS_CONCURRENCY_POLICY}
     schedule: ${PROW_JOBS_SCRAPER_SCHEDULE}
     suspend: ${{PROW_JOBS_SCRAPER_SUSPEND}}
     jobTemplate:
@@ -139,6 +140,7 @@ objects:
   metadata:
     name: jobs-auto-weekly-report
   spec:
+    concurrencyPolicy: ${JOBS_AUTO_REPORT_CONCURRENCY_POLICY}
     schedule: ${JOBS_AUTO_WEEKLY_REPORT_SCHEDULE}
     suspend: ${{JOBS_AUTO_WEEKLY_REPORT_SUSPEND}}
     jobTemplate:
@@ -213,6 +215,7 @@ objects:
   metadata:
     name: jobs-auto-monthly-report
   spec:
+    concurrencyPolicy: ${JOBS_AUTO_REPORT_CONCURRENCY_POLICY}
     schedule: ${JOBS_AUTO_MONTHLY_REPORT_SCHEDULE}
     suspend: ${{JOBS_AUTO_MONTHLY_REPORT_SUSPEND}}
     jobTemplate:
@@ -347,4 +350,6 @@ parameters:
 - name: FEATURE_FLAKINESS_RATES
   value: "true"
 - name: PROW_JOBS_CONCURRENCY_POLICY
+  value: "Forbid"
+- name: JOBS_AUTO_REPORT_CONCURRENCY_POLICY
   value: "Forbid"
