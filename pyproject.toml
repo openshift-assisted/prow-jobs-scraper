@@ -34,6 +34,7 @@ dynamic = ["version"]
 [project.scripts]
 prow-jobs-scraper = "prowjobsscraper.main:main"
 jobs-auto-report = "jobsautoreport.main:main"
+elasticsearch-cleanup = "elasticsearch_cleanup.main:main"
 
 [project.optional-dependencies]
 test-runner = [

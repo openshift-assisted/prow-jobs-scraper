@@ -1,0 +1,206 @@
+[
+{
+    "_index": "steps-2023.39",
+    "_type": "_doc",
+    "_id": "0wPl6ooBj5OOb5E7VEr2",
+    "_version": 1,
+    "_score": null,
+    "_source": {
+      "job": {
+        "build_id": "1708429161955069952",
+        "cloud_cluster_profile": "packet-assisted",
+        "cloud": "packet-edge",
+        "context": "cluster-profile-assisted",
+        "duration": 77,
+        "equinix": null,
+        "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
+        "refs": {
+          "base_ref": "master",
+          "org": "openshift",
+          "pull": null,
+          "repo": "assisted-test-infra"
+        },
+        "start_time": "2023-10-01T10:30:27+00:00",
+        "state": "success",
+        "type": "periodic",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted/1708429161955069952",
+        "variant": "equinix-cleanup"
+      },
+      "step": {
+        "details": null,
+        "duration": 0,
+        "name": "All images are built and tagged into stable",
+        "state": "success"
+      }
+    },
+    "fields": {
+      "job.start_time": [
+        "2023-10-01T10:30:27.000Z"
+      ]
+    },
+    "highlight": {
+      "job.build_id": [
+        "@opensearch-dashboards-highlighted-field@1708429161955069952@/opensearch-dashboards-highlighted-field@"
+      ],
+      "step.name": [
+        "@opensearch-dashboards-highlighted-field@All@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@images@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@are@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@built@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@and@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@tagged@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@into@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@stable@/opensearch-dashboards-highlighted-field@"
+      ]
+    },
+    "sort": [
+      1696156227000
+    ]
+  },
+  {
+    "_index": "steps-2023.39",
+    "_type": "_doc",
+    "_id": "0wPl6ooBj5OOb5E7VEr2",
+    "_version": 1,
+    "_score": null,
+    "_source": {
+      "job": {
+        "build_id": "1708429161955069952",
+        "cloud_cluster_profile": "packet-assisted",
+        "cloud": "packet-edge",
+        "context": "cluster-profile-assisted",
+        "duration": 77,
+        "equinix": null,
+        "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
+        "refs": {
+          "base_ref": "master",
+          "org": "openshift",
+          "pull": null,
+          "repo": "assisted-test-infra"
+        },
+        "start_time": "2023-10-01T10:30:27+00:00",
+        "state": "success",
+        "type": "periodic",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted/1708429161955069952",
+        "variant": "equinix-cleanup"
+      },
+      "step": {
+        "details": null,
+        "duration": 0,
+        "name": "All images are built and tagged into stable",
+        "state": "success"
+      }
+    },
+    "fields": {
+      "job.start_time": [
+        "2023-10-01T10:30:27.000Z"
+      ]
+    },
+    "highlight": {
+      "job.build_id": [
+        "@opensearch-dashboards-highlighted-field@1708429161955069952@/opensearch-dashboards-highlighted-field@"
+      ],
+      "step.name": [
+        "@opensearch-dashboards-highlighted-field@All@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@images@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@are@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@built@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@and@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@tagged@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@into@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@stable@/opensearch-dashboards-highlighted-field@"
+      ]
+    },
+    "sort": [
+      1696156227000
+    ]
+  },
+  {
+    "_index": "steps-2023.39",
+    "_type": "_doc",
+    "_id": "0wPl6ooBj5OOb5E7VEr2",
+    "_version": 1,
+    "_score": null,
+    "_source": {
+      "job": {
+        "build_id": "1708429161955069952",
+        "cloud_cluster_profile": "packet-assisted",
+        "cloud": "packet-edge",
+        "context": "cluster-profile-assisted",
+        "duration": 77,
+        "equinix": null,
+        "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
+        "refs": {
+          "base_ref": "master",
+          "org": "openshift",
+          "pull": null,
+          "repo": "assisted-test-infra"
+        },
+        "start_time": "2023-10-01T10:30:27+00:00",
+        "state": "success",
+        "type": "periodic",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted/1708429161955069952",
+        "variant": "equinix-cleanup"
+      },
+      "step": {
+        "details": null,
+        "duration": 0,
+        "name": "All images are built and tagged",
+        "state": "success"
+      }
+    },
+    "fields": {
+      "job.start_time": [
+        "2023-10-01T10:30:27.000Z"
+      ]
+    },
+    "highlight": {
+      "job.build_id": [
+        "@opensearch-dashboards-highlighted-field@1708429161955069952@/opensearch-dashboards-highlighted-field@"
+      ],
+      "step.name": [
+        "@opensearch-dashboards-highlighted-field@All@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@images@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@are@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@built@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@and@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@tagged@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@into@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@stable@/opensearch-dashboards-highlighted-field@"
+      ]
+    },
+    "sort": [
+      1696156227000
+    ]
+  },
+  {
+    "_index": "steps-2023.39",
+    "_type": "_doc",
+    "_id": "0wPl6ooBj5OOb5E7VEr2",
+    "_version": 1,
+    "_score": null,
+    "_source": {
+      "job": {
+        "build_id": "17084291619ada2r252",
+        "cloud_cluster_profile": "packet-assisted",
+        "cloud": "packet-edge",
+        "context": "cluster-profile-assisted",
+        "duration": 77,
+        "equinix": null,
+        "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
+        "refs": {
+          "base_ref": "master",
+          "org": "openshift",
+          "pull": null,
+          "repo": "assisted-test-infra"
+        },
+        "start_time": "2023-10-01T10:30:27+00:00",
+        "state": "success",
+        "type": "periodic",
+        "url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted/1708429161955069952",
+        "variant": "equinix-cleanup"
+      },
+      "step": {
+        "details": null,
+        "duration": 0,
+        "name": "All images are built and tagged into stable",
+        "state": "success"
+      }
+    },
+    "fields": {
+      "job.start_time": [
+        "2023-10-01T10:30:27.000Z"
+      ]
+    },
+    "highlight": {
+      "job.build_id": [
+        "@opensearch-dashboards-highlighted-field@1708429161955069952@/opensearch-dashboards-highlighted-field@"
+      ],
+      "step.name": [
+        "@opensearch-dashboards-highlighted-field@All@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@images@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@are@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@built@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@and@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@tagged@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@into@/opensearch-dashboards-highlighted-field@ @opensearch-dashboards-highlighted-field@stable@/opensearch-dashboards-highlighted-field@"
+      ]
+    },
+    "sort": [
+      1696156227000
+    ]
+  }
+]
