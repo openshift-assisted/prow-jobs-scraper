@@ -9,6 +9,7 @@ from prowjobsscraper.equinix_usages import (
     EquinixUsageEvent,
     EquinixUsageIdentifier,
 )
+from prowjobsscraper.utils import generate_hash_from_strings
 
 _FREEZE_TIME = "2023-01-01 12:00:00"
 _EXPECTED_CURRENT_INDEX_SUFFIX = "2022.52"
@@ -208,9 +209,18 @@ def test_index_job_step_when_successful(bulk):
     bulk.assert_called_once()
     assert bulk.call_args.args[0] == es_client
 
-    expected_job_step = event.StepEvent.create_from_job_step(job_step).dict()
+    step_event = event.StepEvent.create_from_job_step(job_step)
+    expected_job_step = dict()
     expected_job_step["_index"] = expected_step_index
+    expected_job_step["_op_type"] = "update"
+    expected_job_step["_id"] = generate_hash_from_strings(
+        step_event.job.build_id, step_event.step.name
+    )
+    expected_job_step["doc_as_upsert"] = True
+    expected_job_step["doc"] = step_event.dict()
+
     indexed_job_step = list(bulk.call_args.args[1])
+
     assert indexed_job_step[0] == expected_job_step
 
     es_client.indices.refresh.assert_called_once_with(index=expected_step_index)
@@ -250,8 +260,14 @@ def test_index_equinix_usages_when_successful(bulk):
     bulk.assert_called_once()
     assert bulk.call_args.args[0] == es_client
 
-    expected_usage = EquinixUsageEvent.create_from_equinix_usage(parsed_usage).dict()
+    equinix_usage_event = EquinixUsageEvent.create_from_equinix_usage(parsed_usage)
+    expected_usage = dict()
     expected_usage["_index"] = expected_usages_index
+    expected_usage["_op_type"] = "update"
+    expected_usage["_id"] = equinix_usage_event.job.build_id
+    expected_usage["doc_as_upsert"] = True
+    expected_usage["doc"] = equinix_usage_event.dict()
+
     indexed_usage = list(bulk.call_args.args[1])
 
     assert indexed_usage[0] == expected_usage
@@ -283,9 +299,16 @@ def test_index_prow_job_when_successful(bulk):
     bulk.assert_called_once()
     assert bulk.call_args.args[0] == es_client
 
-    expected_prow_job = event.JobEvent.create_from_prow_job(prow_job).dict()
+    job_event = event.JobEvent.create_from_prow_job(prow_job)
+    expected_prow_job = dict()
     expected_prow_job["_index"] = expected_job_index
+    expected_prow_job["_op_type"] = "update"
+    expected_prow_job["_id"] = job_event.job.build_id
+    expected_prow_job["doc_as_upsert"] = True
+    expected_prow_job["doc"] = job_event.dict()
+
     indexed_prow_job = list(bulk.call_args.args[1])
+
     assert indexed_prow_job[0] == expected_prow_job
 
     es_client.indices.refresh.assert_called_once_with(index=expected_job_index)

@@ -13,6 +13,7 @@ from prowjobsscraper.equinix_usages import (
 )
 from prowjobsscraper.prowjob import ProwJob
 from prowjobsscraper.step import JobStep
+from prowjobsscraper.utils import generate_hash_from_strings
 
 
 class JobRefs(BaseModel):
@@ -137,16 +138,25 @@ class EventStoreElastic:
         self._usages_index = _EsIndex(client, usage_index_basename)
 
     def index_job_steps(self, steps: list[JobStep]):
-        step_events = (StepEvent.create_from_job_step(s).dict() for s in steps)
+        step_events = (
+            (
+                StepEvent.create_from_job_step(s).dict(),
+                generate_hash_from_strings(s.job.status.build_id, s.name),
+            )
+            for s in steps
+        )
         self._steps_index.index(step_events)
 
     def index_prow_jobs(self, jobs: list[ProwJob]):
-        job_events = (JobEvent.create_from_prow_job(j).dict() for j in jobs)
+        job_events = (
+            (JobEvent.create_from_prow_job(j).dict(), j.status.build_id) for j in jobs
+        )
         self._jobs_index.index(job_events)
 
     def index_equinix_usages(self, usages: list[EquinixUsage]):
         equinix_usages = (
-            EquinixUsageEvent.create_from_equinix_usage(u).dict() for u in usages
+            (EquinixUsageEvent.create_from_equinix_usage(u).dict(), u.job_build_id)
+            for u in usages
         )
         self._usages_index.index(equinix_usages)
 
@@ -189,15 +199,18 @@ class _EsIndex:
         return f"{prefix}-{iso_calendar.year}.{iso_calendar.week:02d}"
 
     def _gen_documents(
-        self, data: Iterator[dict[str, Any]]
+        self, data: Iterator[tuple[dict[str, Any], str]]
     ) -> Iterator[dict[str, Any]]:
-        for d in data:
+        for d, id in data:
             yield {
                 "_index": self._index_name,
-                **d,
+                "_op_type": "update",
+                "_id": id,
+                "doc_as_upsert": True,
+                "doc": d,
             }
 
-    def index(self, data: Iterator[dict[str, Any]]) -> None:
+    def index(self, data: Iterator[tuple[dict[str, Any], str]]) -> None:
         helpers.bulk(self._client, self._gen_documents(data))
 
         self._client.indices.refresh(index=self._index_name)
