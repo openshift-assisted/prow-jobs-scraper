@@ -18,7 +18,7 @@ dependencies = [
     "requests==2.31.0",
     "google-cloud-storage==2.11.0",
     "junitparser==3.1.0",
-    "pydantic==1.10.12",
+    "pydantic==1.10.13",
     "opensearch-py==2.3.1",
     "slack_sdk==3.22.0",
     "plotly==5.17.0",
@@ -45,7 +45,7 @@ unit-tests = [
     "pytest-httpserver==1.0.8",
 ]
 coverage = [
-    "coverage[toml]==7.3.1",
+    "coverage[toml]==7.3.2",
 ]
 lint = [
     "black==23.9.1",
