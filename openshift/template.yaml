@@ -210,6 +210,7 @@ objects:
                   secretKeyRef:
                     key: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY}
                     name: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_NAME}
+
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
@@ -286,6 +287,58 @@ objects:
                     key: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_KEY}
                     name: ${JOBS_AUTO_REPORT_SLACK_CHANNEL_ID_NAME}
 
+- apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    name: elasticsearch-cleanup
+  spec:
+    concurrencyPolicy: ${ELASTICSEARCH_CLEANUP_CONCURRENCY_POLICY}
+    schedule: ${ELASTICSEARCH_CLEANUP_SCHEDULE}
+    suspend: ${{ELASTICSEARCH_CLEANUP_SUSPEND}}
+    jobTemplate:
+      spec:
+        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        backoffLimit: 3
+        template:
+          spec:
+            restartPolicy: OnFailure
+            serviceAccountName: assisted-service
+            containers:
+            - name: elasticsearch-cleanup
+              image: ${IMAGE_NAME}:${IMAGE_TAG}
+              imagePullPolicy: ${IMAGE_PULL_POLICY}
+              command: 
+              - elasticsearch-cleanup
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 2000Mi
+                requests:
+                  cpu: 300m
+                  memory: 400Mi
+              env:
+              - name: LOG_LEVEL
+                value: "${ELASTICSEARCH_CLEANUP_LOG_LEVEL}"
+              - name: ES_INDEX_FIELDS_PAIRS
+                value: "${ELASTICSEARCH_CLEANUP_INDEX_FIELDS_PAIRS}"
+              - name: DRY_RUN
+                value: "${ELASTICSEARCH_CLEANUP_DRY_RUN}"
+              - name: ES_URL
+                valueFrom:
+                  secretKeyRef:
+                    key: endpoint
+                    name: assisted-installer-elasticsearch
+              - name: ES_USER
+                valueFrom:
+                  secretKeyRef:
+                    key: master_user_name
+                    name: elastic-master-credentials
+              - name: ES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    key: master_user_password
+                    name: elastic-master-credentials
+
 parameters:
 - name: IMAGE_NAME
   value: "quay.io/app-sre/prow-jobs-scraper"
@@ -353,3 +406,15 @@ parameters:
   value: "Forbid"
 - name: JOBS_AUTO_REPORT_CONCURRENCY_POLICY
   value: "Forbid"
+- name: ELASTICSEARCH_CLEANUP_LOG_LEVEL
+  value: "INFO"
+- name: ELASTICSEARCH_CLEANUP_SUSPEND
+  value: "false"
+- name: ELASTICSEARCH_CLEANUP_SCHEDULE
+  value: "@daily"
+- name: ELASTICSEARCH_CLEANUP_CONCURRENCY_POLICY
+  value: "Forbid"
+- name: ELASTICSEARCH_CLEANUP_INDEX_FIELDS_PAIRS
+  required: true
+- name: ELASTICSEARCH_CLEANUP_DRY_RUN
+  value: "false"
