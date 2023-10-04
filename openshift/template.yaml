@@ -13,7 +13,7 @@ objects:
     suspend: ${{PROW_JOBS_SCRAPER_SUSPEND}}
     jobTemplate:
       spec:
-        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        ttlSecondsAfterFinished: ${{PROW_JOBS_SCRAPER_TTL}}
         backoffLimit: 3
         template:
           spec:
@@ -27,11 +27,11 @@ objects:
               - prow-jobs-scraper
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 2000Mi
+                  cpu: ${PROW_JOBS_SCRAPER_CPU_LIMIT}
+                  memory: ${PROW_JOBS_SCRAPER_MEMORY_LIMIT}
                 requests:
-                  cpu: 300m
-                  memory: 400Mi
+                  cpu: ${PROW_JOBS_SCRAPER_CPU_REQUEST}
+                  memory: ${PROW_JOBS_SCRAPER_MEMORY_REQUEST}
               env:
               - name: LOG_LEVEL
                 value: "${PROW_JOBS_SCRAPER_LOG_LEVEL}"
@@ -79,7 +79,7 @@ objects:
     suspend: ${{PROW_JOBS_SCRAPER_SUSPEND}}
     jobTemplate:
       spec:
-        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        ttlSecondsAfterFinished: ${{PROW_JOBS_SCRAPER_TTL}}
         backoffLimit: 3
         template:
           spec:
@@ -93,11 +93,11 @@ objects:
               - prow-jobs-scraper
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 2000Mi
+                  cpu: ${PROW_JOBS_SCRAPER_CPU_LIMIT}
+                  memory: ${PROW_JOBS_SCRAPER_MEMORY_LIMIT}
                 requests:
-                  cpu: 300m
-                  memory: 400Mi
+                  cpu: ${PROW_JOBS_SCRAPER_CPU_REQUEST}
+                  memory: ${PROW_JOBS_SCRAPER_MEMORY_REQUEST}
               env:
               - name: LOG_LEVEL
                 value: "${PROW_JOBS_SCRAPER_LOG_LEVEL}"
@@ -145,7 +145,7 @@ objects:
     suspend: ${{JOBS_AUTO_WEEKLY_REPORT_SUSPEND}}
     jobTemplate:
       spec:
-        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        ttlSecondsAfterFinished: ${{JOBS_AUTO_REPORT_TTL}}
         backoffLimit: 4
         template:
           spec:
@@ -159,11 +159,11 @@ objects:
               - jobs-auto-report
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 2000Mi
+                  cpu: ${JOBS_AUTO_REPORT_CPU_LIMIT}
+                  memory: ${JOBS_AUTO_REPORT_MEMORY_LIMIT}
                 requests:
-                  cpu: 300m
-                  memory: 400Mi
+                  cpu: ${JOBS_AUTO_REPORT_CPU_REQUEST}
+                  memory: ${JOBS_AUTO_REPORT_MEMORY_REQUEST}
               env:
               - name: REPORT_INTERVAL
                 value: ${JOBS_AUTO_WEEKLY_REPORT_INTERVAL}
@@ -221,7 +221,7 @@ objects:
     suspend: ${{JOBS_AUTO_MONTHLY_REPORT_SUSPEND}}
     jobTemplate:
       spec:
-        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        ttlSecondsAfterFinished: ${{JOBS_AUTO_REPORT_TTL}}
         backoffLimit: 4
         template:
           spec:
@@ -235,11 +235,11 @@ objects:
               - jobs-auto-report
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 2000Mi
+                  cpu: ${JOBS_AUTO_REPORT_CPU_LIMIT}
+                  memory: ${JOBS_AUTO_REPORT_MEMORY_LIMIT}
                 requests:
-                  cpu: 300m
-                  memory: 400Mi
+                  cpu: ${JOBS_AUTO_REPORT_CPU_REQUEST}
+                  memory: ${JOBS_AUTO_REPORT_MEMORY_REQUEST}
               env:
               - name: REPORT_INTERVAL
                 value: ${JOBS_AUTO_MONTHLY_REPORT_INTERVAL}
@@ -297,7 +297,7 @@ objects:
     suspend: ${{ELASTICSEARCH_CLEANUP_SUSPEND}}
     jobTemplate:
       spec:
-        ttlSecondsAfterFinished: 10800 # keep last 3 runs (3 * 1h)
+        ttlSecondsAfterFinished: ${{ELASTICSEARCH_CLEANUP_TTL}}
         backoffLimit: 3
         template:
           spec:
@@ -311,11 +311,11 @@ objects:
               - elasticsearch-cleanup
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 2000Mi
+                  cpu: ${ELASTICSEARCH_CLEANUP_CPU_LIMIT}
+                  memory: ${ELASTICSEARCH_CLEANUP_MEMORY_LIMIT}
                 requests:
-                  cpu: 300m
-                  memory: 400Mi
+                  cpu: ${ELASTICSEARCH_CLEANUP_CPU_REQUEST}
+                  memory: ${ELASTICSEARCH_CLEANUP_MEMORY_REQUEST}
               env:
               - name: LOG_LEVEL
                 value: "${ELASTICSEARCH_CLEANUP_LOG_LEVEL}"
@@ -418,3 +418,34 @@ parameters:
   required: true
 - name: ELASTICSEARCH_CLEANUP_DRY_RUN
   value: "false"
+# keep last 3 runs (3 * 1h)
+- name: PROW_JOBS_SCRAPER_TTL
+  value: "10800"
+- name: JOBS_AUTO_REPORT_TTL
+  value: "10800"
+- name: ELASTICSEARCH_CLEANUP_TTL
+  value: "10800"
+- name: PROW_JOBS_SCRAPER_CPU_LIMIT
+  value: "500m"
+- name: PROW_JOBS_SCRAPER_MEMORY_LIMIT
+  value: "2000Mi"
+- name: PROW_JOBS_SCRAPER_CPU_REQUEST
+  value: "300m"
+- name: PROW_JOBS_SCRAPER_MEMORY_REQUEST
+  value: "400Mi"
+- name: JOBS_AUTO_REPORT_CPU_LIMIT
+  value: "500m"
+- name: JOBS_AUTO_REPORT_MEMORY_LIMIT
+  value: "2000Mi"
+- name: JOBS_AUTO_REPORT_CPU_REQUEST
+  value: "300m"
+- name: JOBS_AUTO_REPORT_MEMORY_REQUEST
+  value: "400Mi"
+- name: ELASTICSEARCH_CLEANUP_CPU_LIMIT
+  value: "500m"
+- name: ELASTICSEARCH_CLEANUP_MEMORY_LIMIT
+  value: "2000Mi"
+- name: ELASTICSEARCH_CLEANUP_CPU_REQUEST
+  value: "300m"
+- name: ELASTICSEARCH_CLEANUP_MEMORY_REQUEST
+  value: "400Mi"
