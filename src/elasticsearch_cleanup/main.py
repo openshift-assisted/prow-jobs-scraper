@@ -28,7 +28,7 @@ logger = get_logger(config.LOG_LEVEL)
 
 def remove_documents(
     opensearch_client: OpenSearch,
-    actions: list[dict[str, str]],
+    actions: Iterator[dict[str, str]],
     index: str,
 ):
     """Removes specified documents from the OpenSearch index.
@@ -53,18 +53,17 @@ def remove_documents(
 def get_bulk_actions(
     documents: Iterator[dict[str, Any]],
     comparison_fields: list[str],
-) -> list[dict[str, str]]:
-    """Generates bulk actions for documents based on a comparison field.
+) -> Iterator[dict[str, str]]:
+    """Generates bulk actions for documents based on a comparison fields.
 
     Args:
         documents: Iterable documents to be compared.
         comparison_fields: List of fields for comparison to identify unique documents.
 
-    Returns:
-        List of bulk actions for the documents.
+    Yields:
+        Bulk action for the documents.
     """
     seen_values = set()
-    bulk_actions = []
 
     for doc in documents:
         unique_fields_value = tuple(
@@ -76,17 +75,14 @@ def get_bulk_actions(
         )
 
         if unique_fields_value in seen_values:
-            bulk_actions.append(
-                {
-                    "_op_type": "delete",
-                    "_index": doc["_index"],
-                    "_id": doc["_id"],
-                }
-            )
+            yield {
+                "_op_type": "delete",
+                "_index": doc["_index"],
+                "_id": doc["_id"],
+            }
+
         else:
             seen_values.add(unique_fields_value)
-
-    return bulk_actions
 
 
 def remove_duplicates_from_index(
@@ -120,18 +116,10 @@ def remove_duplicates_from_index(
         ignore_unavailable=True,
     )
 
-    documents, log_documents = tee(documents)
-    logger.info(f"Found '{len(list(log_documents))}' documents inside '{index}'")
-
     bulk_actions = get_bulk_actions(
         documents=documents,
         comparison_fields=comparison_fields,
     )
-    logger.info(f"Found '{len(bulk_actions)}' duplicated documents")
-
-    if len(bulk_actions) == 0:
-        logger.info(f"No duplicates found in '{index}'")
-        return
 
     if dry_run_mode:
         logger.info(f"Bulk Actions in '{index}':")

@@ -53,7 +53,7 @@ def test_get_bulk_actions_with_compatibale_arguments_one_field_should_be_success
 ):
     bulk_actions = main.get_bulk_actions(job_documents, ["job.build_id"])
 
-    assert len(bulk_actions) == 2
+    assert len(list(bulk_actions)) == 2
 
 
 def test_get_bulk_actions_with_compatibale_arguments_two_fields_should_be_successfull(
@@ -61,17 +61,18 @@ def test_get_bulk_actions_with_compatibale_arguments_two_fields_should_be_succes
 ):
     bulk_actions = main.get_bulk_actions(step_documents, ["job.build_id", "step.name"])
 
-    assert len(bulk_actions) == 1
+    assert len(list(bulk_actions)) == 1
 
 
 def test_get_bulk_actions_with_incompatibale_arguments_should_be_successfull(
     job_documents,
 ):
     with pytest.raises(Exception):
-        main.get_bulk_actions(
+        bulk_actions = main.get_bulk_actions(
             job_documents,
             ["job.build_id.missing_field"],
         )
+        next(bulk_actions)
 
 
 def test_full_flow_should_be_successfull(
