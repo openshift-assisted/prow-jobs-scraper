@@ -264,7 +264,9 @@ def test_index_equinix_usages_when_successful(bulk):
     expected_usage = dict()
     expected_usage["_index"] = expected_usages_index
     expected_usage["_op_type"] = "update"
-    expected_usage["_id"] = equinix_usage_event.job.build_id
+    expected_usage["_id"] = generate_hash_from_strings(
+        equinix_usage_event.job.build_id, equinix_usage_event.usage.plan
+    )
     expected_usage["doc_as_upsert"] = True
     expected_usage["doc"] = equinix_usage_event.dict()
 

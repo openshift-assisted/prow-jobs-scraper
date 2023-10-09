@@ -155,7 +155,10 @@ class EventStoreElastic:
 
     def index_equinix_usages(self, usages: list[EquinixUsage]):
         equinix_usages = (
-            (EquinixUsageEvent.create_from_equinix_usage(u).dict(), u.job_build_id)
+            (
+                EquinixUsageEvent.create_from_equinix_usage(u).dict(),
+                generate_hash_from_strings(u.job_build_id, u.plan),
+            )
             for u in usages
         )
         self._usages_index.index(equinix_usages)
