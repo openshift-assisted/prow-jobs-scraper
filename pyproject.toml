@@ -50,9 +50,9 @@ coverage = [
     "coverage[toml]==7.3.2",
 ]
 lint = [
-    "black==23.9.1",
+    "black==23.10.1",
     "isort==5.12.0",
-    "mypy==1.6.0",
+    "mypy==1.6.1",
 ]
 
 [tool.tox]
