@@ -16,7 +16,7 @@ license = { file = "LICENSE" }
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "requests==2.31.0",
-    "google-cloud-storage==2.12.0",
+    "google-cloud-storage==2.13.0",
     "junitparser==3.1.0",
     "pydantic==1.10.13",
     "opensearch-py==2.3.2",
