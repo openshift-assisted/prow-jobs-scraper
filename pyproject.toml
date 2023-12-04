@@ -20,7 +20,7 @@ dependencies = [
     "junitparser==3.1.0",
     "pydantic==1.10.13",
     "opensearch-py==2.4.2",
-    "slack_sdk==3.26.0",
+    "slack_sdk==3.26.1",
     "plotly==5.18.0",
     "kaleido==0.2.1",
     "python-dateutil==2.8.2",
@@ -38,10 +38,10 @@ elasticsearch-cleanup = "elasticsearch_cleanup.main:main"
 
 [project.optional-dependencies]
 test-runner = [
-    "tox==4.11.3",
+    "tox==4.11.4",
 ]
 unit-tests = [
-    "freezegun==1.2.2",
+    "freezegun==1.3.1",
     "pytest==7.4.3",
     "pytest-cov==4.1.0",
     "pytest-httpserver==1.0.8",
