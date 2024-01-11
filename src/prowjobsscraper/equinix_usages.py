@@ -128,12 +128,15 @@ class EquinixUsagesExtractor:
         usages_should_be_indexed = []
         for usage in usages:
             if usage.is_bandwidth_usage():
-                cls._change_bandwidth_usage_time_interval(
-                    non_bandwidth_usage=cls._find_non_bandwidth_usage(
+                if (
+                    matching_non_bandwidth_usage := cls._find_non_bandwidth_usage(
                         usage_name=usage.name, usages=usages
-                    ),
-                    bandwidth_usage=usage,
-                )
+                    )
+                ) is not None:
+                    cls._change_bandwidth_usage_time_interval(
+                        non_bandwidth_usage=matching_non_bandwidth_usage,
+                        bandwidth_usage=usage,
+                    )
 
             if cls._is_usage_in_interval(usage=usage):
                 usages_should_be_indexed.append(usage)
@@ -143,16 +146,15 @@ class EquinixUsagesExtractor:
     @classmethod
     def _change_bandwidth_usage_time_interval(
         cls, non_bandwidth_usage: EquinixUsage, bandwidth_usage: EquinixUsage
-    ) -> EquinixUsage:
+    ):
         """Modifies the time of the bandwidth usage to match that of the non-bandwidth usage."""
         bandwidth_usage.start_date = non_bandwidth_usage.start_date
         bandwidth_usage.end_date = non_bandwidth_usage.end_date
-        return bandwidth_usage
 
     @staticmethod
     def _find_non_bandwidth_usage(
         usage_name: str, usages: list[EquinixUsage]
-    ) -> EquinixUsage:
+    ) -> Optional[EquinixUsage]:
         """Locates the non-bandwidth usage identified by the name usage_name.
         A usage is classified as bandwidth usage if its plan includes the term "Bandwidth".
         Presently, we recognize two types of bandwidth usages:
@@ -161,8 +163,14 @@ class EquinixUsagesExtractor:
         If any such usage exists, there should be a corresponding
         non-bandwidth usage associated with it.
         """
-        return next(
-            usage
-            for usage in usages
-            if usage.name == usage_name and not usage.is_bandwidth_usage()
-        )
+        try:
+            return next(
+                usage
+                for usage in usages
+                if usage.name == usage_name and not usage.is_bandwidth_usage()
+            )
+        except StopIteration as e:
+            logger.debug(
+                f"Bandwidth usage {usage_name} doesn't have a matching non-bandwidth usage"
+            )
+            return None
