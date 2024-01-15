@@ -18,8 +18,9 @@ class EquinixMetadataExtractor:
         str
     ] = "{}/artifacts/{}/baremetalds-packet-gather-metadata/artifacts/equinix-metadata.json"
 
-    def __init__(self, client: storage.Client):
+    def __init__(self, client: storage.Client, gcs_bucket_name: str):
         self._client = client
+        self._gcs_bucket_name = gcs_bucket_name
 
     def hydrate(self, jobs: ProwJobs) -> None:
         for job in jobs.items:
@@ -32,15 +33,13 @@ class EquinixMetadataExtractor:
         ):
             return
 
-        bucket, base_path = utils.get_gcs_bucket_and_base_path_from_job_url(
-            job.status.url
-        )
+        base_path = utils.get_gcs_base_path_from_job_url(job.status.url)
 
         raw_metadata = None
         metadata_path = self._METADATA_PATH_TEMPLATE.format(base_path, job.context)
         try:
             raw_metadata = utils.download_from_gcs_as_string(
-                self._client, bucket, metadata_path
+                self._client, self._gcs_bucket_name, metadata_path
             )
             logger.debug("Found equinix metadata: %s", metadata_path)
 

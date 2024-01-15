@@ -10,3 +10,4 @@ JOB_LIST_URL = os.environ["JOB_LIST_URL"]
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 EQUINIX_PROJECT_ID = os.environ["EQUINIX_PROJECT_ID"]
 EQUINIX_PROJECT_TOKEN = os.environ["EQUINIX_PROJECT_TOKEN"]
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "test-platform-results")

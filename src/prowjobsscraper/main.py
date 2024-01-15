@@ -34,9 +34,11 @@ def main() -> None:
     )
 
     gcloud_client = storage.Client.create_anonymous_client()
-    step_extractor = step.StepExtractor(client=gcloud_client)
+    step_extractor = step.StepExtractor(
+        client=gcloud_client, gcs_bucket_name=config.GCS_BUCKET_NAME
+    )
     equinix_metadate_extractor = equinix_metadata.EquinixMetadataExtractor(
-        client=gcloud_client
+        client=gcloud_client, gcs_bucket_name=config.GCS_BUCKET_NAME
     )
 
     usages_scrape_end_time = datetime.now(tz=timezone.utc)

@@ -55,8 +55,9 @@ class StepExtractor:
     StepExtractor allows to parse ProwJobs into JobSteps.
     """
 
-    def __init__(self, client: storage.Client):
+    def __init__(self, client: storage.Client, gcs_bucket_name: str):
         self._client = client
+        self._gcs_bucket_name = gcs_bucket_name
 
     def parse_prow_jobs(self, jobs: ProwJobs) -> list[JobStep]:
         """
@@ -69,9 +70,9 @@ class StepExtractor:
         return steps
 
     def _get_bucket_and_path_to_junit(self, url: HttpUrl) -> tuple[str, str]:
-        bucket_name, base_path = utils.get_gcs_bucket_and_base_path_from_job_url(url)
+        base_path = utils.get_gcs_base_path_from_job_url(url)
         junit_path = "/".join([base_path, "artifacts", "junit_operator.xml"])
-        return bucket_name, junit_path
+        return self._gcs_bucket_name, junit_path
 
     def _download_junit(self, job: ProwJob) -> str:
         if job.status.url is None:

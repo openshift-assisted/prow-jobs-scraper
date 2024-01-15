@@ -23,7 +23,7 @@ objects:
             - name: prow-jobs-scraper
               image: ${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: ${IMAGE_PULL_POLICY}
-              command: 
+              command:
               - prow-jobs-scraper
               resources:
                 limits:
@@ -48,6 +48,8 @@ objects:
                 value: "${ES_USAGE_INDEX}"
               - name: JOB_LIST_URL
                 value: "${JOB_LIST_URL}"
+              - name: GCS_BUCKET_NAME
+                value: "${GCS_BUCKET_NAME}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -89,7 +91,7 @@ objects:
             - name: prow-jobs-scraper
               image: ${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: ${IMAGE_PULL_POLICY}
-              command: 
+              command:
               - prow-jobs-scraper
               resources:
                 limits:
@@ -114,6 +116,8 @@ objects:
                 value: "${ES_USAGE_INDEX}"
               - name: JOB_LIST_URL
                 value: "${JOB_LIST_URL}"
+              - name: GCS_BUCKET_NAME
+                value: "${GCS_BUCKET_NAME}"
               - name: ES_USER
                 valueFrom:
                   secretKeyRef:
@@ -307,7 +311,7 @@ objects:
             - name: elasticsearch-cleanup
               image: ${IMAGE_NAME}:${IMAGE_TAG}
               imagePullPolicy: ${IMAGE_PULL_POLICY}
-              command: 
+              command:
               - elasticsearch-cleanup
               resources:
                 limits:
@@ -433,6 +437,8 @@ parameters:
   value: "300m"
 - name: PROW_JOBS_SCRAPER_MEMORY_REQUEST
   value: "400Mi"
+- name: GCS_BUCKET_NAME
+  value: test-platform-results
 - name: JOBS_AUTO_REPORT_CPU_LIMIT
   value: "500m"
 - name: JOBS_AUTO_REPORT_MEMORY_LIMIT
