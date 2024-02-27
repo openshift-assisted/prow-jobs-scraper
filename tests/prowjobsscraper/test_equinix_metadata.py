@@ -78,9 +78,9 @@ def test_hydrate_equinix_should_skip_when_non_equinix_job():
     jobs = ProwJobs.create_from_string(
         pkg_resources.resource_string(__name__, f"equinix_assets/prowjobs.json")
     )
-    jobs.items[
-        0
-    ].metadata.labels.cloudClusterProfile = "not-equinix-cloud-cluster-profile"
+    jobs.items[0].metadata.labels.cloudClusterProfile = (
+        "not-equinix-cloud-cluster-profile"
+    )
 
     storage_client = MagicMock()
     equinix = EquinixMetadataExtractor(storage_client, "origin-ci-test")

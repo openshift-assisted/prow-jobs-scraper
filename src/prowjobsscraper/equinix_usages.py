@@ -72,9 +72,9 @@ class EquinixUsagesExtractor:
     """
 
     _EQUINIX_ENDPOINT_HEADER: Final[str] = "X-Auth-Token"
-    _EQUINIX_METAL_ENDPOINT: Final[
-        str
-    ] = "https://api.equinix.com/metal/v1/projects/{}/usages?created[after]={}&created[before]={}"
+    _EQUINIX_METAL_ENDPOINT: Final[str] = (
+        "https://api.equinix.com/metal/v1/projects/{}/usages?created[after]={}&created[before]={}"
+    )
     _USAGES_TIME_FORMAT: Final[str] = "%Y-%m-%dT%H:%M:%SZ"
 
     def __init__(

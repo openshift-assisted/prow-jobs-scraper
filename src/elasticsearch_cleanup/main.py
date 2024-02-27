@@ -10,6 +10,7 @@ This scripts assumes:
 1. fields name doesn't contain any of ';', ':', ',', '.'.
 2. '_source' field is Elasticsearch is enabled.
 """
+
 import json
 from itertools import tee
 from typing import Any, Iterator
