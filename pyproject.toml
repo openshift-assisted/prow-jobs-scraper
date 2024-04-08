@@ -18,7 +18,7 @@ dependencies = [
     "requests==2.31.0",
     "google-cloud-storage==2.16.0",
     "junitparser==3.1.2",
-    "pydantic==1.10.14",
+    "pydantic==1.10.15",
     "opensearch-py==2.5.0",
     "slack_sdk==3.27.1",
     "plotly==5.20.0",
