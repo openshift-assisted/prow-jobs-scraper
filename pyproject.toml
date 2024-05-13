@@ -41,7 +41,7 @@ test-runner = [
     "tox==4.15.0",
 ]
 unit-tests = [
-    "freezegun==1.5.0",
+    "freezegun==1.5.1",
     "pytest==8.2.0",
     "pytest-cov==5.0.0",
     "pytest-httpserver==1.0.10",
