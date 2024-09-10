@@ -20,4 +20,4 @@ COPY LICENSE /licenses/
 
 COPY --chown=1001:0 . .
 
-RUN pip install --upgrade pip && make install
+RUN pip install --upgrade pip setuptools>=74.1.2 && make install
