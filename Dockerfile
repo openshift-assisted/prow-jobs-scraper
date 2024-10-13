@@ -16,8 +16,11 @@ LABEL vendor "Red Hat, Inc."
 LABEL maintainer "Red Hat"
 
 # License
+USER 0
+RUN mkdir /licenses/ && chown 1001:0 /licenses/
+USER 1001
 COPY LICENSE /licenses/
 
 COPY --chown=1001:0 . .
 
-RUN pip install --upgrade pip setuptools>=74.1.2 && make install
+RUN pip install --upgrade pip setuptools>=74.1.2 pip-licenses && make install && pip-licenses -l -f json --output-file /licenses/licenses.json
