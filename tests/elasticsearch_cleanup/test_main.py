@@ -16,6 +16,7 @@ def mock_config():
         config.ES_PASSWORD = ""
         config.ES_INDEX_FIELDS_PAIRS = "jobs-*: job.build_id"
         config.DRY_RUN = "false"
+        config.ES_INDEX_LATEST = "false"
 
         yield config
 
@@ -83,6 +84,7 @@ def test_full_flow_should_be_successfull(
     mock_opensearch_helpers.scan.assert_called_once()
     mock_opensearch_helpers.bulk.assert_called_once()
     mock_opensearch_client.indices.refresh.assert_called_once()
+    mock_opensearch_client.cat.indices.assert_not_called()
 
 
 def test_dry_run_flow_should_be_successfull(
@@ -95,3 +97,22 @@ def test_dry_run_flow_should_be_successfull(
     mock_opensearch_helpers.scan.assert_called_once()
     mock_opensearch_helpers.bulk.assert_not_called()
     mock_opensearch_client.indices.refresh.assert_not_called()
+    mock_opensearch_client.cat.indices.assert_not_called()
+
+
+def test_latest_index_flow_should_be_successfull(
+    mock_opensearch_helpers, mock_opensearch_client, mock_config
+):
+    mock_config.ES_INDEX_LATEST = "true"
+    mock_opensearch_client.cat.indices.return_value = [
+        {"index": "jobs-2023.37", "docs.count": 1},
+        {"index": "jobs-2023.39", "docs.count": 1},
+        {"index": "jobs-2023.38", "docs.count": 1},
+    ]
+
+    main.main()
+
+    mock_opensearch_helpers.scan.assert_called_once()
+    mock_opensearch_helpers.bulk.assert_called_once()
+    mock_opensearch_client.indices.refresh.assert_called_once()
+    mock_opensearch_client.cat.indices.assert_called_once()

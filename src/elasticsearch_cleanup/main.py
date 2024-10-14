@@ -12,13 +12,13 @@ This scripts assumes:
 """
 
 import json
-from itertools import tee
 from typing import Any, Iterator
 
 from opensearchpy import OpenSearch, helpers
 
 from elasticsearch_cleanup import config, consts
 from elasticsearch_cleanup.logger import get_logger
+from elasticsearch_cleanup.models import IndexFieldSelector
 from elasticsearch_cleanup.utils import (
     get_value_from_dict,
     parse_index_and_fields_pairs,
@@ -136,6 +136,31 @@ def remove_duplicates_from_index(
     )
 
 
+def get_latest_index(opensearch_client: OpenSearch, index_pattern: str) -> str:
+    """Retrieves the latest non-empty OpenSearch index for a given index pattern
+
+    Args:
+        opensearch_client: The client to communicate with OpenSearch.
+        index_pattern: The name of the OpenSearch index pattern to take the latest from.
+
+    Returns:
+        The latest non-empty OpenSearch index matching the given pattern.
+    """
+    indices = opensearch_client.cat.indices(
+        index=index_pattern, format="json", h="index,docs.count"
+    )
+    non_empty_indices = [index for index in indices if int(index["docs.count"]) > 0]
+    sorted_non_empty_indices = sorted(
+        non_empty_indices, reverse=True, key=lambda map: map["index"]
+    )
+    if len(sorted_non_empty_indices) == 0:
+        raise ValueError(
+            f"ES_INDEX_LATEST is set to 'true' but {index_pattern} does not match any index"
+        )
+
+    return sorted_non_empty_indices[0]["index"]
+
+
 def main() -> None:
     if (
         config.ES_INDEX_FIELDS_PAIRS is None
@@ -155,6 +180,17 @@ def main() -> None:
     index_field_selectors = parse_index_and_fields_pairs(
         pairs=config.ES_INDEX_FIELDS_PAIRS
     )
+
+    if config.ES_INDEX_LATEST == "true":
+        index_field_selectors = (
+            IndexFieldSelector(
+                index=get_latest_index(
+                    opensearch_client=opensearch_client, index_pattern=selector.index
+                ),
+                field_selection=selector.field_selection,
+            )
+            for selector in index_field_selectors
+        )
 
     dry_run_mode = not (config.DRY_RUN == "false")
 

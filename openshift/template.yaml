@@ -327,6 +327,8 @@ objects:
                 value: "${ELASTICSEARCH_CLEANUP_INDEX_FIELDS_PAIRS}"
               - name: DRY_RUN
                 value: "${ELASTICSEARCH_CLEANUP_DRY_RUN}"
+              - name: ES_INDEX_LATEST
+                value: "${ELASTICSEARCH_CLEANUP_ES_INDEX_LATEST}"
               - name: ES_URL
                 valueFrom:
                   secretKeyRef:
@@ -455,3 +457,5 @@ parameters:
   value: "300m"
 - name: ELASTICSEARCH_CLEANUP_MEMORY_REQUEST
   value: "400Mi"
+- name: ELASTICSEARCH_CLEANUP_ES_INDEX_LATEST
+  value: "true"
