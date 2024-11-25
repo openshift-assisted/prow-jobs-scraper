@@ -20,7 +20,7 @@ dependencies = [
     "junitparser==3.2.0",
     "pydantic==1.10.19",
     "opensearch-py==2.7.1",
-    "slack_sdk==3.33.3",
+    "slack_sdk==3.33.4",
     "plotly==5.24.1",
     "kaleido==0.2.1",
     "python-dateutil==2.9.0.post0",
@@ -47,7 +47,7 @@ unit-tests = [
     "pytest-httpserver==1.1.0",
 ]
 coverage = [
-    "coverage[toml]==7.6.4",
+    "coverage[toml]==7.6.8",
 ]
 lint = [
     "black==24.10.0",
