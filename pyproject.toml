@@ -19,7 +19,7 @@ dependencies = [
     "google-cloud-storage==2.18.2",
     "junitparser==3.2.0",
     "pydantic==1.10.19",
-    "opensearch-py==2.7.1",
+    "opensearch-py==2.8.0",
     "slack_sdk==3.33.4",
     "plotly==5.24.1",
     "kaleido==0.2.1",
@@ -42,7 +42,7 @@ test-runner = [
 ]
 unit-tests = [
     "freezegun==1.5.1",
-    "pytest==8.3.3",
+    "pytest==8.3.4",
     "pytest-cov==6.0.0",
     "pytest-httpserver==1.1.0",
 ]
