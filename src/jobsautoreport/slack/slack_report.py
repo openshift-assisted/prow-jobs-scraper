@@ -62,8 +62,8 @@ class SlackReporter:
         filename: str,
         thread_time_stamp: Optional[str],
     ) -> None:
-        response = self._client.files_upload(
-            channels=[self._channel_id],
+        response = self._client.files_upload_v2(
+            channel=self._channel_id,
             file=file_path,
             filename=filename,
             initial_comment=file_title,
