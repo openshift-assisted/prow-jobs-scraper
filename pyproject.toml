@@ -16,7 +16,7 @@ license = { file = "LICENSE" }
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "requests==2.32.3",
-    "google-cloud-storage==3.0.0",
+    "google-cloud-storage==3.1.0",
     "junitparser==3.2.0",
     "pydantic==1.10.21",
     "opensearch-py==2.8.0",
@@ -42,7 +42,7 @@ test-runner = [
 ]
 unit-tests = [
     "freezegun==1.5.1",
-    "pytest==8.3.4",
+    "pytest==8.3.5",
     "pytest-cov==6.0.0",
     "pytest-httpserver==1.1.2",
 ]
@@ -51,7 +51,7 @@ coverage = [
 ]
 lint = [
     "black==25.1.0",
-    "isort==6.0.0",
+    "isort==6.0.1",
     "mypy==1.15.0",
 ]
 
