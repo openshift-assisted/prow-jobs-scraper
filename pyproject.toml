@@ -53,6 +53,7 @@ lint = [
     "black==25.1.0",
     "isort==6.0.1",
     "mypy==1.15.0",
+    "setuptools==76.1.0",
 ]
 
 [tool.tox]
