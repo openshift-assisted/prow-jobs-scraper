@@ -20,13 +20,13 @@ dependencies = [
     "junitparser==3.2.0",
     "pydantic==1.10.21",
     "opensearch-py==2.8.0",
-    "slack_sdk==3.34.0",
-    "plotly==6.0.0",
+    "slack_sdk==3.35.0",
+    "plotly==6.0.1",
     "kaleido==0.2.1",
     "python-dateutil==2.9.0.post0",
     "retry==0.9.2",
     "pandas==2.2.3",
-    "numpy==2.2.3",
+    "numpy==2.2.4",
     "mmh3==5.1.0",
 ]
 dynamic = ["version"]
@@ -38,7 +38,7 @@ elasticsearch-cleanup = "elasticsearch_cleanup.main:main"
 
 [project.optional-dependencies]
 test-runner = [
-    "tox==4.24.1",
+    "tox==4.24.2",
 ]
 unit-tests = [
     "freezegun==1.5.1",
@@ -47,7 +47,7 @@ unit-tests = [
     "pytest-httpserver==1.1.2",
 ]
 coverage = [
-    "coverage[toml]==7.6.12",
+    "coverage[toml]==7.7.0",
 ]
 lint = [
     "black==25.1.0",
