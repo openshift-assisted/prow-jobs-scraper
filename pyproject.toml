@@ -47,13 +47,13 @@ unit-tests = [
     "pytest-httpserver==1.1.2",
 ]
 coverage = [
-    "coverage[toml]==7.7.0",
+    "coverage[toml]==7.7.1",
 ]
 lint = [
     "black==25.1.0",
     "isort==6.0.1",
     "mypy==1.15.0",
-    "setuptools==76.1.0",
+    "setuptools==78.0.2",
 ]
 
 [tool.tox]
