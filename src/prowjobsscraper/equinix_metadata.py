@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Final
 
@@ -47,6 +48,12 @@ class EquinixMetadataExtractor:
             logger.debug("Equinix metadata are missing from %s: %s", metadata_path, e)
 
         if raw_metadata:
-            job.equinixMetadata = EquinixMetadata.parse_raw(raw_metadata)
+            try:
+                job.equinixMetadata = EquinixMetadata.parse_raw(raw_metadata)
+            except Exception as e:
+                logger.warning(
+                    f"Failed to decode Equinix metadata for job {job.spec.job}: {e}"
+                )
+
         else:
             logger.info("No equinix metadata found for job %s", job)
