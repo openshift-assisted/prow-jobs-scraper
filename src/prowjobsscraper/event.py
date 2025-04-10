@@ -5,7 +5,6 @@ import pkg_resources
 from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
-from prowjobsscraper.equinix_metadata import EquinixMetadata
 from prowjobsscraper.equinix_usages import (
     EquinixUsage,
     EquinixUsageEvent,
@@ -41,23 +40,6 @@ class JobEquinixDetails(BaseModel):
     os_slug: str
     plan: str
 
-    @classmethod
-    def create_from_equinix_metadata(
-        cls, equinix_metadata: Optional[EquinixMetadata]
-    ) -> Optional["JobEquinixDetails"]:
-        if equinix_metadata:
-            return cls(
-                facility=equinix_metadata.facility,
-                hostname=equinix_metadata.hostname,
-                id=equinix_metadata.id,
-                metro=equinix_metadata.metro,
-                os_image_tag=equinix_metadata.operatingSystem.imageTag,
-                os_slug=equinix_metadata.operatingSystem.slug,
-                plan=equinix_metadata.plan,
-            )
-
-        return None
-
 
 class JobDetails(BaseModel):
     build_id: Optional[str]
@@ -65,7 +47,6 @@ class JobDetails(BaseModel):
     cloud: Optional[str]
     context: Optional[str]
     duration: int
-    equinix: Optional[JobEquinixDetails]
     name: str
     refs: JobRefs
     start_time: Optional[datetime]
@@ -91,9 +72,6 @@ class JobEvent(BaseModel):
                 cloud=job.metadata.labels.cloud,
                 context=job.context,
                 duration=job_duration.seconds,
-                equinix=JobEquinixDetails.create_from_equinix_metadata(
-                    job.equinixMetadata
-                ),
                 name=job.spec.job,
                 refs=JobRefs.create_from_prow_job(job),
                 start_time=job.status.startTime,

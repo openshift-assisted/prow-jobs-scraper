@@ -8,7 +8,6 @@ from opensearchpy import OpenSearch
 
 from prowjobsscraper import (
     config,
-    equinix_metadata,
     equinix_usages,
     event,
     prowjob,
@@ -37,9 +36,6 @@ def main() -> None:
     step_extractor = step.StepExtractor(
         client=gcloud_client, gcs_bucket_name=config.GCS_BUCKET_NAME
     )
-    equinix_metadate_extractor = equinix_metadata.EquinixMetadataExtractor(
-        client=gcloud_client, gcs_bucket_name=config.GCS_BUCKET_NAME
-    )
 
     usages_scrape_end_time = datetime.now(tz=timezone.utc)
     usages_scrape_start_time = usages_scrape_end_time - relativedelta(weeks=1)
@@ -55,7 +51,6 @@ def main() -> None:
     scrape = scraper.Scraper(
         event_store,
         step_extractor,
-        equinix_metadate_extractor,
         equinix_usages_extractor,
     )
     scrape.execute(jobs)

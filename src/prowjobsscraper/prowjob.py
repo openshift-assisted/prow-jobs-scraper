@@ -25,20 +25,6 @@ _JOB_REHEARSE_PREFIX: Final[str] = "rehearse-"
 _JOB_PREFIX_TEMPLATE: Final[str] = "{type}-{org}-{repo}-{branch}-"
 
 
-class EquinixMetadataOperationSystem(BaseModel):
-    slug: str
-    imageTag: str = Field(alias="image_tag")
-
-
-class EquinixMetadata(BaseModel):
-    id: str
-    hostname: str
-    plan: str
-    facility: str
-    metro: str
-    operatingSystem: EquinixMetadataOperationSystem = Field(alias="operating_system")
-
-
 class ProwJobMetadataLabels(BaseModel):
     cloud: Optional[str] = Field(None, alias="ci-operator.openshift.io/cloud")
     cloudClusterProfile: Optional[str] = Field(
@@ -79,7 +65,6 @@ class ProwJobStatus(BaseModel):
 
 
 class ProwJob(BaseModel):
-    equinixMetadata: Optional[EquinixMetadata] = None
     metadata: ProwJobMetadata
     spec: ProwJobSpec
     status: ProwJobStatus
