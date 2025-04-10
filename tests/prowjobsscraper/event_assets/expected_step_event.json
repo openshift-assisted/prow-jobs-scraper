@@ -5,15 +5,6 @@
         "cloud": "packet-edge",
         "context": "e2e-metal-assisted",
         "duration": 2053,
-        "equinix": {
-            "facility": "dc13",
-            "hostname": "ipi-ci-op-yvdlzmdn-98f49-1551908182547238912",
-            "id": "47bd6216-1345-4813-aa19-c0b5648b744a",
-            "metro": "dc",
-            "os_image_tag": "1864658f8cc7117649908fe0acafa264f13d5b1b",
-            "os_slug": "rocky_8",
-            "plan": "c3.medium.x86"
-        },
         "name": "pull-ci-openshift-assisted-service-master-edge-e2e-metal-assisted",
         "refs": {
             "base_ref": "master",
