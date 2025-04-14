@@ -1,7 +1,6 @@
 {
   "items": [
     {
-      "equinixMetadata": null,
       "metadata": {
         "labels": {
           "cloud": "packet-edge",

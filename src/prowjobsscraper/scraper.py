@@ -1,7 +1,7 @@
 import logging
 import re
 
-from prowjobsscraper import equinix_metadata, equinix_usages, event, prowjob, step
+from prowjobsscraper import equinix_usages, event, prowjob, step
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +11,10 @@ class Scraper:
         self,
         event_store: event.EventStoreElastic,
         step_extractor: step.StepExtractor,
-        equinix_metadate_extractor: equinix_metadata.EquinixMetadataExtractor,
         equinix_usages_extractor: equinix_usages.EquinixUsagesExtractor,
     ):
         self._event_store = event_store
         self._step_extractor = step_extractor
-        self._equinix_metadata_extractor = equinix_metadate_extractor
         self._equinix_usages_extractor = equinix_usages_extractor
 
     def execute(self, jobs: prowjob.ProwJobs):
@@ -30,9 +28,6 @@ class Scraper:
         jobs.items = [
             j for j in jobs.items if j.status.build_id not in known_jobs_build_ids
         ]
-
-        # Retrieve equinix metadata for each job
-        self._equinix_metadata_extractor.hydrate(jobs)
 
         # Retrieve executed steps for each job
         steps = self._step_extractor.parse_prow_jobs(jobs)

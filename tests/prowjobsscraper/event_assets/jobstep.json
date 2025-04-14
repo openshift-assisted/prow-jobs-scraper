@@ -1,16 +1,5 @@
 {
   "job": {
-    "equinixMetadata": {
-      "facility": "dc13",
-      "hostname": "ipi-ci-op-yvdlzmdn-98f49-1551908182547238912",
-      "id": "47bd6216-1345-4813-aa19-c0b5648b744a",
-      "metro": "dc",
-      "operating_system": {
-        "slug": "rocky_8",
-        "image_tag": "1864658f8cc7117649908fe0acafa264f13d5b1b"
-      },
-      "plan": "c3.medium.x86"
-    },
     "metadata": {
       "labels": {
         "ci-operator.openshift.io/cloud": "packet-edge",
