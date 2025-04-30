@@ -1,0 +1,209 @@
+{
+    "boot_drive_hint": "MTFDDAV240TDU",
+    "class": "c3.medium.x86",
+    "customdata": {},
+    "facility": "da11",
+    "hostname": "ofcir-e4b5beed1d5f4e6db551638e01f63a9a",
+    "id": "b7461aa7-046d-423e-bcd6-04dfe0798e66",
+    "iqn": "iqn.2025-04.net.packet:device.b7461aa7",
+    "metro": "da",
+    "network": {
+        "addresses": [
+            {
+                "address": "147.28.196.131",
+                "address_family": 4,
+                "cidr": 31,
+                "created_at": "2025-04-20T09:22:38Z",
+                "enabled": true,
+                "gateway": "147.28.196.130",
+                "id": "d8938ec9-7e97-44af-a048-1af2b978228b",
+                "management": true,
+                "netmask": "255.255.255.254",
+                "network": "147.28.196.130",
+                "parent_block": {
+                    "cidr": 31,
+                    "href": "/ips/aefdf696-2c13-4771-a47f-647e3aea3f0c",
+                    "netmask": "255.255.255.254",
+                    "network": "147.28.196.130"
+                },
+                "public": true
+            },
+            {
+                "address": "2604:1380:4641:d900::7",
+                "address_family": 6,
+                "cidr": 127,
+                "created_at": "2025-04-20T09:22:38Z",
+                "enabled": true,
+                "gateway": "2604:1380:4641:d900::6",
+                "id": "a7e9f08d-7391-4325-8be8-00490ed425c8",
+                "management": true,
+                "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe",
+                "network": "2604:1380:4641:d900::6",
+                "parent_block": {
+                    "cidr": 56,
+                    "href": "/ips/7a238d4e-5cb9-43c5-801c-593d16b8705a",
+                    "netmask": "ffff:ffff:ffff:ff00:0000:0000:0000:0000",
+                    "network": "2604:1380:4641:d900:0000:0000:0000:0000"
+                },
+                "public": true
+            },
+            {
+                "address": "10.70.5.135",
+                "address_family": 4,
+                "cidr": 31,
+                "created_at": "2025-04-20T09:22:39Z",
+                "enabled": true,
+                "gateway": "10.70.5.134",
+                "id": "1be73bc4-ebb2-4791-92ec-b73e34e2f867",
+                "management": true,
+                "netmask": "255.255.255.254",
+                "network": "10.70.5.134",
+                "parent_block": {
+                    "cidr": 25,
+                    "href": "/ips/a7f2cb03-b77a-4472-84ca-e3d62c909366",
+                    "netmask": "255.255.255.128",
+                    "network": "10.70.5.128"
+                },
+                "public": false
+            }
+        ],
+        "bonding": {
+            "link_aggregation": "mlag_ha",
+            "mac": "40:a6:b7:70:21:e0",
+            "mode": 4
+        },
+        "interfaces": [
+            {
+                "bond": "bond0",
+                "mac": "40:a6:b7:70:21:e0",
+                "name": "eth0"
+            },
+            {
+                "bond": "bond0",
+                "mac": "40:a6:b7:70:21:e1",
+                "name": "eth1"
+            }
+        ],
+        "metal_gateways": []
+    },
+    "operating_system": {
+        "distro": "rocky",
+        "image_tag": "bf22d1880e06520e3b0629ef3bff7578d509c757",
+        "license_activation": {
+            "state": "unlicensed"
+        },
+        "slug": "rocky_9",
+        "version": "9"
+    },
+    "phone_home_url": "http://tinkerbell.da11.packet.net/phone-home",
+    "plan": "c3.medium.x86",
+    "private_subnets": [
+        "10.0.0.0/8"
+    ],
+    "reserved": false,
+    "specs": {
+        "cpus": [
+            {
+                "arch": "x86",
+                "cores": "24",
+                "count": 1,
+                "manufacturer": "AMD",
+                "model": "7402P",
+                "name": "AMD EPYC 7402P",
+                "speed": "2.80GHz",
+                "threads": "48",
+                "type": "AMD EPYC 7402P 24-Core Processor @ 2.80GHz"
+            }
+        ],
+        "drives": [
+            {
+                "category": "boot",
+                "count": 2,
+                "size": "240GB",
+                "type": "SSD"
+            },
+            {
+                "category": "storage",
+                "count": 2,
+                "size": "480GB",
+                "type": "SSD"
+            }
+        ],
+        "features": {
+            "raid": true,
+            "txt": true,
+            "uefi": false
+        },
+        "memory": {
+            "total": "64GB"
+        },
+        "nics": [
+            {
+                "count": 2,
+                "type": "10Gbps"
+            }
+        ]
+    },
+    "state": "active",
+    "storage": {
+        "disks": [
+            {
+                "device": "/dev/sda",
+                "partitions": [
+                    {
+                        "label": "BIOS",
+                        "number": 1,
+                        "size": 4096
+                    },
+                    {
+                        "label": "SWAP",
+                        "number": 2,
+                        "size": "3993600"
+                    },
+                    {
+                        "label": "ROOT",
+                        "number": 3,
+                        "size": 0
+                    }
+                ],
+                "wipeTable": true
+            }
+        ],
+        "filesystems": [
+            {
+                "mount": {
+                    "create": {
+                        "options": [
+                            "-L",
+                            "ROOT"
+                        ]
+                    },
+                    "device": "/dev/sda3",
+                    "format": "ext4",
+                    "point": "/"
+                }
+            },
+            {
+                "mount": {
+                    "create": {
+                        "options": [
+                            "-L",
+                            "SWAP"
+                        ]
+                    },
+                    "device": "/dev/sda2",
+                    "format": "swap",
+                    "point": "none"
+                }
+            }
+        ]
+    },
+    "storage_source": "default",
+    "switch_short_id": "18e37a85",
+    "tags": [
+        "cipool-assisted-equinix-medium-fallback"
+    ],
+    "updated_at": "2025-04-20T09:29:06.538Z",
+    "user_state_url": "http://tinkerbell.da11.packet.net/events",
+    "volumes": []
+}

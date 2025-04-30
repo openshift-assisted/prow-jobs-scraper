@@ -1,0 +1,54 @@
+{
+    "datacenter": "dal10",
+    "hardware": {
+        "accountId": 2319686,
+        "bareMetalInstanceFlag": 0,
+        "domain": "redhat.com",
+        "fullyQualifiedDomainName": "assisted-medium-01.redhat.com",
+        "globalIdentifier": "26896a61-6979-400d-938a-c7503b189f0f",
+        "hardwareStatus": {
+            "id": 5,
+            "status": "ACTIVE"
+        },
+        "hardwareStatusId": 5,
+        "hostname": "assisted-medium-01",
+        "id": 3293055,
+        "managedResourceFlag": false,
+        "manufacturerSerialNumber": "J101TD7F",
+        "networkManagementIpAddress": "10.176.81.204",
+        "notes": "",
+        "primaryBackendIpAddress": "10.176.81.195",
+        "primaryIpAddress": "169.60.31.70",
+        "privateIpAddress": "10.176.81.195",
+        "provisionDate": "2025-04-16T07:12:12-06:00",
+        "serialNumber": "SL01AI6V",
+        "serviceProviderId": 1,
+        "serviceProviderResourceId": null
+    },
+    "operatingSystem": {
+        "hardwareId": 3293055,
+        "id": 88417855,
+        "manufacturerLicenseInstance": "",
+        "softwareLicense": {
+            "id": 65803,
+            "softwareDescription": {
+                "controlPanel": 0,
+                "id": 3169,
+                "licenseTermValue": 0,
+                "longDescription": "Rocky Linux 9.2-64",
+                "manufacturer": "Rocky",
+                "name": "Rocky Linux",
+                "operatingSystem": 1,
+                "referenceCode": "ROCKYLINUX_9_64",
+                "requiredUser": "root",
+                "upgradeSoftwareDescriptionId": null,
+                "upgradeSwDescId": null,
+                "version": "9.2-64",
+                "virtualLicense": 0,
+                "virtualizationPlatform": 0
+            },
+            "softwareDescriptionId": 3169
+        }
+    },
+    "resourceId": "3293055"
+}

@@ -12,6 +12,7 @@
       "cloud": null,
       "context": "images",
       "duration": 757,
+      "cir_metadata": null,
       "name": "branch-ci-openshift-assisted-service-release-4.15-images",
       "refs": {
         "base_ref": "release-4.15",
@@ -48,6 +49,7 @@
       "cloud": null,
       "context": "images",
       "duration": 757,
+      "cir_metadata": null,
       "name": "branch-ci-openshift-assisted-service-release-4.15-images",
       "refs": {
         "base_ref": "release-4.15",
@@ -84,6 +86,7 @@
       "cloud": "packet-edge",
       "context": "e2e-metal-assisted",
       "duration": 1205,
+      "cir_metadata": null,
       "name": "pull-ci-openshift-assisted-installer-master-edge-e2e-metal-assisted",
       "refs": {
         "base_ref": "master",
@@ -120,6 +123,7 @@
       "cloud": "packet-edge",
       "context": "e2e-metal-assisted",
       "duration": 1205,
+      "cir_metadata": null,
       "name": "pull-ci-openshift-assisted-installer-master-edge-e2e-metal-assisted",
       "refs": {
         "base_ref": "master",
@@ -156,6 +160,7 @@
       "cloud": "packet-edge",
       "context": "e2e-metal-assisted",
       "duration": 1205,
+      "cir_metadata": null,
       "name": "pull-ci-openshift-assisted-installer-master-edge-e2e-metal-assisted",
       "refs": {
         "base_ref": "master",

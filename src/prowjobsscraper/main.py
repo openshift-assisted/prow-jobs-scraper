@@ -7,6 +7,7 @@ from google.cloud import storage  # type: ignore
 from opensearchpy import OpenSearch
 
 from prowjobsscraper import (
+    cir_metadata,
     config,
     equinix_usages,
     event,
@@ -37,6 +38,11 @@ def main() -> None:
         client=gcloud_client, gcs_bucket_name=config.GCS_BUCKET_NAME
     )
 
+    cir_metadata_extractor = cir_metadata.CIResourceMetadataExtractor(
+        client=gcloud_client,
+        gcs_bucket_name=config.GCS_BUCKET_NAME,
+    )
+
     usages_scrape_end_time = datetime.now(tz=timezone.utc)
     usages_scrape_start_time = usages_scrape_end_time - relativedelta(weeks=1)
 
@@ -51,6 +57,7 @@ def main() -> None:
     scrape = scraper.Scraper(
         event_store,
         step_extractor,
+        cir_metadata_extractor,
         equinix_usages_extractor,
     )
     scrape.execute(jobs)

@@ -1,5 +1,16 @@
 {
   "job": {
+    "cirMetadata": {
+      "ip": "192.168.45.123",
+      "name": "cir-1051",
+      "pool": "default-pool",
+      "provider": "ibm-cloud",
+      "providerInfo": "",
+      "type": "assisted_medium_el9",
+      "region": "da",
+      "hostname": "assisted-medium-01.redhat.com",
+      "os": "rocky-linux-9.2"
+    },
     "metadata": {
       "labels": {
         "ci-operator.openshift.io/cloud": "packet-edge",

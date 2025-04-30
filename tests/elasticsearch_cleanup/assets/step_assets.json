@@ -12,6 +12,7 @@
         "cloud": "packet-edge",
         "context": "cluster-profile-assisted",
         "duration": 77,
+        "cir_metadata": null,
         "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
         "refs": {
           "base_ref": "master",
@@ -62,6 +63,7 @@
         "cloud": "packet-edge",
         "context": "cluster-profile-assisted",
         "duration": 77,
+        "cir_metadata": null,
         "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
         "refs": {
           "base_ref": "master",
@@ -112,6 +114,7 @@
         "cloud": "packet-edge",
         "context": "cluster-profile-assisted",
         "duration": 77,
+        "cir_metadata": null,
         "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
         "refs": {
           "base_ref": "master",
@@ -162,6 +165,7 @@
         "cloud": "packet-edge",
         "context": "cluster-profile-assisted",
         "duration": 77,
+        "cir_metadata": null,
         "name": "periodic-ci-openshift-assisted-test-infra-master-equinix-cleanup-cluster-profile-assisted",
         "refs": {
           "base_ref": "master",

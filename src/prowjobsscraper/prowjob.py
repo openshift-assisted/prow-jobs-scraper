@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Final, Optional
+from typing import Final, Optional
 
 import requests
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,41 @@ _JOB_REHEARSE_PREFIX: Final[str] = "rehearse-"
 # Base prefix for a job name
 # e.g.: {branch-ci}-{openshift}-{assisted-service}-{master}-
 _JOB_PREFIX_TEMPLATE: Final[str] = "{type}-{org}-{repo}-{branch}-"
+
+
+class CIResourceMetadata(BaseModel):
+    """
+    CIResourceMetadata represents the metadata of a CI resource.
+    """
+
+    ip: Optional[str] = None
+    name: Optional[str] = None
+    pool: Optional[str] = None
+    provider: Optional[str] = None
+    providerInfo: Optional[str] = None
+    type: Optional[str] = None
+    region: Optional[str] = None
+    hostname: Optional[str] = None
+    os: Optional[str] = None
+
+    @classmethod
+    def create_from_cir_metadata(
+        cls, cir_metadata: Optional[CIResourceMetadata]
+    ) -> Optional["CIResourceMetadata"]:
+        if cir_metadata:
+            return cls(
+                ip=cir_metadata.ip,
+                name=cir_metadata.name,
+                pool=cir_metadata.pool,
+                provider=cir_metadata.provider,
+                providerInfo=cir_metadata.providerInfo,
+                type=cir_metadata.type,
+                region=cir_metadata.region,
+                hostname=cir_metadata.hostname,
+                os=cir_metadata.os,
+            )
+
+        return None
 
 
 class ProwJobMetadataLabels(BaseModel):
@@ -65,6 +100,7 @@ class ProwJobStatus(BaseModel):
 
 
 class ProwJob(BaseModel):
+    cirMetadata: Optional[CIResourceMetadata] = None
     metadata: ProwJobMetadata
     spec: ProwJobSpec
     status: ProwJobStatus
