@@ -10,7 +10,7 @@ from prowjobsscraper.equinix_usages import (
     EquinixUsageEvent,
     EquinixUsageIdentifier,
 )
-from prowjobsscraper.prowjob import ProwJob
+from prowjobsscraper.prowjob import CIResourceMetadata, ProwJob
 from prowjobsscraper.step import JobStep
 from prowjobsscraper.utils import generate_hash_from_strings
 
@@ -31,22 +31,13 @@ class JobRefs(BaseModel):
         )
 
 
-class JobEquinixDetails(BaseModel):
-    facility: str
-    hostname: str
-    id: str
-    metro: str
-    os_image_tag: str
-    os_slug: str
-    plan: str
-
-
 class JobDetails(BaseModel):
     build_id: Optional[str]
     cloud_cluster_profile: Optional[str]
     cloud: Optional[str]
     context: Optional[str]
     duration: int
+    ci_resource_metadata: Optional[CIResourceMetadata]
     name: str
     refs: JobRefs
     start_time: Optional[datetime]
@@ -72,6 +63,7 @@ class JobEvent(BaseModel):
                 cloud=job.metadata.labels.cloud,
                 context=job.context,
                 duration=job_duration.seconds,
+                ci_resource_metadata=job.cirMetadata,
                 name=job.spec.job,
                 refs=JobRefs.create_from_prow_job(job),
                 start_time=job.status.startTime,

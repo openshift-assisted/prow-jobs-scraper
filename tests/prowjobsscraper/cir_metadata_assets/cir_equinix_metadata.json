@@ -1,0 +1,11 @@
+{
+    "extra": "",
+    "ip": "147.28.196.131",
+    "name": "cir-0888",
+    "pool": "cipool-assisted-equinix-medium-fallback",
+    "provider": "equinix",
+    "providerInfo": "",
+    "status": "in use",
+    "type": "host_medium_el9"
+  }
+  

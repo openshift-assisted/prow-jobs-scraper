@@ -1,6 +1,7 @@
 {
   "items": [
     {
+      "cirMetadata": null,
       "metadata": {
         "labels": {
           "cloud": "packet-edge",

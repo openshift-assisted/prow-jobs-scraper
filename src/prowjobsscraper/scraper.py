@@ -1,7 +1,7 @@
 import logging
 import re
 
-from prowjobsscraper import equinix_usages, event, prowjob, step
+from prowjobsscraper import cir_metadata, equinix_usages, event, prowjob, step
 
 logger = logging.getLogger(__name__)
 
@@ -11,10 +11,12 @@ class Scraper:
         self,
         event_store: event.EventStoreElastic,
         step_extractor: step.StepExtractor,
+        cir_metadata_extractor: cir_metadata.CIResourceMetadataExtractor,
         equinix_usages_extractor: equinix_usages.EquinixUsagesExtractor,
     ):
         self._event_store = event_store
         self._step_extractor = step_extractor
+        self._cir_metadata_extractor = cir_metadata_extractor
         self._equinix_usages_extractor = equinix_usages_extractor
 
     def execute(self, jobs: prowjob.ProwJobs):
@@ -28,6 +30,9 @@ class Scraper:
         jobs.items = [
             j for j in jobs.items if j.status.build_id not in known_jobs_build_ids
         ]
+
+        # Set CI resource metadata for each job
+        self._cir_metadata_extractor.hydrate(jobs)
 
         # Retrieve executed steps for each job
         steps = self._step_extractor.parse_prow_jobs(jobs)
