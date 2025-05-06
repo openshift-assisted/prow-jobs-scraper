@@ -84,7 +84,7 @@ class CIResourceMetadataExtractor:
             logger.debug("No provider found in CIR metadata for job %s", job)
             return
 
-        if cir_metadata.provider == "ibm-cloud":
+        if cir_metadata.provider == "ibmcloud":
             cir_metadata.provider = "ibm-classic"
 
         if (provider := get_provider_by_id(id=cir_metadata.provider)) is None:
