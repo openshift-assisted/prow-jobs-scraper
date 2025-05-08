@@ -3,7 +3,7 @@
     "ip": "147.28.196.131",
     "name": "cir-0888",
     "pool": "cipool-assisted-ibmcloud-medium",
-    "provider": "ibm-cloud",
+    "provider": "ibmcloud",
     "providerInfo": "",
     "status": "in use",
     "type": "host_medium_el9"
