@@ -18,7 +18,7 @@ dependencies = [
     "requests==2.32.3",
     "google-cloud-storage==3.1.0",
     "junitparser==3.2.0",
-    "pydantic==1.10.21",
+    "pydantic==1.10.22",
     "opensearch-py==2.8.0",
     "slack_sdk==3.35.0",
     "plotly==6.0.1",
@@ -53,7 +53,7 @@ lint = [
     "black==25.1.0",
     "isort==6.0.1",
     "mypy==1.15.0",
-    "setuptools==78.1.0",
+    "setuptools==80.4.0",
 ]
 
 [tool.tox]
