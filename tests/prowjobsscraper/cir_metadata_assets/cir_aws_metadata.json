@@ -1,0 +1,10 @@
+{
+    "extra": "",
+    "ip": "44.223.39.28",
+    "name": "cir-1181",
+    "pool": "cipool-assisted-aws-test-fallback",
+    "provider": "aws",
+    "providerInfo": "",
+    "status": "in use",
+    "type": "test-aws"
+  }

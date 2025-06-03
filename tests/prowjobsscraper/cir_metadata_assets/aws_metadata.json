@@ -1,0 +1,19 @@
+{
+    "accountId": "393736332090",
+    "architecture": "x86_64",
+    "availabilityZone": "us-east-1f",
+    "billingProducts": null,
+    "devpayProductCodes": null,
+    "marketplaceProductCodes": [
+      "3qk9e6x2ni81uiqnorll45r3f"
+    ],
+    "imageId": "ami-0a73e96a849c232cc",
+    "instanceId": "i-03c9cfc7f80c31c90",
+    "instanceType": "c5n.metal",
+    "kernelId": null,
+    "pendingTime": "2025-06-01T10:05:45Z",
+    "privateIp": "172.31.73.149",
+    "ramdiskId": null,
+    "region": "us-east-1",
+    "version": "2017-09-30"
+  }
