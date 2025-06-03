@@ -5,6 +5,7 @@ import google.cloud.exceptions as gcs_exceptions
 import pkg_resources
 import pytest
 
+from providers.aws import ProviderAWS
 from providers.equinix import ProviderEquinix
 from providers.ibm_cloud import ProviderIBMCloud
 from prowjobsscraper.cir_metadata import CIResourceMetadataExtractor
@@ -202,7 +203,7 @@ def test_hydrate_calls_set_for_each_job(monkeypatch):
     assert calls == [job1, job2]
 
 
-def test_hydrate_integration_with_equinix_and_ibm(monkeypatch):
+def test_hydrate_integration_with_providers(monkeypatch):
     cir_json_ibm = pkg_resources.resource_string(
         __name__, "cir_metadata_assets/cir_ibm_metadata.json"
     ).decode()
@@ -215,6 +216,12 @@ def test_hydrate_integration_with_equinix_and_ibm(monkeypatch):
     ibm_json = pkg_resources.resource_string(
         __name__, "cir_metadata_assets/ibm_metadata.json"
     ).decode()
+    cir_json_aws = pkg_resources.resource_string(
+        __name__, "cir_metadata_assets/cir_aws_metadata.json"
+    ).decode()
+    aws_json = pkg_resources.resource_string(
+        __name__, "cir_metadata_assets/aws_metadata.json"
+    ).decode()
 
     extractor = CIResourceMetadataExtractor(
         client=MagicMock(), gcs_bucket_name="bucket"
@@ -225,7 +232,10 @@ def test_hydrate_integration_with_equinix_and_ibm(monkeypatch):
     job_ibm = make_prow_job(
         packet_profile="packet", url="gs://b/p_i", context="ctx_ibm"
     )
-    jobs = SimpleNamespace(items=[job_equinix, job_ibm])
+    job_aws = make_prow_job(
+        packet_profile="packet", url="gs://b/p_a", context="ctx_aws"
+    )
+    jobs = SimpleNamespace(items=[job_equinix, job_ibm, job_aws])
 
     monkeypatch.setattr(extractor, "_should_job_have_metadata", lambda job: True)
     monkeypatch.setattr(
@@ -233,12 +243,21 @@ def test_hydrate_integration_with_equinix_and_ibm(monkeypatch):
     )
 
     def fake_download(client, bucket, path):
+        # cir.json path
         if path.endswith("cir.json"):
-            return cir_json_equinix if "ctx_equinix" in path else cir_json_ibm
+            if "ctx_equinix" in path:
+                return cir_json_equinix
+            if "ctx_ibm" in path:
+                return cir_json_ibm
+            if "ctx_aws" in path:
+                return cir_json_aws
+        # metadata files
         if path.endswith("equinix-metadata.json"):
             return equinix_json
         if path.endswith("ibm-classic-metadata.json"):
             return ibm_json
+        if path.endswith("aws-metadata.json"):
+            return aws_json
         return None
 
     monkeypatch.setattr(
@@ -247,18 +266,30 @@ def test_hydrate_integration_with_equinix_and_ibm(monkeypatch):
 
     equinix_provider = ProviderEquinix()
     ibm_provider = ProviderIBMCloud()
+    aws_provider = ProviderAWS()
 
     monkeypatch.setattr(
         "providers.provider.get_provider_by_id",
-        lambda id: equinix_provider if id == "equinix" else ibm_provider,
+        lambda id: (
+            equinix_provider
+            if id == "equinix"
+            else ibm_provider if id == "ibm-classic" else aws_provider
+        ),
     )
 
     extractor.hydrate(jobs)
 
+    # Equinix assertions
     assert job_equinix.cirMetadata.region == "da"
     assert job_equinix.cirMetadata.hostname == "ofcir-e4b5beed1d5f4e6db551638e01f63a9a"
     assert job_equinix.cirMetadata.os == "rocky_9"
 
+    # IBM assertions
     assert job_ibm.cirMetadata.region == "dal10"
     assert job_ibm.cirMetadata.hostname == "assisted-medium-01.redhat.com"
     assert job_ibm.cirMetadata.os == "Rocky Linux 9.2-64"
+
+    # AWS assertions
+    assert job_aws.cirMetadata.region == "us-east-1"
+    assert job_aws.cirMetadata.hostname == "i-03c9cfc7f80c31c90"
+    assert job_aws.cirMetadata.os == "ami-0a73e96a849c232cc"
