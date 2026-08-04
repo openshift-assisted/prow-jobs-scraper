@@ -6,7 +6,7 @@ objects:
 - apiVersion: batch/v1
   kind: CronJob
   metadata:
-    name: prow-jobs-scraper
+    name: prow-jobs-scraper-assisted-project-usages
   spec:
     concurrencyPolicy: ${PROW_JOBS_CONCURRENCY_POLICY}
     schedule: ${PROW_JOBS_SCRAPER_SCHEDULE}
