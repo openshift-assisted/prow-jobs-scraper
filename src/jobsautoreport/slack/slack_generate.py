@@ -1,8 +1,5 @@
 from jobsautoreport.consts import FAILURE_EMOJI, SECTION_DIVIDER, SUCCESS_EMOJI
 from jobsautoreport.models import (
-    EquinixCostReport,
-    EquinixUsageReport,
-    FeatureFlags,
     PeriodicJobsReport,
     PostSubmitJobsReport,
     PresubmitJobsReport,
@@ -99,49 +96,6 @@ class SlackGenerator:
                 "text": {"type": "mrkdwn", "text": text},
             },
         ]
-
-    @staticmethod
-    def create_equinix_message(
-        equinix_usage_report: EquinixUsageReport,
-        equinix_cost_report: EquinixCostReport,
-        feature_flags: FeatureFlags,
-    ) -> SlackMessage:
-        message: SlackMessage = [
-            SECTION_DIVIDER,
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "*Equinix*",
-                },
-            },
-        ]
-        if feature_flags.equinix_usage:
-            message += [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": (
-                            f"•\t _{equinix_usage_report.total_machines_leased}_ machine lease attempts\n"
-                            f" \t\t *-* {SUCCESS_EMOJI} {equinix_usage_report.successful_machine_leases} succeeded\n"
-                            f" \t\t *-* {FAILURE_EMOJI} {equinix_usage_report.unsuccessful_machine_leases} failed\n"
-                        ),
-                    },
-                },
-            ]
-        if feature_flags.equinix_cost:
-            message += [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"•\t Total cost: *_{int(equinix_cost_report.total_equinix_machines_cost)}_ $*",
-                    },
-                },
-            ]
-
-        return message
 
     @staticmethod
     def create_header_message(

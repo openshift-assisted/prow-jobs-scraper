@@ -1,8 +1,8 @@
 import json
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import MagicMock
 
-import pkg_resources
 from google.cloud import exceptions
 
 from prowjobsscraper import step
@@ -11,7 +11,7 @@ from prowjobsscraper.prowjob import ProwJobs
 
 def test_step_extractor_when_junit_is_not_available_should_return_no_steps():
     jobs = ProwJobs.create_from_string(
-        pkg_resources.resource_string(__name__, f"step_assets/prowjobs.json")
+        (Path(__file__).parent / f"step_assets/prowjobs.json").read_bytes()
     )
     storage_client = MagicMock()
     bucket = MagicMock()
@@ -32,9 +32,9 @@ def test_step_extractor_when_junit_is_not_available_should_return_no_steps():
 
 def test_step_extractor_with_valid_junit_should_return_steps():
     jobs = ProwJobs.create_from_string(
-        pkg_resources.resource_string(__name__, f"step_assets/prowjobs.json")
+        (Path(__file__).parent / f"step_assets/prowjobs.json").read_bytes()
     )
-    junit = pkg_resources.resource_string(__name__, f"step_assets/junit_operator.xml")
+    junit = (Path(__file__).parent / f"step_assets/junit_operator.xml").read_bytes()
 
     storage_client = MagicMock()
     bucket = MagicMock()
@@ -54,20 +54,18 @@ def test_step_extractor_with_valid_junit_should_return_steps():
     assert {s.name for s in steps} == {"step1", "step2", "step3"}
     for s in steps:
         expected = json.loads(
-            pkg_resources.resource_string(
-                __name__, f"step_assets/expected_{s.name}.json"
-            )
+            (Path(__file__).parent / f"step_assets/expected_{s.name}.json").read_bytes()
         )
         assert s.json(exclude_unset=True) == json.dumps(expected)
 
 
 def test_step_extractor_with_malformed_junit_should_return_steps():
     jobs = ProwJobs.create_from_string(
-        pkg_resources.resource_string(__name__, f"step_assets/prowjobs.json")
+        (Path(__file__).parent / f"step_assets/prowjobs.json").read_bytes()
     )
-    junit = pkg_resources.resource_string(
-        __name__, f"step_assets/malformed_time_junit_operator.xml"
-    )
+    junit = (
+        Path(__file__).parent / f"step_assets/malformed_time_junit_operator.xml"
+    ).read_bytes()
 
     storage_client = MagicMock()
     bucket = MagicMock()

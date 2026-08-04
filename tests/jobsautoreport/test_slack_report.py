@@ -2,14 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from jobsautoreport.models import (
-    FeatureFlags,
-    JobIdentifier,
-    JobTypeMetrics,
-    MachineMetrics,
-    Report,
-    Trends,
-)
+from jobsautoreport.models import FeatureFlags, Report, Trends
 from jobsautoreport.slack.slack_report import SlackReporter
 
 
@@ -41,9 +34,6 @@ def mock_trends() -> Trends:
         number_of_rehearsal_jobs=0,
         number_of_postsubmit_jobs=5,
         success_rate_for_postsubmit_jobs=-0.02,
-        total_number_of_machine_leased=50,
-        number_of_unsuccessful_machine_leases=-3,
-        total_equinix_machines_cost=1000,
     )
 
 
@@ -60,10 +50,6 @@ def mock_plotter() -> MagicMock:
         plotter.create_flaky_jobs_graph.return_value = (
             plotter_graph_creation_returned_value
         )
-        plotter.create_most_expensive_jobs_graph.return_value = (
-            plotter_graph_creation_returned_value
-        )
-        plotter.create_pie_chart.return_value = plotter_graph_creation_returned_value
         yield plotter
 
 
@@ -184,68 +170,6 @@ def test__send_flakiness_rates_without_flaky_jobs(
     slack_reporter._client.files_upload_v2.assert_not_called()
 
 
-def test__send_equinix_costs_with_trends(
-    mock_report_1: Report,
-    mock_trends: Trends,
-    mock_plotter: MagicMock,
-    mock_thread_time_stamp: dict[str, str],
-    mock_slack_generator: MagicMock,
-    slack_reporter: SlackReporter,
-    mock_trend_slack_integrator: MagicMock,
-):
-    slack_reporter._send_equinix_costs(
-        report=mock_report_1,
-        trends=mock_trends,
-        feature_flags=FeatureFlags(
-            success_rates=True,
-            equinix_usage=True,
-            equinix_cost=True,
-            trends=True,
-            flakiness_rates=True,
-        ),
-        plotter=mock_plotter,
-        thread_time_stamp=mock_thread_time_stamp["ts"],
-    )
-
-    mock_slack_generator.create_equinix_message.assert_called_once()
-    mock_trend_slack_integrator.add_equinix_trends.assert_called_once()
-    mock_plotter.create_most_expensive_jobs_graph.assert_called_once()
-    mock_plotter.create_pie_chart.call_count == 2
-    slack_reporter._client.files_upload_v2.call_count == 3
-    slack_reporter._client.chat_postMessage.call_count == 1
-
-
-def test__send_equinix_costs_without_trends(
-    mock_report_1: Report,
-    mock_trends: Trends,
-    mock_plotter: MagicMock,
-    mock_thread_time_stamp: dict[str, str],
-    mock_slack_generator: MagicMock,
-    slack_reporter: SlackReporter,
-    mock_trend_slack_integrator: MagicMock,
-):
-    slack_reporter._send_equinix_costs(
-        report=mock_report_1,
-        trends=None,
-        feature_flags=FeatureFlags(
-            success_rates=True,
-            equinix_usage=True,
-            equinix_cost=True,
-            trends=False,
-            flakiness_rates=True,
-        ),
-        plotter=mock_plotter,
-        thread_time_stamp=mock_thread_time_stamp["ts"],
-    )
-
-    mock_slack_generator.create_equinix_message.assert_called_once()
-    mock_trend_slack_integrator.add_equinix_trends.assert_not_called()
-    mock_plotter.create_most_expensive_jobs_graph.assert_called_once()
-    mock_plotter.create_pie_chart.call_count == 2
-    slack_reporter._client.files_upload_v2.call_count == 3
-    slack_reporter._client.chat_postMessage.call_count == 1
-
-
 def test_send_report_with_all_features(
     mock_report_1: Report,
     mock_trends: Trends,
@@ -253,8 +177,6 @@ def test_send_report_with_all_features(
 ):
     feature_flags = FeatureFlags(
         success_rates=True,
-        equinix_usage=True,
-        equinix_cost=True,
         trends=True,
         flakiness_rates=True,
     )
@@ -263,11 +185,11 @@ def test_send_report_with_all_features(
         report=mock_report_1, trends=mock_trends, feature_flags=feature_flags
     )
 
-    # header, periodics, presubmits, postsubmits, equinix
-    assert slack_reporter._client.chat_postMessage.call_count == 5
+    # header, periodics, presubmits, postsubmits
+    assert slack_reporter._client.chat_postMessage.call_count == 4
 
-    # 3 (top 10 failing) graphs, (top 5 triggered) graph, (flaky jobs) graph, 2 equinix graphs
-    assert slack_reporter._client.files_upload_v2.call_count == 7
+    # 3 (top 10 failing) graphs, (top 5 triggered) graph, (flaky jobs) graph
+    assert slack_reporter._client.files_upload_v2.call_count == 5
 
 
 def test_send_report_with_all_features_but_success_rate(
@@ -277,8 +199,6 @@ def test_send_report_with_all_features_but_success_rate(
 ):
     feature_flags = FeatureFlags(
         success_rates=False,
-        equinix_usage=True,
-        equinix_cost=True,
         trends=True,
         flakiness_rates=True,
     )
@@ -287,59 +207,11 @@ def test_send_report_with_all_features_but_success_rate(
         report=mock_report_1, trends=mock_trends, feature_flags=feature_flags
     )
 
-    # header, equinix
-    assert slack_reporter._client.chat_postMessage.call_count == 2
+    # header
+    assert slack_reporter._client.chat_postMessage.call_count == 1
 
-    # (flaky jobs) graph, 2 equinix graphs
-    assert slack_reporter._client.files_upload_v2.call_count == 3
-
-
-def test_send_report_with_all_features_but_equinix_usage(
-    mock_report_1: Report,
-    mock_trends: Trends,
-    slack_reporter: SlackReporter,
-):
-    feature_flags = FeatureFlags(
-        success_rates=True,
-        equinix_usage=False,
-        equinix_cost=True,
-        trends=True,
-        flakiness_rates=True,
-    )
-
-    slack_reporter.send_report(
-        report=mock_report_1, trends=mock_trends, feature_flags=feature_flags
-    )
-
-    # header, periodics, presubmits, postsubmits, equinix (partial)
-    assert slack_reporter._client.chat_postMessage.call_count == 5
-
-    # 3 (top 10 failing) graphs, (top 5 triggered) graph, (flaky jobs) graph, 2 equinix graphs
-    assert slack_reporter._client.files_upload_v2.call_count == 7
-
-
-def test_send_report_with_all_features_but_equinix_cost(
-    mock_report_1: Report,
-    mock_trends: Trends,
-    slack_reporter: SlackReporter,
-):
-    feature_flags = FeatureFlags(
-        success_rates=True,
-        equinix_usage=True,
-        equinix_cost=False,
-        trends=True,
-        flakiness_rates=True,
-    )
-
-    slack_reporter.send_report(
-        report=mock_report_1, trends=mock_trends, feature_flags=feature_flags
-    )
-
-    # header, periodics, presubmits, postsubmits, equinix (partial)
-    assert slack_reporter._client.chat_postMessage.call_count == 5
-
-    # 3 (top 10 failing) graphs, (top 5 triggered) graph, (flaky jobs) graph
-    assert slack_reporter._client.files_upload_v2.call_count == 5
+    # (flaky jobs) graph
+    assert slack_reporter._client.files_upload_v2.call_count == 1
 
 
 def test_send_report_with_all_features_but_trends(
@@ -349,8 +221,6 @@ def test_send_report_with_all_features_but_trends(
 ):
     feature_flags = FeatureFlags(
         success_rates=True,
-        equinix_usage=True,
-        equinix_cost=True,
         trends=False,
         flakiness_rates=True,
     )
@@ -359,11 +229,11 @@ def test_send_report_with_all_features_but_trends(
         report=mock_report_1, trends=mock_trends, feature_flags=feature_flags
     )
 
-    # header, periodics, presubmits, postsubmits, equinix
-    assert slack_reporter._client.chat_postMessage.call_count == 5
+    # header, periodics, presubmits, postsubmits
+    assert slack_reporter._client.chat_postMessage.call_count == 4
 
-    # 3 (top 10 failing) graphs, (top 5 triggered) graph, (flaky jobs) graph, 2 equinix graphs
-    assert slack_reporter._client.files_upload_v2.call_count == 7
+    # 3 (top 10 failing) graphs, (top 5 triggered) graph, (flaky jobs) graph
+    assert slack_reporter._client.files_upload_v2.call_count == 5
 
 
 def test_send_report_with_all_features_but_flakiness_rates(
@@ -373,8 +243,6 @@ def test_send_report_with_all_features_but_flakiness_rates(
 ):
     feature_flags = FeatureFlags(
         success_rates=True,
-        equinix_usage=True,
-        equinix_cost=True,
         trends=True,
         flakiness_rates=False,
     )
@@ -383,44 +251,8 @@ def test_send_report_with_all_features_but_flakiness_rates(
         report=mock_report_1, trends=mock_trends, feature_flags=feature_flags
     )
 
-    # header, periodics, presubmits, postsubmits, equinix
-    assert slack_reporter._client.chat_postMessage.call_count == 5
+    # header, periodics, presubmits, postsubmits
+    assert slack_reporter._client.chat_postMessage.call_count == 4
 
-    # 3 (top 10 failing) graphs, (top 5 triggered) graph, 2 equinix graphs
-    assert slack_reporter._client.files_upload_v2.call_count == 6
-
-
-def test_format_cost_by_machine_type_metrics():
-    machine_metrics = MachineMetrics(
-        metrics={
-            "c1.small.x86_64": 500,
-            "c2.large.x86_64": 300,
-            "m1.xlarge.x86_64": 100,
-            "e1.xlarge.x86_64": 4,
-            "e1.small.x86_64": 4,
-            "Outbound Bandwidth": 10,
-        }
-    )
-    slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
-    types, costs = slack_reporter._create_cost_by_machine_type_metrics(
-        machine_metrics, threshold=0.02
-    )
-    assert types == ["Others", "c1 small x86_64", "c2 large x86_64", "m1 xlarge x86_64"]
-    assert costs == [8, 500, 300, 100]
-
-
-def test_format_cost_by_job_type_metrics():
-    job_type_metrics = JobTypeMetrics(
-        metrics={
-            "batch": 1000,
-            "presubmit": 500,
-            "periodic": 5,
-            "postsubmit": 5,
-        }
-    )
-    slack_reporter = SlackReporter(web_client=MagicMock(), channel_id=MagicMock())
-    types, costs = slack_reporter._create_cost_by_job_type_metrics(
-        job_type_metrics, threshold=0.02
-    )
-    assert types == ["Others", "batch", "presubmit"]
-    assert costs == [10, 1000, 500]
+    # 3 (top 10 failing) graphs, (top 5 triggered) graph
+    assert slack_reporter._client.files_upload_v2.call_count == 4

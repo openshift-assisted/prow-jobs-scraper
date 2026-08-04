@@ -1,20 +1,10 @@
 import logging
 import sys
-from datetime import datetime, timezone
 
-from dateutil.relativedelta import relativedelta
 from google.cloud import storage  # type: ignore
 from opensearchpy import OpenSearch
 
-from prowjobsscraper import (
-    cir_metadata,
-    config,
-    equinix_usages,
-    event,
-    prowjob,
-    scraper,
-    step,
-)
+from prowjobsscraper import cir_metadata, config, event, prowjob, scraper, step
 
 
 def main() -> None:
@@ -30,7 +20,6 @@ def main() -> None:
         client=es_client,
         job_index_basename=config.ES_JOB_INDEX,
         step_index_basename=config.ES_STEP_INDEX,
-        usage_index_basename=config.ES_USAGE_INDEX,
     )
 
     gcloud_client = storage.Client.create_anonymous_client()
@@ -43,22 +32,11 @@ def main() -> None:
         gcs_bucket_name=config.GCS_BUCKET_NAME,
     )
 
-    usages_scrape_end_time = datetime.now(tz=timezone.utc)
-    usages_scrape_start_time = usages_scrape_end_time - relativedelta(weeks=1)
-
-    equinix_usages_extractor = equinix_usages.EquinixUsagesExtractor(
-        project_id=config.EQUINIX_PROJECT_ID,
-        project_token=config.EQUINIX_PROJECT_TOKEN,
-        start_time=usages_scrape_start_time,
-        end_time=usages_scrape_end_time,
-    )
-
     jobs = prowjob.ProwJobs.create_from_url(config.JOB_LIST_URL)
     scrape = scraper.Scraper(
         event_store,
         step_extractor,
         cir_metadata_extractor,
-        equinix_usages_extractor,
     )
     scrape.execute(jobs)
 

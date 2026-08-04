@@ -1,8 +1,8 @@
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import google.cloud.exceptions as gcs_exceptions
-import pkg_resources
 import pytest
 
 from providers.aws import ProviderAWS
@@ -204,24 +204,36 @@ def test_hydrate_calls_set_for_each_job(monkeypatch):
 
 
 def test_hydrate_integration_with_providers(monkeypatch):
-    cir_json_ibm = pkg_resources.resource_string(
-        __name__, "cir_metadata_assets/cir_ibm_metadata.json"
-    ).decode()
-    equinix_json = pkg_resources.resource_string(
-        __name__, "cir_metadata_assets/equinix_metadata.json"
-    ).decode()
-    cir_json_equinix = pkg_resources.resource_string(
-        __name__, "cir_metadata_assets/cir_equinix_metadata.json"
-    ).decode()
-    ibm_json = pkg_resources.resource_string(
-        __name__, "cir_metadata_assets/ibm_metadata.json"
-    ).decode()
-    cir_json_aws = pkg_resources.resource_string(
-        __name__, "cir_metadata_assets/cir_aws_metadata.json"
-    ).decode()
-    aws_json = pkg_resources.resource_string(
-        __name__, "cir_metadata_assets/aws_metadata.json"
-    ).decode()
+    cir_json_ibm = (
+        (Path(__file__).parent / "cir_metadata_assets/cir_ibm_metadata.json")
+        .read_bytes()
+        .decode()
+    )
+    equinix_json = (
+        (Path(__file__).parent / "cir_metadata_assets/equinix_metadata.json")
+        .read_bytes()
+        .decode()
+    )
+    cir_json_equinix = (
+        (Path(__file__).parent / "cir_metadata_assets/cir_equinix_metadata.json")
+        .read_bytes()
+        .decode()
+    )
+    ibm_json = (
+        (Path(__file__).parent / "cir_metadata_assets/ibm_metadata.json")
+        .read_bytes()
+        .decode()
+    )
+    cir_json_aws = (
+        (Path(__file__).parent / "cir_metadata_assets/cir_aws_metadata.json")
+        .read_bytes()
+        .decode()
+    )
+    aws_json = (
+        (Path(__file__).parent / "cir_metadata_assets/aws_metadata.json")
+        .read_bytes()
+        .decode()
+    )
 
     extractor = CIResourceMetadataExtractor(
         client=MagicMock(), gcs_bucket_name="bucket"

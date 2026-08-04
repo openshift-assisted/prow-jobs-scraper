@@ -1,7 +1,7 @@
 import json
+from pathlib import Path
 from typing import Final
 
-import pkg_resources
 import pytest
 from pydantic import ValidationError
 from pytest_httpserver import HTTPServer
@@ -22,13 +22,11 @@ def test_invalid_json_from_prow_should_throw_an_exception(httpserver: HTTPServer
 
 
 def test_valid_json_from_prow_should_be_successfully_parsed(httpserver: HTTPServer):
-    response = pkg_resources.resource_string(
-        __name__, f"prowjob_assets/valid_prow_response.json"
-    )
+    response = (
+        Path(__file__).parent / f"prowjob_assets/valid_prow_response.json"
+    ).read_bytes()
     expected = json.loads(
-        pkg_resources.resource_string(
-            __name__, f"prowjob_assets/expected_prowjobs.json"
-        )
+        (Path(__file__).parent / f"prowjob_assets/expected_prowjobs.json").read_bytes()
     )
     httpserver.expect_request("/jobs").respond_with_data(response)
     jobs = prowjob.ProwJobs.create_from_url(httpserver.url_for("/jobs"))
@@ -73,9 +71,7 @@ def test_valid_json_from_prow_should_be_successfully_parsed(httpserver: HTTPServ
 )
 def test_context_should_be_successfully_parsed(job_name, job_type, job_variant):
     jobs = prowjob.ProwJobs.create_from_string(
-        pkg_resources.resource_string(
-            __name__, "prowjob_assets/valid_prow_response.json"
-        )
+        (Path(__file__).parent / "prowjob_assets/valid_prow_response.json").read_bytes()
     )
     jobs.items[0].spec.type = job_type
     jobs.items[0].spec.job = job_name
