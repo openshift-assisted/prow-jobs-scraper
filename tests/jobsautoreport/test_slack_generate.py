@@ -1,6 +1,6 @@
 import pytest
 
-from jobsautoreport.models import FeatureFlags, Report, SlackMessage
+from jobsautoreport.models import Report, SlackMessage
 from jobsautoreport.slack.slack_generate import SlackGenerator
 
 
@@ -109,38 +109,6 @@ def expected_postsubmit_comment(mock_report_1: Report) -> SlackMessage:
     ]
 
 
-@pytest.fixture
-def expected_equinix_comment(mock_report_1: Report) -> SlackMessage:
-    return [
-        {"type": "divider"},
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "*Equinix*",
-            },
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": (
-                    f"•\t _{mock_report_1.equinix_usage_report.total_machines_leased}_ machine lease attempts\n"
-                    f" \t\t *-* :done-circle-check: {mock_report_1.equinix_usage_report.successful_machine_leases} succeeded\n"
-                    f" \t\t *-* :x: {mock_report_1.equinix_usage_report.unsuccessful_machine_leases} failed\n"
-                ),
-            },
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"•\t Total cost: *_{int(mock_report_1.equinix_cost_report.total_equinix_machines_cost)}_ $*",
-            },
-        },
-    ]
-
-
 def test_create_periodic_comment(
     expected_periodic_comment: SlackMessage, mock_report_1: Report
 ):
@@ -171,25 +139,6 @@ def test_create_postubmit_comment(
             postsubmits_report=mock_report_1.postsubmits_report
         )
         == expected_postsubmit_comment
-    )
-
-
-def test_create_equinix_comment(
-    expected_equinix_comment: SlackMessage, mock_report_1: Report
-):
-    assert (
-        SlackGenerator().create_equinix_message(
-            equinix_usage_report=mock_report_1.equinix_usage_report,
-            equinix_cost_report=mock_report_1.equinix_cost_report,
-            feature_flags=FeatureFlags(
-                success_rates=True,
-                equinix_usage=True,
-                equinix_cost=True,
-                trends=True,
-                flakiness_rates=True,
-            ),
-        )
-        == expected_equinix_comment
     )
 
 

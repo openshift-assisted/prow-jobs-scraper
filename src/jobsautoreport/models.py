@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, NewType, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -24,32 +24,9 @@ class ReportInterval(Enum):
     MONTH = "month"
 
 
-class Metric(BaseModel):
-    def is_zero(self) -> bool:
-        for cost in self.dict().values():
-            if cost > 0:
-                return False
-        return True
-
-
-class MachineMetrics(Metric):
-    metrics: dict[str, float]
-
-    def is_zero(self) -> bool:
-        return sum(self.metrics.values()) == 0
-
-
-class JobTypeMetrics(Metric):
-    metrics: dict[str, float]
-
-    def is_zero(self) -> bool:
-        return sum(self.metrics.values()) == 0
-
-
-class JobMetrics(Metric):
+class JobMetrics(BaseModel):
     successes: int
     failures: int
-    cost: float
     flakiness: Optional[float]
     flakiness_threshold: float = 0.5
 
@@ -75,8 +52,6 @@ class JobMetrics(Metric):
 
 class FeatureFlags(BaseModel):
     success_rates: bool
-    equinix_usage: bool
-    equinix_cost: bool
     trends: bool
     flakiness_rates: bool
 
@@ -145,19 +120,6 @@ class PostSubmitJobsReport(EndToEndOrSubsystemJobsReport):
     pass
 
 
-class EquinixUsageReport(BaseModel):
-    total_machines_leased: int
-    successful_machine_leases: int
-    unsuccessful_machine_leases: int
-
-
-class EquinixCostReport(BaseModel):
-    total_equinix_machines_cost: float
-    cost_by_machine_type: MachineMetrics
-    cost_by_job_type: JobTypeMetrics
-    top_5_most_expensive_jobs: list[IdentifiedJobMetrics]
-
-
 class Report(BaseModel):
     from_date: datetime
     to_date: datetime
@@ -165,8 +127,6 @@ class Report(BaseModel):
     presubmits_report: PresubmitJobsReport
     postsubmits_report: PostSubmitJobsReport
     top_5_most_triggered_e2e_or_subsystem_jobs: list[IdentifiedJobMetrics]
-    equinix_usage_report: EquinixUsageReport
-    equinix_cost_report: EquinixCostReport
     flaky_jobs: list[IdentifiedJobMetrics]
 
 
@@ -178,12 +138,6 @@ class Trends(BaseModel):
     number_of_rehearsal_jobs: int
     number_of_postsubmit_jobs: int
     success_rate_for_postsubmit_jobs: Optional[float] = None
-    total_number_of_machine_leased: int
-    number_of_unsuccessful_machine_leases: int
-    total_equinix_machines_cost: float
-
-
-StepState = NewType("StepState", JobState)(JobState)
 
 
 SlackMessage = list[dict[str, Any]]

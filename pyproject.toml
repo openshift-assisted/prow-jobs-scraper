@@ -7,6 +7,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 
+[tool.setuptools.package-data]
+prowjobsscraper = ["indices/*.json"]
+
 [project]
 name = "prow-jobs-scraper"
 description = "Scrape Prow for job results and export them to elasticsearch"

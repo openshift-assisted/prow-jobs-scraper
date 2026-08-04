@@ -69,12 +69,9 @@ def main() -> None:
 
     jobs_index = config.ES_JOB_INDEX + "-*"
     steps_index = config.ES_STEP_INDEX + "-*"
-    usages_index = config.ES_USAGE_INDEX + "-*"
 
     feature_flags = FeatureFlags(
         success_rates=config.FEATURE_SUCCESS_RATES,  # type: ignore
-        equinix_usage=config.FEATURE_EQUINIX_USAGE,  # type: ignore
-        equinix_cost=config.FEATURE_EQUINIX_COST,  # type: ignore
         trends=config.FEATURE_TRENDS,  # type: ignore
         flakiness_rates=config.FEATURE_FLAKINESS_RATES,  # type: ignore
     )
@@ -83,7 +80,6 @@ def main() -> None:
         opensearch_client=client,
         jobs_index=jobs_index,
         steps_index=steps_index,
-        usages_index=usages_index,
     )
 
     reporter = Reporter(querier=querier)

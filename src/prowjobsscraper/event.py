@@ -1,15 +1,10 @@
 from datetime import datetime, timedelta
+from importlib import resources
 from typing import Any, Iterator, Optional
 
-import pkg_resources
 from opensearchpy import OpenSearch, helpers
 from pydantic import BaseModel
 
-from prowjobsscraper.equinix_usages import (
-    EquinixUsage,
-    EquinixUsageEvent,
-    EquinixUsageIdentifier,
-)
 from prowjobsscraper.prowjob import CIResourceMetadata, ProwJob
 from prowjobsscraper.step import JobStep
 from prowjobsscraper.utils import generate_hash_from_strings
@@ -100,12 +95,9 @@ class StepEvent(BaseModel):
 
 
 class EventStoreElastic:
-    def __init__(
-        self, client, job_index_basename, step_index_basename, usage_index_basename
-    ):
+    def __init__(self, client, job_index_basename, step_index_basename):
         self._jobs_index = _EsIndex(client, job_index_basename)
         self._steps_index = _EsIndex(client, step_index_basename)
-        self._usages_index = _EsIndex(client, usage_index_basename)
 
     def index_job_steps(self, steps: list[JobStep]):
         step_events = (
@@ -123,28 +115,9 @@ class EventStoreElastic:
         )
         self._jobs_index.index(job_events)
 
-    def index_equinix_usages(self, usages: list[EquinixUsage]):
-        equinix_usages = (
-            (
-                EquinixUsageEvent.create_from_equinix_usage(u).dict(),
-                generate_hash_from_strings(u.job_build_id, u.plan),
-            )
-            for u in usages
-        )
-        self._usages_index.index(equinix_usages)
-
     def scan_build_ids(self) -> set[str]:
         results = self._jobs_index.scan({"_source": ["job.build_id"]})
         return {r["_source"]["job"]["build_id"] for r in results}
-
-    def scan_usages_identifiers(self) -> set[EquinixUsageIdentifier]:
-        results = self._usages_index.scan({"query": {"match_all": {}}})
-        return {
-            EquinixUsageIdentifier(
-                name=r["_source"]["usage"]["name"], plan=r["_source"]["usage"]["plan"]
-            )
-            for r in results
-        }
 
 
 class _EsIndex:
@@ -159,8 +132,10 @@ class _EsIndex:
         self._previous_index_name = self._format_index_name(index_prefix, a_week_ago)
 
         # apply the index template
-        index_schema = pkg_resources.resource_string(
-            __name__, f"indices/{index_prefix}_schema.json"
+        index_schema = (
+            resources.files(__package__)
+            .joinpath(f"indices/{index_prefix}_schema.json")
+            .read_bytes()
         )
         if not self._client.indices.exists(index=self._index_name):
             self._client.indices.create(index=self._index_name, body=index_schema)

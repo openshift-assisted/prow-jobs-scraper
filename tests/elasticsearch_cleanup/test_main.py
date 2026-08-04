@@ -1,8 +1,8 @@
 import json
+from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pkg_resources
 import pytest
 
 from elasticsearch_cleanup import main
@@ -23,16 +23,12 @@ def mock_config():
 
 @pytest.fixture()
 def job_documents() -> list[dict[str, Any]]:
-    return json.loads(
-        pkg_resources.resource_string(__name__, f"assets/job_assets.json")
-    )
+    return json.loads((Path(__file__).parent / f"assets/job_assets.json").read_bytes())
 
 
 @pytest.fixture()
 def step_documents() -> list[dict[str, Any]]:
-    return json.loads(
-        pkg_resources.resource_string(__name__, f"assets/step_assets.json")
-    )
+    return json.loads((Path(__file__).parent / f"assets/step_assets.json").read_bytes())
 
 
 @pytest.fixture(autouse=True)

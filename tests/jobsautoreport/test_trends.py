@@ -39,16 +39,6 @@ def test_detect_trends(
         - mock_report_2.postsubmits_report.total
     )
     assert trends.success_rate_for_postsubmit_jobs is None
-    assert (
-        trends.total_number_of_machine_leased
-        == mock_report_1.equinix_usage_report.total_machines_leased
-        - mock_report_2.equinix_usage_report.total_machines_leased
-    )
-    assert (
-        trends.number_of_unsuccessful_machine_leases
-        == mock_report_1.equinix_usage_report.unsuccessful_machine_leases
-        - mock_report_2.equinix_usage_report.unsuccessful_machine_leases
-    )
 
 
 def test_get_sign_for_trend():
